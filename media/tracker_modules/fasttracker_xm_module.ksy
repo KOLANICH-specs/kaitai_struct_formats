@@ -23,9 +23,9 @@ doc: |
   (patterns), which provides good audio quality with relatively small
   file size. Audio is reproducible without relying on the sound of
   particular hardware samplers or synths.
-doc-ref: |
-  http://sid.ethz.ch/debian/milkytracker/milkytracker-0.90.85%2Bdfsg/resources/reference/xm-form.txt
-  ftp://ftp.modland.com/pub/documents/format_documentation/FastTracker%202%20v2.04%20(.xm).html
+doc-ref:
+  - "http://sid.ethz.ch/debian/milkytracker/milkytracker-0.90.85%2Bdfsg/resources/reference/xm-form.txt"
+  - "ftp://ftp.modland.com/pub/documents/format_documentation/FastTracker%202%20v2.04%20(.xm).html"
 seq:
   - id: preheader
     type: preheader
@@ -114,6 +114,7 @@ types:
         type: header
       - id: packed_data
         size: header.main.len_packed_pattern
+        type: packed_data
     types:
       header:
         seq:
@@ -142,6 +143,74 @@ types:
             instances:
               num_rows:
                 value: 'num_rows_raw + (_root.preheader.version_number.value == 0x0102 ? 1 : 0)'
+      packed_data:
+        seq:
+          - id: sequence
+            type: position
+            repeat: expr
+            repeat-expr: _parent.header.main.num_rows
+        types:
+          position:
+            seq:
+              - id: channels
+                type: note_packed
+                repeat: expr
+                repeat-expr: _root.header.num_channels
+            types:
+              note_packed:
+                doc: |
+                    Simle packing scheme is also adopted, so that the patterns not become TOO large: Since the MSB in the note value is never used, if is used for the compression. It is very simple, but far from optimal. If you want a better, you can always repack the patterns in your loader.
+                seq:
+                  - id: is_packed
+                    type: b1
+                  - id: packing
+                    type: packing
+                    if: is_packed
+                  
+                  - id: note
+                    type: note
+                    if: not is_packed or packing.note
+                  - id: instrument
+                    type: u1
+                    doc: (0-128) << More like 1-128 >>
+                    if: not is_packed or packing.instrument
+                  - id: volume_column_byte
+                    type: u1
+                    doc: Volume column byte (see below)
+                    if: not is_packed or packing.volume_column_byte
+                  - id: effect_type
+                    type: u1
+                    if: not is_packed or packing.effect_type
+                  - id: effect_parameter
+                    type: u1
+                    if: not is_packed or packing.effect_parameter
+                instances:
+                  note_is_1_byte:
+                    value: is_packed and packing.note
+                types:
+                  note:
+                    seq:
+                      - id: padding
+                        type: b1
+                        if: _parent.note_is_1_byte
+                      - id: note
+                        type: b7
+                        doc:  Note (0-71, 0 = C-0) << Hah. Actually note numbers are 1-96, 97 being the key-off note (try to find that in the documentation!>>
+                  packing:
+                    seq:
+                      - id: reserved
+                        type: b2
+                      - id: effect_parameter
+                        type: b1
+                      - id: effect_type
+                        type: b1
+                      - id: volume_column_byte
+                        type: b1
+                      - id: instrument
+                        type: b1
+                      - id: note
+                        type: b1
+
   instrument:
     doc: |
       XM's notion of "instrument" typically constitutes of a
