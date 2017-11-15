@@ -1,0 +1,258 @@
+% MapBasic eXecutable (for MapInfo).(MBX.rfi):Class: Executable and Object, Status: Partial, Last change: 09.04.2009 19:12:50
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TSign array[4] of char
+
+data
+0x0000 TSign Sign
+
+assert Sign='!App';
+
+descr ('MapBasic eXecutable (for MapInfo).')
+descr (NL,
+  'Info Src: Partially reconstructed by me (Alexei Hmelnov (mailto:alex@monster.icc.ru)).',NL)
+data
+0x0004 array[0xFC] of char,<0; StrInf
+
+type
+  uint num+(2):displ=(INT(@))
+  usint num+(1):displ=(INT(@))
+
+  TProcData(hProc) forward
+  PProcData(hProc) ^TProcData(@:hProc) near=ulong
+
+  TVarInfRecs(Cnt) forward
+  PVarInfRecs(Cnt) ^TVarInfRecs(@:Cnt) near=ulong
+
+  TProcInfos(Cnt) forward
+  PProcInfos(Cnt) ^TProcInfos(@:Cnt) near=ulong
+
+  TTypeInfTbl(Cnt) forward
+  PTypeInfTbl(Cnt) ^TTypeInfTbl(@:Cnt) near=ulong
+
+  TVarNames(Sz) array of str:[@:Size=@:Sz]
+  PVarNames(Sz) ^TVarNames(@:Sz) near=ulong
+
+  TProcFrame struc
+    PProcData(@:#) D
+    ulong PNext
+    ulong Cnt
+    array[@.Cnt] of Str Locals
+    raw[] rest
+  ends:[@:Size=@.PNext-&@]
+
+  TProcFrames(Sz) array of TProcFrame:[@:Size=@:Sz]
+  PProcFrames(Sz) ^TProcFrames(@:Sz) near=ulong
+
+  TSrcInfo struc
+    ulong PNext
+    ulong Cnt
+    array of str FNs
+    //raw[] rest
+  ends:[@:Size=@.PNext-&@]
+
+  TSrcInfos(Cnt) array[@:Cnt]of TSrcInfo
+  PSrcInfos(Cnt) ^TSrcInfos(@:Cnt) near=ulong
+
+  TClassInfo struc
+    ulong PNext
+    ulong Cnt
+    array of str FNs //FNs[0] - Class name, FNs[i+1] - the name of TTypeInfRec.Fields[i]
+    //raw[] rest
+  ends:[@:Size=@.PNext-&@]
+
+  TClassInfos(Sz) array of TClassInfo:[@:Size=@:Sz]
+  PClassInfos(Sz) ^TClassInfos(@:Sz) near=ulong
+
+  PVarsHdr ^TVarsHdr near=ulong
+  TVarsHdr struc
+    PVarNames GlobNames
+    PClassInfos ClassInf
+    PProcFrames Frms
+    PSrcInfos SrcInf
+    ulong SrcCnt
+  ends:[@.GlobNames:Sz=(@.Frms when(@.ClassInf=0) exc @.ClassInf)-@.GlobNames,
+    @.ClassInf:Sz=(@.Frms-@.ClassInf)when(@.Frms<>0) exc 0,
+    @.Frms:Sz=@.SrcInf-@.Frms,@.SrcInf:Cnt=@.SrcCnt]
+
+  TDLLInfo struc
+    uint Cnt
+    str Name
+    array[@.Cnt] of str Proc
+  ends
+
+  TDLLInfos(Cnt) array[@:Cnt]of TDLLInfo
+  PDLLInfos(Cnt) ^TDLLInfos(@:Cnt) near=ulong
+
+  TMBXHdr struc
+    ulong X0
+    PVarInfRecs VarInf
+    PProcInfos ProcNames
+    PTypeInfTbl Types
+    PVarsHdr Vars
+    PDLLInfos DLLTbl
+    uint GlobCnt
+    uint ProcCnt
+    uint TypeCnt
+    uint DLLCnt
+    uint XCnt
+  ends:[
+    @.ProcNames:Cnt=@.ProcCnt,
+    @.VarInf:Cnt=@.GlobCnt,
+   //@.ProcNames:Sz=@.Vars-@.ProcNames,
+   //@.VarInf:Sz=@.Types-@.VarInf,
+    @.DLLTbl:Cnt=@.DLLCnt,
+    @.Types:Cnt=@.TypeCnt]
+
+data
+0x0100 TMBXHdr Hdr
+
+type
+//  PXData ^void near=ulong
+  TProcInfo struc
+    PProcData(@:#) D
+    str N
+  ends:autoname=('pi_',@.N)
+
+  TProcInfos(Cnt) array[@:Cnt] of TProcInfo
+
+  TDTCodeB enum usint (
+    dtString=1,
+    dt_Val=2, //any numeric value represented by double
+    dtInteger=3,
+    dtSmallInt=4,
+    dtDate=5,
+    dtLogical=6,
+    dtFloat=8,
+    dt_PChar=10,
+    dtPen=11,
+    dtBrush=12,
+    dtObject=13,
+    dtSymbol=14,
+    dtFont=15,
+    dtStringL=16,
+    dtAlias=21,
+    dtProcName=24,
+    dtObject1=29
+  )
+
+/*
+  TDTCode enum int (
+    dtString=1,
+    dtInteger=3,
+    dtSmallInt=4,
+    dtDate=5,
+    dtLogical=6,
+    dtFloat=8,
+    dtPen=11,
+    dtBrush=12,
+    dtObject=13,
+    dtSymbol=14,
+    dtFont=15,
+    dtStringL=16,
+    dtAlias=21
+  )*/
+
+  TDTFlags set 8 of (byRef ^ 0x01)
+
+  TDTCode struc
+    TDTCodeB DT
+    TDTFlags F
+  ends
+
+  TTypeNDX(DT) word():displ=(COND(@:DT=TDTCodeB.dtObject1,
+    (Hdr.Vars^.ClassInf^[@].FNs[0],'{',INT(@),'}'),(INT(@))) )
+
+  TVarInfRec struc
+    TDTCode DT
+    int Cnt //Array count, -1 => not an array
+    TTypeNDX(@.DT.DT) hType
+    word StrLen //for String*Len
+  ends
+
+  TVarInfRecs(Cnt) array[@:Cnt] of TVarInfRec
+
+  TTypeInfRec struc
+    word Cnt
+    array[@.Cnt] of TVarInfRec Fields
+  ends
+
+  TTypeInfTbl(Cnt) array[@:Cnt] of TTypeInfRec
+
+include Float.rfi
+/*
+type bit
+  TBit1 num+(1)
+  TBit11 num+(11)
+  TBit20 num+(20)
+  TFloatHi struc
+    TBit20 M
+    TBit11 P
+    TBit1 S
+  ends
+
+type
+  TFloat struc
+    ulong Lo
+    TFloatHi Hi
+  ends: displ=(@.Hi.S,' 1.',@.Hi.M,@.Lo,'*2^',INT(@.Hi.P-0x3FF));
+*/
+type
+  TFloat TDouble
+
+  TLocConst(DT) case TDTCodeB @:DT of
+   dt_Val: TFloat
+   dtString,dt_PChar,dtProcName: pchar
+  else
+    void
+  endc
+
+  PLocConst(Base,DT) ^TLocConst(@:DT) hideref nil- near=word, REF=@+@:Base;:
+    displ=(@^,'{'/*,HEX(@:Base),'+'*/,@,'}')
+  TLocConstInf(Base) struc
+    TDTCodeB DT
+    PLocConst(@:Base,@.DT) Ofs
+  ends
+
+include MBX_CMD.rfi
+
+type
+  TMBXOpSeq(hProc,MaxSz,Base,BaseD) array of TMBXOp(@:hProc,@:MaxSz,@:Base,@:BaseD) ?
+//      ((@:@ as TMBXOpSeq):MaxSz<=&@-&@:@/*+@:Size*/)
+//    or(not @:assert)!void;: displ=('(', Let's see the wrong value
+      ((@:@ as TMBXOpSeq):MaxSz-1<=&@-&@:@/*+@:Size*/)
+    or(not @:assert);: displ=('(',
+    ShowArray(@,(NL,HEX(&@-&@:@,4),': ',@)),NL,')')
+
+  TMBXOpSeq1(hProc,Sz,Base,BaseD) struc
+    TMBXOpSeq(@:hProc,@:Sz,@:Base,@:BaseD) Ops
+   // raw[]at @:base; Rest
+    raw[]at &@; Rest
+  ends:[@:Size=@:Sz]
+
+  TProcData(hProc) struc
+    ulong Base
+    ulong CodeStart
+    ulong DataStart
+    ulong DataEnd
+    word C1
+    word LocConstCnt // array of 3-byte recs at the end of DataB
+      //Each rec is Byte DT, Word Ofs in the DataB
+    word LocCnt
+    word ArgCnt
+    TDTCode ResType
+    word C6
+    ulong X1
+    ulong Z2
+    ulong Size
+  // raw[@.DataStart-0x28/*@.CodeStart*/] at &@; CodeB
+    TMBXOpSeq1(@:hProc,@.DataStart-0x28/*@.CodeStart*/,&@) CodeB
+    raw[@.DataEnd-@.DataStart-@.LocConstCnt*3] /*at &@;*/ DataB
+    array[@.LocConstCnt]of TLocConstInf(&@@.DataB) LocConsts
+    array[@.LocCnt] of TVarInfRec LocVars //Starting ArgCnt items are arguments
+    raw[] rest
+  ends:[@:Size=@.Size,@.CodeB:BaseD=&@.DataB]:assert[@.Base=&@,
+    @.DataEnd-@.DataStart>=@.LocConstCnt*3]
+

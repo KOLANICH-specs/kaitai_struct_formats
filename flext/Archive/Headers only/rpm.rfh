@@ -1,0 +1,267 @@
+% Linux RPM file header(rpm.rfh):Class: Archive, Status: Headers only, Last change: 29.09.2000 19:30:00
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder rev
+type
+
+short num-(2)
+ushort num+(2)
+ulint num+(4)
+lint num-(4)
+
+TPkgType enum short (Bin=0,Src=1)
+
+TArchNumType enum short (
+  i386_986 = 1,
+  alpha = 2,
+  sparc = 3,
+  mipseb = 4,
+  ppc = 5,
+  m68k = 6,
+  sgi = 7,
+  rs6000 = 8,
+  usparc = 10,
+  mipsel = 11,
+  arm = 12
+)
+
+TOSNumType enum short (
+  Linux  =1,
+  Irix   =2,
+  solaris=3,
+  SunOS  =4,
+//  AmigaOS=5,
+  AIX    =5,
+  hpux10 =6,
+  osf1   =7,
+  FreeBSD=8,
+  SCO_SV=9,
+  Irix64=10,
+  NextStep=11,
+  BSD_OS=12,
+  machten=13,
+  cygwin32_nt=14,
+  cygwin32_95=15,
+  UNIX_SV=16
+)
+
+TSignatureType enum short (
+  RPMSIG_NONE =       0,  /* Do not change! */
+  RPMSIG_BAD =        2,  /* Returned for unknown types */
+/* The following types are no longer generated */
+  RPMSIG_PGP262_1024= 1,  /* No longer generated */
+  RPMSIG_MD5 =        3,
+  RPMSIG_MD5_PGP =    4,
+
+/* These are the new-style signatures.  They are Header structures.    */
+/* Inside them we can put any number of any type of signature we like. */
+  RPMSIG_HEADERSIG =  5  /* New Header style signature */
+)
+
+TRPMLead struc
+  ulint magic
+  byte major
+  byte minor
+  TPkgType type
+  TArchNumType archnum
+  array[66] of Char name
+  TOSNumType osnum
+  TSignatureType signature_type
+  raw[16] reserved
+ends
+
+data
+0 TRPMLead Lead
+
+type
+THeaderTagType enum lint (
+  RPMTAG_NAME                   = 1000,
+  RPMTAG_VERSION                = 1001,
+  RPMTAG_RELEASE                = 1002,
+  RPMTAG_EPOCH                  = 1003,
+//  RPMTAG_SERIAL           RPMTAG_EPOCH    /* backward comaptibility */
+  RPMTAG_SUMMARY                = 1004,
+  RPMTAG_DESCRIPTION            = 1005,
+  RPMTAG_BUILDTIME              = 1006,
+  RPMTAG_BUILDHOST              = 1007,
+  RPMTAG_INSTALLTIME            = 1008,
+  RPMTAG_SIZE                   = 1009,
+  RPMTAG_DISTRIBUTION           = 1010,
+  RPMTAG_VENDOR                 = 1011,
+  RPMTAG_GIF                    = 1012,
+  RPMTAG_XPM                    = 1013,
+  RPMTAG_LICENSE                = 1014,
+//  RPMTAG_COPYRIGHT        RPMTAG_LICENSE  /* backward comaptibility */
+  RPMTAG_PACKAGER               = 1015,
+  RPMTAG_GROUP                  = 1016,
+  RPMTAG_CHANGELOG              = 1017,/* internal */
+  RPMTAG_SOURCE                 = 1018,
+  RPMTAG_PATCH                  = 1019,
+  RPMTAG_URL                    = 1020,
+  RPMTAG_OS                     = 1021,
+  RPMTAG_ARCH                   = 1022,
+  RPMTAG_PREIN                  = 1023,
+  RPMTAG_POSTIN                 = 1024,
+  RPMTAG_PREUN                  = 1025,
+  RPMTAG_POSTUN                 = 1026,
+  RPMTAG_FILENAMES              = 1027,
+  RPMTAG_FILESIZES              = 1028,
+  RPMTAG_FILESTATES             = 1029,
+  RPMTAG_FILEMODES              = 1030,
+  RPMTAG_FILEUIDS               = 1031,/* internal */
+  RPMTAG_FILEGIDS               = 1032,/* internal */
+  RPMTAG_FILERDEVS              = 1033,
+  RPMTAG_FILEMTIMES             = 1034,
+  RPMTAG_FILEMD5S               = 1035,
+  RPMTAG_FILELINKTOS            = 1036,
+  RPMTAG_FILEFLAGS              = 1037,
+  RPMTAG_ROOT                   = 1038,
+  RPMTAG_FILEUSERNAME           = 1039,
+  RPMTAG_FILEGROUPNAME          = 1040,
+  RPMTAG_EXCLUDE                = 1041,/* internal - depricated */
+  RPMTAG_EXCLUSIVE              = 1042,/* internal - depricated */
+  RPMTAG_ICON                   = 1043,
+  RPMTAG_SOURCERPM              = 1044,
+  RPMTAG_FILEVERIFYFLAGS        = 1045,
+  RPMTAG_ARCHIVESIZE            = 1046,
+  RPMTAG_PROVIDES               = 1047,
+  RPMTAG_REQUIREFLAGS           = 1048,
+  RPMTAG_REQUIRENAME            = 1049,
+  RPMTAG_REQUIREVERSION         = 1050,
+  RPMTAG_NOSOURCE               = 1051,/* internal */
+  RPMTAG_NOPATCH                = 1052,/* internal */
+  RPMTAG_CONFLICTFLAGS          = 1053,
+  RPMTAG_CONFLICTNAME           = 1054,
+  RPMTAG_CONFLICTVERSION        = 1055,
+  RPMTAG_DEFAULTPREFIX          = 1056,/* internal - deprecated */
+  RPMTAG_BUILDROOT              = 1057,
+  RPMTAG_INSTALLPREFIX          = 1058,/* internal - deprecated */
+  RPMTAG_EXCLUDEARCH            = 1059,
+  RPMTAG_EXCLUDEOS              = 1060,
+  RPMTAG_EXCLUSIVEARCH          = 1061,
+  RPMTAG_EXCLUSIVEOS            = 1062,
+  RPMTAG_AUTOREQPROV            = 1063,/* internal */
+  RPMTAG_RPMVERSION             = 1064,
+  RPMTAG_TRIGGERSCRIPTS         = 1065,
+  RPMTAG_TRIGGERNAME            = 1066,
+  RPMTAG_TRIGGERVERSION         = 1067,
+  RPMTAG_TRIGGERFLAGS           = 1068,
+  RPMTAG_TRIGGERINDEX           = 1069,
+  RPMTAG_VERIFYSCRIPT           = 1079,
+  RPMTAG_CHANGELOGTIME          = 1080,
+  RPMTAG_CHANGELOGNAME          = 1081,
+  RPMTAG_CHANGELOGTEXT          = 1082,
+  RPMTAG_BROKENMD5              = 1083,/* internal */
+  RPMTAG_PREREQ                 = 1084,/* internal */
+  RPMTAG_PREINPROG              = 1085,
+  RPMTAG_POSTINPROG             = 1086,
+  RPMTAG_PREUNPROG              = 1087,
+  RPMTAG_POSTUNPROG             = 1088,
+  RPMTAG_BUILDARCHS             = 1089,
+  RPMTAG_OBSOLETES              = 1090,
+  RPMTAG_VERIFYSCRIPTPROG       = 1091,
+  RPMTAG_TRIGGERSCRIPTPROG      = 1092,
+  RPMTAG_DOCDIR                 = 1093,/* internal */
+  RPMTAG_COOKIE                 = 1094,
+  RPMTAG_FILEDEVICES            = 1095,
+  RPMTAG_FILEINODES             = 1096,
+  RPMTAG_FILELANGS              = 1097,
+  RPMTAG_PREFIXES               = 1098,
+  RPMTAG_INSTPREFIXES           = 1099,
+  RPMTAG_TRIGGERIN              = 1100,/* internal */
+  RPMTAG_TRIGGERUN              = 1101,/* internal */
+  RPMTAG_TRIGGERPOSTUN          = 1102,/* internal */
+  RPMTAG_AUTOREQ                = 1103,/* internal */
+  RPMTAG_AUTOPROV               = 1104,/* internal */
+  RPMTAG_CAPABILITY             = 1105,
+
+  RPMTAG_EXTERNAL_TAG           = 1000000
+)
+
+TSignTagType enum lint (
+  RPMSIGTAG_SIZE=1000,
+/* the md5 sum was broken *twice* on big endian machines */
+  RPMSIGTAG_LEMD5_1=1001,
+  RPMSIGTAG_PGP=1002,
+  RPMSIGTAG_LEMD5_2=1003,
+  RPMSIGTAG_MD5=1004
+)
+
+THdrValType enum lint (
+   NULL          = 0,
+   CHAR          = 1,
+   INT8          = 2,
+   INT16         = 3,
+   INT32         = 4,
+   INT64         = 5,
+   STRING        = 6,
+   BIN           = 7,
+   STRING_ARRAY  = 8,
+   RPM_I18NSTRING_TYPE = 9
+)
+
+ulint64 struc
+  ulint Hi
+  ulint Lo
+ends
+
+THdrData(Kind,Cnt) case THdrValType @:Kind of
+  CHAR: array[@:Cnt] of Char
+  INT8: array[@:Cnt] of Byte
+  INT16: array[@:Cnt] of ushort
+  INT32: array[@:Cnt] of ulint
+  INT64: array[@:Cnt] of ulint64
+  BIN: raw[@:Cnt]
+  STRING, STRING_ARRAY, RPM_I18NSTRING_TYPE: array[@:Cnt] of pchar
+endc
+
+PHdrData(Base,Kind,Cnt) ^THdrData(@:Kind,@:Cnt) NIL- near=ulint,
+  REF=@:Base+@;
+
+TSHeaderNDXItem(Base) struc
+  TSignTagType tag
+  THdrValType type
+  PHdrData(Base=@:Base,Kind=@.type) offset
+  ulint count
+ends:[@.offset:Cnt=@.count]:autoname=(@.tag)
+
+TSHeader struc
+  array[3] of byte Magic //8e ad e8
+  byte ver
+  ulint Rsrv
+  lint Count
+  ulint DataSz
+  array[@.Count] of TSHeaderNDXItem(&@@+@@:Size) Index
+ends
+
+THeaderNDXItem(Base) struc
+  THeaderTagType tag
+  THdrValType type
+  PHdrData(@:Base,@.type) offset
+  ulint count
+ends:[@.offset:Cnt=@.count]:autoname=(@.tag)
+
+THeader struc
+  array[3] of byte Magic //8e ad e8
+  byte ver
+  ulint Rsrv
+  ulint Count
+  ulint DataSz
+  array[@.Count] of THeaderNDXItem(&@@+@@:Size) Index
+ends
+
+type
+TRPMSignature case Lead.signature_type of
+  RPMSIG_NONE: void
+  RPMSIG_PGP262_1024: raw[256]
+//  RPMSIG_BAD,RPMSIG_MD5,RPMSIG_MD5_PGP - can't appear
+  RPMSIG_HEADERSIG: TSHeader
+endc
+
+data
+
+Lead:Size TRPMSignature Sign
+((&Sign+Sign:Size+(Sign.RPMSIG_HEADERSIG.DataSz exc 0)+7))and
+  0xFFFFFFF8 THeader Header
+
+

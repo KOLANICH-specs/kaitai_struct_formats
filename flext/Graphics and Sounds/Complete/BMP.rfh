@@ -1,0 +1,27 @@
+% Windows Bitmap file(BMP.rfh):Class: Graphics and Sounds, Status: Complete, Last change: 09.04.2006 10:40:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include BMP_OS2.RFI
+const
+  BM=0x4D42;//'B'+'M' shl 8;
+type
+  TBitmapFileHeader struc pas
+    bfType: Word
+    bfSize: DWORD
+    bfReserved1: Word
+    bfReserved2: Word
+    bfOffBits: DWORD
+  ends
+
+data
+0 TBitmapFileHeader Hdr
+Hdr:Size TBitmapInfo BMI
+Hdr.bfOffBits case BMI.Hdr.I.BMISize.biCompression exc 0 of
+  TBitmapCompression.BI_RGB,TBitmapCompression.BI_BITFIELDS:
+  TBitmapMtr(
+    BMI.Hdr.I.BMCSize.bcBitCount exc BMI.Hdr.I.BMISize.biBitCount,
+    BMI.Hdr.I.BMCSize.bcHeight exc BMI.Hdr.I.BMISize.biHeight,
+    BMI.Hdr.I.BMCSize.bcWidth exc BMI.Hdr.I.BMISize.biWidth /*,
+    BMI.Hdr.biSize=BMCSize*/) 
+endc Mtr
+

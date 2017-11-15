@@ -1,0 +1,313 @@
+% "Integral file" - russian GIS file format(INF.rfi):Class: GIS files, Status: Complete, Last change: 16.11.2001 13:22:10
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TSign array[3] of char
+
+data
+0x0000 TSign Sign
+0x0003 Byte SignZ
+
+assert (Sign='INF')and(SignZ=0);
+
+descr ('The Integral file - format of Russian GIS.')
+descr (NL,
+  'Info Src: VS AGP doc. INT_RAS2.DOC',NL)
+
+type
+
+TInfHead struc pas
+  BaseName: array[41] of Char,0;
+  KlsName: array[13] of Char,0;
+  FileCreationDate: array[11] of Char,0;
+  FileCreationTime: array[9] of Char,0;
+  Xmin: Int
+  Ymin: Int
+  Xmax: Int
+  Ymax: Int
+  NumbKVX: Int
+  NumbKVY: Int
+  SizeKVX: Word
+  SizeKVY: Word
+  NumbKVAll: Word
+ends
+
+type
+
+TRecTag enum int (
+  Obj=777
+)
+
+TObjCode array[9] of int,0;:displ=(ShowArray(@,(@,'.')))
+
+TObjectRec(N) forward
+
+PObjectRec(N,Base) ^TObjectRec(@:N) near=ulong REF=@*2+@:Base;
+
+TLogSObj set 32 of (//Tюушўхёър  °ърыр юс·хъЄр 
+  Lin=0, //Tшэхщэvщ
+  Area=1, //¦ыю•рфэvщ      
+  Discr=2, //-шёъpхЄэvщ     
+  Compos=3, //TюёЄртэющ
+  Compl=4, //Tыюцэvщ
+  Closed=5, //¦рьъэєЄvщ      
+  Strait=6, //¦єёюўэю-яЁ ьр  
+  Arc=7, //Tшэш  юъpєцэю
+  Part=9, //+рёЄ№ фpєуюую  
+  Hole=10, //TэєЄpхээшщ ъю  
+  Link=11, //Tт чш тvэхёхэ
+  MultyLink=12, //¦эюуюёт чэvщ   
+  Cut=13, //¦рчЁхчрээvщ    
+  Bit15=15, //+рёЄю тёЄЁхўрыюё№
+  URRMtr=18 //¦хЄpшър т L¦¦  
+)
+
+TLogSIntr set 32 of (//Tюушўхёър  °ърыр яpхpvтрэш 
+  Lin=0, //Tшэхщэvщ
+  Area=1, //¦ыю•рфэvщ      
+  Discr=2, //-шёъpхЄэvщ     
+  NotAllowed=3, //=х фюяєёърхЄ
+  FullDesc=4, //¦юыэюх юяшёрэ  
+  Straight=6, //¦єёюўэю-яЁ ьр  
+  Arc=7, //Tшэш  юъpєцэю
+  Dir=8, //=ряpртыхэшх Ў
+  Sem=9, //TхьрэЄшўхёъюх  
+  FixP=10, //=хяюфтшцэр  Є
+  SignChg=11, //Tьхэр Єюяючэр
+  MtrImp=12, //¦хЄЁшър чршьё  
+  StrucEl=13, //¦ыхьхэЄ ёЄЁєъ  
+  MtrOn=14, //¦хЄЁшър тъы¦ў  
+  MtrImp1=15, //¦хЄpшър чршьё
+  PrecCoord=16, //Tюўэvх ъююЁфш  
+  PointChg=17, //¦рьхэр эр Єюў  
+  MtrImp2=18, //¦хЄpшър чршьё  
+  Rel=29 //+Єэю°хэшх pхр
+)
+
+TFeatureType enum byte (
+  ftInt=1,  // int
+  ftDouble=2, // double
+  ftFixed=3, //фхщёЄтшЄхы№эюх ўшёыю т тшфх фтєї Ўхыvї ўшёхы
+  ftText=4,  //ЄхъёЄ (1-щ срщЄ - ъюышўхёЄтю ёшьтюыют,
+             //юёЄры№эvх - ёшьтюыv т ъюфх ASCII. TхъёЄ
+             //чрэшьрхЄ яюыэюх ъюышўхёЄтю ёыют)
+  ftStrucNum=5,//ёЄЁєъЄєЁэюх ўшёыю - ьрёёшт (1-х ёыютю -
+               //ъюышўхёЄтю ёыют т ўшёых, юёЄры№эvх -
+               //ёыютр ёЄЁєъЄєЁэюую ўшёыр)
+  ftFloat= 6, // float
+  ftNull=7, // схч чэрўхэш 
+  ftCoord=8, //ухюуЁрЇшўхёър  ъююЁфшэрЄр - 8 срщЄ (1-х
+             //ёыютю - уЁрфєёv (int), 2-х ёыютю - ьшэєЄv
+             //(int), 3 ш 4-х ёыютр - ёхъєэфv (float))
+  ftComplex=10 //ЁрчюсЁрэр  ёыюцэр  їрЁръЄхЁшёЄшър 
+)
+
+/*
+TFeatCode struc
+  byte X //??? =хяюэ Єэюую эрчэрўхэш 
+  byte CodeCnt
+  array[((@.CodeCnt-1)when(@.CodeCnt>0))exc 0]of byte:displ=(ShowArray(@,(INT(@),'.'))) Code
+  align 2 AlCode
+ends
+*/
+
+//-Ёєуюх юяЁхфхыхэшх, ўЄюсv яЁртшы№эю юЄюсЁрцрЄ№ чэрўхэш  
+// ё яхЁхяєЄрээvь яюЁ фъюь срщЄ
+TFeatCode struc
+  word CntAnd1
+  array[@.CntAnd1 shr 9]of Word Code
+ends:displ=(Int(@.CntAnd1 shr 8),':',Int(@.CntAnd1 and 0xFF),'.',
+  ShowArray(@.Code,(INT(@ shr 8),'.',INT(@ and 0xFF),'.')))
+
+type bit
+  TBit1 num+(1)
+  TBit8 num+(8)
+  TBit11 num+(11)
+  TBit20 num+(20)
+  TBit23 num+(23)
+  TDoubleHi struc
+    TBit20 M
+    TBit11 P
+    TBit1 S //Sign 1->Neg
+  ends
+
+  TFloat struc
+    TBit23 M
+    TBit8 P
+    TBit1 S //Sign 1->Neg
+  ends: displ=(@.S,' 1.',HEX(@.M*2,6),'*2^',INT(@.P-0x7F));
+
+type
+  TDouble struc
+    ulong Lo
+    TDoubleHi Hi
+  ends: displ=(@.Hi.S,' 1.',HEX(@.Hi.M,5),HEX(@.Lo,8),'*2^',INT(@.Hi.P-0x3FF));
+
+  TFixed struc
+    int Hi
+    word Lo
+  ends: displ=(INT(@.Hi),'.',HEX(@.Lo))
+
+  TText struc
+    str V
+    align 2 Al
+  ends
+
+  TStrucNum struc
+    int Cnt
+    array[@.Cnt/*??? - шыш -1*/] of int:displ=(ShowArray(@,(@,'.'))) V
+  ends
+
+  TGeoCoord struc
+    int Deg //1-х ёыютю - уЁрфєёv (int)
+    int Min //2-х ёыютю - ьшэєЄv (int)
+    TFloat Sec //3 ш 4-х ёыютр - ёхъєэфv (float))
+  ends
+  
+  TMCoord struc
+   // int X
+   // int Y
+    word X
+    word Y
+  ends
+
+/*
+  TComplexFeatVal struc
+    word Sz
+    raw[] VRest
+  ends:[@:Size=(@.Sz+1)*2]
+*/
+
+type
+
+TFeatures forward
+
+TFeature struc
+  word LX //ЁрчьхЁ їрЁръЄхЁшёЄшъш т ёыютрї
+  byte T //ъюышўхёЄтю Єюўхъ яЁшт чъш (0,1,2,3)
+  TFeatureType ITP //Єшя їрЁръЄхЁшёЄшъш :
+  TFeatCode Code
+  case @.ITP of
+    ftInt: int
+    ftDouble: TDouble
+    ftFixed: TFixed
+    ftText: TText
+    ftStrucNum: TStrucNum
+    ftFloat: TFloat
+    ftNull: void
+    ftCoord: TGeoCoord
+    ftComplex: TFeatures//TComplexFeatVal
+  endc V //(i+1) - l -  чэрўхэшх їрЁръЄхЁшёЄшъш (хёыш юэю хёЄ№)
+  array[@.T]of TMCoord LP //(l+1) - n -  ъююЁфшэрЄv Єюўхъ яЁшт чъш (хёыш юэш хёЄ№)
+  raw[] rest
+ends:[@:Size=@.LX*2] //:assert[@.LX>0]
+
+/*
+TFeatureX try
+  F: TFeature
+  Z: word
+endt
+*/
+
+PFeatures(Base) ^TFeatures near=word REF=@*2+@:Base;
+TFeatures struc
+  word LX //ЁрчьхЁ яюы  їрЁръЄхЁшёЄшъ т ¤ыхьхэЄрї ьрёёштр
+          // (ёрь эєыхтющ ¤ыхьхэЄ эх тїюфшЄ т ¤ЄюЄ ЁрчьхЁ)
+  array of TFeature:[@:Size=@@.LX*2] Tbl
+ends
+
+PLinks(Base) ^TLinks near=word REF=@*2+@:Base;
+
+TLink struc
+  word LS  //O - ЁрчьхЁ ёт чш т ¤ыхьхэЄрї ьрёёштр (ёрь LS єўшЄvтрхЄё )
+  int KLS //1 - ъы¦ў ёт чш, яюф ъюЄюЁvь юэр чряшёvтрхЄё  т
+          // срчє фрээvї ш яю ъюЄюЁюьє т фры№эхщ°хь фю
+          // эхх ьюцэю сvёЄЁю фюсЁрЄ№ё  (1 - 32767). +ёыш
+          // KLS=0, Єю ёт ч№ эх єўрёЄтєхЄ т юяхpрЎш ї чряшёш ш єфрыхэш 
+  TObjCode Code //2 - 10 - ъюф ёт чрээюую юс№хъЄр
+  int Num //11 - эюьхЁ ёт чрээюую юс№хъЄр
+  int Rsrv//12 - тёхуфр 0
+  ulong LogS //13,14 - ыюушўхёър  °ърыр ёт чш
+  TFeatures LSF //15 - яюых їрЁръЄхЁшёЄшъ, хёыш юэю хёЄ№, шыш 0 т ¤ыхь.15
+ends:[@:Size=@.LS*2]
+
+TLinks struc
+  word KS // O - ъюышўхёЄтю ёт чхщ
+  array[@.KS] of TLink Tbl // 1-ёютюъєяэюёЄ№ ёт чхщ юс№хъЄр
+ends
+
+PIntrs(Base) ^TIntrs near=word REF=@*2+@:Base;
+
+TIntr struc
+  word LP  //O - ЁрчьхЁ яЁхЁvтрэш  т ¤ыхьхэЄрї ьрёёштр (ёрь LP єўшЄvтрхЄё )
+  int KLP //1 - ъы¦ў яЁхЁvтрэш , яюф ъюЄюЁvь юэю чряшёvтрхЄё  т срчє фрээvї
+          // (1 - 32767) . хёыш 0, Єю яpхpvтрэшх эх єўрёЄтєхЄ т юяхpрЎш ї
+          // чряшёш ш єфрыхэш  ш яю ъюЄюЁюьє т фры№эхщ°хь
+          // фю эхую ьюцэю сvёЄЁю фюсЁрЄ№ё 
+  TObjCode Code //2 - 10 - ъюф яЁхЁvтр¦•хую юс№хъЄр
+  int Num //11 - эюьхЁ яЁхЁvтр¦•хую юс№хъЄр
+  int hRefP //12 - эюьхЁ Єюўъш т ьхЄЁшъх юс№хъЄр, ъ ъюЄюЁющ
+            // яЁшт чрэю яЁхЁvтрэшх, шыш 0
+  TLogSIntr LogS //13,14 - ыюушўхёър  °ърыр яЁхЁvтрэш 
+  TFeatures LP //15 - яюых їрЁръЄхЁшёЄшъ, хёыш юэю хёЄ№, шыш 0 т ¤ыхь.15
+ends:[@:Size=@.LP*2]
+
+TIntrs struc
+  word KP // O - ъюышўхёЄтю яЁхЁvтрэшщ
+  array[@.KP] of TIntr Tbl // 1-ёютюъєяэюёЄ№ яЁхЁvтрэшщ юс№хъЄр
+ends
+
+PMetrics(Base) ^TMetrics near=word REF=@*2+@:Base;
+TMetrics struc
+  word KM // ъюышўхёЄтю ¤ыхьхэЄют яю 4  срщЄр т яюых схч
+          // єўхЄр ёрьюую KM
+  array[@.KM] of TMCoord Tbl
+    // Єюўъш ьхЄpшъш,  ъюЄюЁvх  чрфр¦Єё   ярЁющ
+    // ъююЁфшэрЄ ї ш є, чрэшьр¦•шї яю юфэюьє ёыютє
+    // ш тvЁрцхээvї Ўхыvьш ўшёырьш т фхё Єvї фюы ї ьшыышьхЄЁр.
+ends
+
+PSquares(Base) ^TSquares near=word REF=@*2+@:Base;
+TSquares struc //T ъръшх ътрфЁрЄv яюярфрхЄ юс·хъЄ
+  word KK // ъюышўхёЄтю ътрфЁрЄют (¤ыхьхэЄют яю 4 срщЄр)
+  array[@.KK] of TMCoord Tbl //ёютюъєяэюёЄ№ ¤ыхьхэЄют яю 4 срщЄр 
+   //(эюьхЁр ътрфЁрЄют)
+ends
+
+TObjectHdr(N) struc
+  TRecTag Tag //0 - ьхЄър шэЄхуЁры№эюую Їрщыр (ўшёыю 777)
+  PFeatures(&@) AX  //1 - эюьхЁ ¤ыхьхэЄр т ьрёёштх, ё ъюЄюЁюую
+           //эрўшэрхЄё  яюых їрЁръЄхЁшёЄшъ
+  PLinks(&@) AS  //2 - эюьхЁ ¤ыхьхэЄр т ьрёёштх, ё ъюЄюЁюую
+           //эрўшэрхЄё  яюых ёт чхщ
+  PIntrs(&@) AP  //3 - эюьхЁ ¤ыхьхэЄр т ьрёёштх, ё ъюЄюЁюую
+           //эрўшэрхЄё  яюых яЁхЁvтрэшщ
+  PSquares(&@) AK  //4 - эюьхЁ ¤ыхьхэЄр т ьрёёштх, ё ъюЄюЁюую
+           //эрўшэрхЄё  яюых ътрфЁрЄют
+  PMetrics(&@) AM  //5 - эюьхЁ ¤ыхьхэЄр т ьрёёштх, ё ъюЄюЁюую
+           //эрўшэрхЄё  яюых ьхЄЁшъш
+  int AccLvl //6 - єЁютхэ№ фюёЄєяр ъ юс№хъЄє (ы¦сюх ўшёыю юЄ
+           // -32768 фю +32767). ¦юы№чютрЄхы№, єърчрт°шщ
+           // яЁш ўЄхэшш єЁютхэ№ фюёЄєяр эшцх чряшёрээюую
+           //т юс№хъЄх, эх ёьюцхЄ хую яЁюўшЄрЄ№
+  TObjCode Code //7-15 - ъюф юс№хъЄр
+  int Num //16 - эюьхЁ юс№хъЄр (> 0 ш <=32767)
+  TLogSObj LogS //17,18 - ыюушўхёър  °ърыр юс№хъЄр
+  PObjectRec(@:N+1,&@) Size //19,20 - ЁхчхЁт
+//  ulong Size //19,20 - ЁхчхЁт
+//  raw[] at &@; rest
+ends:assert[@.Tag=TRecTag.Obj] //:[@:Size=@.Size*2]
+
+TObjectRec(N) try
+  H: TObjectHdr(@:N)
+  Els: void
+endt:autoname=('obj_',INT(@:N))
+
+//TObjectTbl array of TObjectHdr ?@.Tag<>TrecTag.Obj!void;
+
+data
+0x04 TInfHead Hdr
+//0x60 TObjectTbl ObjTbl
+0x60 TObjectRec(0) Obj0
+

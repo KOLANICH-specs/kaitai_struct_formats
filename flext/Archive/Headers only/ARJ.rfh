@@ -1,0 +1,163 @@
+% ARJ Archive Format(ARJ.rfh):Class: Archive, Status: Headers only, Last change: 21.01.2022 12:10:46
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include DosFTime.rfi
+
+const
+  HdrMagic=0xEA60;
+
+type
+
+THostOS enum byte (
+  MSDOS=0, PRIMOS=1, UNIX=2, AMIGA=3, MAC_OS=4,
+  OS_2=5, APPLE_GS=6, ATARI_ST=7, NEXT=8, VAX_VMS=9
+)
+
+TArjFlags set 8 of (
+  OLD_SECURED ^ 0x02,
+  VOLUME  ^ 0x04, // indicates presence of succeeding volume
+  PATHSYM ^ 0x10, // indicates archive name translated ("\" changed to "/")
+  BACKUP  ^ 0x20, // indicates backup type archive
+  SECURED ^ 0x40
+)
+
+// Structure of main header:
+
+TFirstHdr struc
+  byte size // 1 first_hdr_size (size up to and including 'extra data')
+  byte Ver         // 1   archiver version number
+  byte ExtrVer     // 1   minimum archiver version to extract
+  THostOS hostOS   // 1   host OS   
+  TArjFlags Flags  // 1   arj flags
+  byte SecurityVer // 1   security version (2 = current)
+  byte file_type   // 1   (must equal 2)
+  byte rsrv1       // 1   reserved
+  TFileTime CreTime     // 4   date time when original archive was created
+  TFileTime LastModTime // 4   date time when archive was last modified
+  ulong ArchSz     // 4   archive size (currently used only for secured archives)
+  ulong SeqEnvPos  // 4   security envelope file position
+  word FileSpecOfs // 2   filespec position in filename
+  word SeqEnvSize  // 2   length in bytes of security envelope data
+  word rsrv2       // 2   (currently not used)
+  raw[] ExtraData  // ?   (currently none)
+ends:[@:Size = @.size]:assert[@.file_type=2]
+
+TBasicHdr(Sz) struc
+  TFirstHdr Hdr1
+  pchar FName   // ?   filename of archive when created (null-terminated string)
+  pchar Comment // ?   archive comment  (null-terminated string)
+ends:[@:Size=@:Sz]:assert[@.Hdr1:assert]
+
+TExtHeader struc
+  word Sz    // 2  extended header size (0 if none)
+  raw[@.Sz] Data // ?   1st extended header (currently not used)
+  ulong CRC    // 4   1st extended header's CRC (not present when 0 extended header size)
+ends
+
+TExtHeaders array of TExtHeader ?@.Sz=0!word;
+
+TMainHdr struc
+  word Magic     // 2   header id (main and local file) = 0x60 0xEA
+  word BasicSz   // 2   basic header size (from 'first_hdr_size' thru 'comment' below)
+		 // = first_hdr_size + strlen(filename) + 1 + strlen(comment) + 1
+		 // = 0 if end of archive
+		 // maximum header size is 2600
+  TBasicHdr(@.BasicSz) BasicHdr
+  ulong BasicHdrCRC //4   basic header CRC
+  TExtHeaders ExtHdr
+ends:assert[@.Magic=HdrMagic, @.BasicSz<=2600,@.BasicHdr:assert]
+
+data
+
+0 TMainHdr Hdr
+
+assert Hdr:assert;
+
+descr ('ARJ Archive File Format.',NL,
+  'Info Source: ARJ TECHNICAL INFORMATION (arj.zip at www.wotsit.org)',NL,
+  'April 1993',NL)
+
+type
+
+// Structure of local file header:
+
+TArjFileFlags set 8 of (
+  GARBLED ^ 0x01, // indicates passworded file
+  VOLUME  ^ 0x04, // indicates continued file to next volume (file is split)
+  EXTFILE ^ 0x08, // indicates file starting position field (for split files)
+  PATHSYM ^ 0x10, // indicates filename translated ("\" changed to "/")
+  BACKUP  ^ 0x20  // indicates file marked as backup
+)
+
+TComprMethod enum byte (
+  stored = 0, 
+  maximum = 1,
+  normal = 2,
+  small = 3,
+  fastest = 4
+)
+
+TArjFileType enum byte (
+  binary=0, 
+  text7bit=1, //7-bit text
+  dir=3, //directory, 
+  volLbl=4 //volume label
+)
+
+TFirstFileHdr struc
+  byte size // 1 first_hdr_size (size up to and including 'extra data')
+  byte Ver         // 1   archiver version number
+  byte ExtrVer     // 1   minimum archiver version to extract
+  THostOS hostOS   // 1   host OS   
+  TArjFileFlags Flags  // 1 arj flags
+  TComprMethod  Method // 1 method
+  TArjFileType file_type // 1 file type
+  byte rsrv1       // 1   reserved
+  TFileTime LastModTime // 4   date time modified
+  ulong ComprSz    // 4   compressed size
+  ulong OrigSz     // 4   original size (this will be different for text mode compression)
+  ulong OrigCRC    // 4   original file's CRC
+  word FileSpecOfs // 2   filespec position in filename
+  word AccessMode  // 2   file access mode
+  word HostData    // 2   host data (currently not used)
+  word rsrv2       // 2   (currently not used)
+  case @.Flags and 0x08 of
+    0: raw[]
+  else struc
+      raw[] rest
+      ulong StartPos
+	// 4 bytes for extended file starting position when used
+	// (these bytes are present when EXTFILE_FLAG is set).
+	// 0 bytes otherwise.
+    ends	
+  endc ExtraData // ?   (currently none)
+ends:[@:Size = @.size]
+
+TBasicFileHdr(Sz) struc
+  TFirstFileHdr Hdr1
+  pchar FName   // ?
+  pchar Comment // ?
+ends:[@:Size=@:Sz]
+
+TLocFile struc
+  word Magic     // 2   header id (main and local file) = 0x60 0xEA
+  word BasicSz   // 2   basic header size (from 'first_hdr_size' thru 'comment' below)
+		 // = first_hdr_size + strlen(filename) + 1 + strlen(comment) + 1
+		 // = 0 if end of archive
+		 // maximum header size is 2600
+  TBasicFileHdr(@.BasicSz) BasicHdr
+  ulong BasicHdrCRC //4   basic header CRC
+  TExtHeaders ExtHdr
+  raw[@.BasicHdr.Hdr1.ComprSz] Data     //    ?   compressed file
+ends:assert[@.Magic=HdrMagic, @.BasicSz<=2600]
+
+TEndRec struc
+  word Magic     // 2   header id (main and local file) = 0x60 0xEA
+  word BasicSz   // 2   basic header size 
+ends
+
+TLocFiles array of TLocFile ?@.BasicSz=0!TEndRec;
+
+data
+Hdr:Size; TLocFiles Files
+

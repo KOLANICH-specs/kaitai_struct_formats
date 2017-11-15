@@ -1,0 +1,184 @@
+% Opcodes of PDP-11 family as data type(OP_PDP11.rfi):Class: Machine OpCodes representation, Status: Complete, Last change: 29.05.2000 17:43:54
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TWOpCode forward
+TOpPDP forward
+POpSeq ^TOpSeq near=word
+
+type bit
+
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+TBit4 num+(4)
+TBit6 num+(6)
+TBit8 num+(8)
+TBit8s num-(8)
+
+TJmpOfs ^TOpSeq near=TBit8s, REF=(&((@:@ as TWOpCode):@ as TOpPDP)
+  +(@+1)*2)and 0xFFFF;:displ=(HEX((&((@:@ as TWOpCode):@ as TOpPDP)+
+   (@+1)*2)and 0xFFFF,4),'{',@,'}')
+TSOBOfs ^TOpSeq near=TBit6, REF=(&((@:@ as TWOpCode):@ as TOpPDP)
+  +2-@*2)and 0xFFFF;:displ=(HEX((&((@:@ as TWOpCode):@ as TOpPDP)+
+   2-@*2)and 0xFFFF,4),'{',@,'}')
+
+TReg enum TBit3 (R0,R1,R2,R3,R4,R5,SP,PC)
+
+TAddrMode enum TBit2 (reg,autoinc,autodec,index)
+
+TAddr6 struc pas
+  R: TReg
+  Ind: TBit //Indirect mode
+  Md: TAddrMode
+ends
+
+TCondCode set 4 of (C,V,Z,N)
+
+TUnOp1 enum TBit3 (clr,com,inc,dec,neg,adc,sbc,tst)
+TUnOp2 enum TBit2 (ror,rol,asr,asl)
+
+//TMOp enum TBit3 (?,mov,cmp,bit,bic,bis,?,?)
+
+TFOp enum TBit2 (fadd,fsub,fmul,fdiv)
+
+TBit16 num+(16)
+
+type
+
+TWOpCode enum TBit16 /*word*/ fields (
+  R0: TReg @0.3,
+  R: TReg @6.3,
+  CC: TCondCode @0.4,
+  D: TAddr6 @0.6,
+  S: TAddr6 @6.6,
+  X: TJmpOfs @0.8,
+  Y: TSOBOfs @0.6,
+  N: TBit6 @0.6,
+  INo: TBit8 @0.8,
+  Fa: TUnOp1 @6.3,
+  Fr: TUnOp2 @6.2,
+//  Fm: TMOp @12.3,
+  Ff: TFOp @3.2,
+  B: TBit @15.1
+) of (
+  halt =            0000000,
+  wait =            0000001,
+  rti =             0000002,
+  bpt =             0000003,
+  iot =             0000004,
+  reset =           0000005,
+  rtt =             0000006,
+  mfpt =            0000007,
+  jmp(D) =          00001__,
+  rts(R0) =         000020_,
+  nop =             0000240,
+  clf(CC) =         0000240, //Condition codes
+  stf(CC) =         0000260,
+  swab(D) =         00003__,
+
+  br(X) =           0000400,
+  bne(X) =          0001000,
+  beq(X) =          0001400,
+  bge(X) =          0002000,
+  blt(X) =          0002400,
+  bgt(X) =          0003000,
+  ble(X) =          0003400,
+
+  bpl(X) =          0100000,
+  bmi(X) =          0100400,
+  bhi(X) =          0101000,
+  blos(X) =         0101400,
+  bvc(X) =          0102000,
+  bvs(X) =          0102400,
+  bcc(X) =          0103000, //bhis
+  bcs(X) =          0103400, //blo
+
+  jsr(R,D) =        0004___,
+
+  emt(INo) =        0104000,
+  trap(INo) =       0104400,
+
+  _AR(Fa,B,D) =     0005000,
+  _ROT(Fr,B,D) =    0006000,
+  mark(N) =         00064__,
+  stx(D) =          00067__,
+  mtps(D) =         01064__,
+  mfps(D) =         01067__,
+
+  mul(R,D) =        0070___,
+  div(R,D) =        0071___,
+  ash(R,N) =        0072___,
+  ashc(R,N) =       0073___,
+  xor(R,D) =        0074___,
+  _F(Ff,R0) =       0075000,
+  sob(R,Y) =        0077___,
+  mov(B,S,D) =      0_1____,
+  cmp(B,S,D) =      0_2____,
+  bit(B,S,D) =      0_3____,
+  bic(B,S,D) =      0_4____,
+  bis(B,S,D) =      0_5____,
+  add(S,D) =        006____,
+  sub(S,D) =        016____
+//  _M(Fm,B,S,D) =    0000000
+)
+
+TOperandData(R,Md) case @:R of
+ TReg.PC: case @:Md of
+   TAddrMode.index: word
+   TAddrMode.autoinc: word
+  //TAddrMode.autodec: -word
+  endc
+ else case @:Md of
+   TAddrMode.index: word
+  endc
+endc:displ=(',',@)
+
+PPOpSeq ^POpSeq near=word
+POpSeqRel ^TOpSeq near=word, REF=(&@+@)and 0xFFFF; :displ=(HEX((&@+@)and 0xFFFF,4));
+PPOpSeqRel ^TOpSeq near=word, REF=(&@+@)and 0xFFFF; :displ=(HEX((&@+@)and 0xFFFF,4));
+
+TJmpOperandData(R,Md,Ind) case @:R of
+ TReg.PC: case @:Md of
+   TAddrMode.index: case @@:Ind of
+     0: POpSeqRel
+     else PPOpSeqRel
+   endc
+   TAddrMode.autoinc: case @@:Ind of
+     0: POpSeq
+     else PPOpSeq
+   endc
+  //TAddrMode.autodec: -word
+  endc
+ else case @:Md of
+    TAddrMode.index: word
+  endc
+endc
+
+TOpPDP struc pas
+  Op: TWOpCode
+  Dat: case @.Op of
+    jmp,jsr: struc pas
+       D: TJmpOperandData(@@@.Op.D.R exc -1,@@@.Op.D.Md exc -1,
+           @@@.Op.D.Ind exc -1)
+     ends: displ=(' ',@.D)
+    swab,_AR,_ROT,stx,mtps,mfps,mul,div,xor: struc pas
+      D: TOperandData(@@@.Op.D.R exc -1,@@@.Op.D.Md exc -1)
+     ends: displ=(@.D)
+    mov,cmp,bit,bic,bis,add,sub: struc pas
+      S: TOperandData(@@@.Op.S.R exc -1,@@@.Op.S.Md exc -1)
+      D: TOperandData(@@@.Op.D.R exc -1,@@@.Op.D.Md exc -1)
+     ends: displ=(@.S,@.D)
+  endc
+ends: displ=(@.Op,@.Dat)
+
+TOpSeq codes of TOpPDP ?(@.Op>=TWOpCode.br)and(@.Op<TWOpCode.br+256)
+  or(@.Op>=TWOpCode.jmp)and(@.Op<TWOpCode.jmp+64)
+  or(@.Op>=TWOpCode.rts)and(@.Op<TWOpCode.rts+8)
+  or(@.Op>=TWOpCode.rts)and(@.Op<TWOpCode.rts+8)
+  or(@.Op>=TWOpCode.mark)and(@.Op<TWOpCode.mark+64)
+  or(@.Op=TWOpCode.rti)or(@.Op=TWOpCode.rtt)
+  or(@.Op=TWOpCode.halt); : displ=('(',
+  ShowArray(@,(NL,HEX(&@ /*-&@:@*/ ,4),': ',@)),NL,')')
+

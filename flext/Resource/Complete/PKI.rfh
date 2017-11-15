@@ -1,0 +1,51 @@
+% Delphi 3.0 Package Info Resource format (not a real file)(PKI.rfh):Class: Resource, Status: Complete, Last change: 03.04.1999 12:32:00
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+// Delphi 3.0 Package Info Resource format (not a real file)
+type bit
+  TPackageTypeFlags set 30 of (
+    never_build=0, // 1: never-build              0: always build
+    design_time=1, // 1: design-time only         0: not design-time only      on => bit 2 = off
+    run_time=2 // 1: run-time only            0: not run-time only         on => bit 1 = off
+  )
+
+  TBit2 num+(2)
+  TPackageKind enum TBit2 (EXE=0, Package_DLL=1,Library_DLL=2)
+    // 0: EXE, 1: Package DLL, 2: Library DLL, 3: undefined
+
+  TPackageFlags struc pas
+    T: TPackageTypeFlags
+    K: TPackageKind
+  ends
+
+type
+  TPkgName struc pas
+    HashCode: Byte
+    Name: PChar
+  ends
+
+  TPackageUnitFlags set 8 of (
+    main=0, // main unit
+    package=1, // package unit (dpk source)
+    weak=2, // $WEAKPACKAGEUNIT unit
+    weak_orig=3, // original containment of $WEAKPACKAGEUNIT (package into which it was compiled)
+    implicit_imp=4 // implicitly imported
+  )
+
+  TUnitName struc pas
+    Flags : TPackageUnitFlags
+    HashCode: Byte
+    Name: pchar
+  ends
+
+  TPackageInfoHeader struc pas
+    Flags: TPackageFlags
+    RequiresCount: long
+    Requires: array[@.RequiresCount] of TPkgName
+    ContainsCount: long
+    Contains: array[@.ContainsCount] of TUnitName
+  ends
+
+data
+0 TPackageInfoHeader Hdr
+

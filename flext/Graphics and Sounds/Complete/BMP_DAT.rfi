@@ -1,0 +1,66 @@
+% Bitmap file data structures(BMP_DAT.rfi):Class: Graphics and Sounds, Status: Complete, Last change: 09.04.2006 10:18:42
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+DWORD ulong
+
+TRGBQuad struc
+  byte B
+  byte G
+  byte R
+  byte F
+ends
+
+TRGBTriple struc
+  byte B
+  byte G
+  byte R
+ends
+
+TOS2Pal(BC) array[((1 shl @:BC)when(@:BC<=8))exc 0] of TRGBTriple
+TWinPal(BC,ClrUsed) array[(((@:ClrUsed when (@:ClrUsed>0))
+    exc (1 shl @:BC)) when (@:BC<=8))exc 0] of TRGBQuad
+
+set byteorder rev
+type bit
+
+bit num+(1)
+bit4 num+(4)
+
+TBitmapLine1(L) array[@:L] of bit:displ=('(',ShowArray(@,(@,'|')),')')
+TBitmapLine4(L) array[@:L] of bit4:displ=('(',ShowArray(@,(@,'|')),')')
+
+set byteorder norm
+type
+
+TBitmapLine8(L) array[@:L] of byte:displ=('(',ShowArray(@,(@,'|')),')')
+TBitmapLine16(L) array[@:L] of Word:displ=('(',ShowArray(@,(@,'|')),')')
+TBitmapLine24(L) array[@:L] of TRGBTriple:displ=('(',ShowArray(@,(@,'|')),')')
+TBitmapLine32(L) array[@:L] of TRGBQuad:displ=('(',ShowArray(@,(@,'|')),')')
+
+TBitmapLine0(BC,L) case @:BC of
+  1: TBitmapLine1(@:L)
+  4: TBitmapLine4(@:L)
+  8: TBitmapLine8(@:L)
+  16: TBitmapLine16(@:L)
+  24: TBitmapLine24(@:L)
+  32: TBitmapLine32(@:L)
+endc
+
+TBitmapLine(BC,L) struc
+  TBitmapLine0(@:BC,@:L) D
+  (align 4 at &@;) Al
+ends
+
+TBitmapMtr(BC,H,W) array[@:H] of TBitmapLine(@:BC,@:W)
+
+/*
+TBitmapMtrWin(BC,H,W) array[@:H] of TBitmapLine(@:BC,@:W)
+TBitmapMtrOS2(BC,H,W) array[@:H] of TBitmapLine0(@:BC,@:W)
+TBitmapMtr(BC,H,W,OS2) case @:OS2 of
+  0: TBitmapMtrWin(@:BC,@:H,@:W)
+  else TBitmapMtrOS2(@:BC,@:H,@:W)
+endc
+*/
+

@@ -1,0 +1,238 @@
+% NTFS - file system structure (when data extracted into a file)(NTF.rfh):Class: OS Specific, Status: Complete, Last change: 03.02.1999 9:01:50
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+/*
+ * NTFS - file system structure
+ */
+include parttion.rfi
+
+type
+/*
+PPartInfo ^TPartInfo *0x200 near=word
+TPartInfo void
+*/
+
+USHORT WORD
+
+TSign4 array[4] of Char
+
+TUnicodeChars(Len) array[@:Len*2]of Char
+
+TResidentAttrRec/*(Base)*/ struc
+   USHORT              Size                    // Size of resident attribute
+   USHORT              usFil1
+   USHORT              Offset                  // offset specific value part
+   USHORT              IndexFlag
+//   (raw[]at &@;) ra_rest
+ends //:[@:Size=@.Offset-(&@-@:Base)]
+
+TNonResidentAttrRec struc
+   LCN                 SegFirst                // first LCN in this segment
+   LCN                 SegLast                 // last  LCN in this segment
+   USHORT              Offset                  // Offset to the run-list
+   USHORT              ComprEngine             // Id of compression engine
+   USHORT              usFil2
+   USHORT              usFil3
+   XLONG               Allocated               // Allocated disk space
+   XLONG               Size                    // Size of uncompressed attrib
+   XLONG               Compressed              // Compressed size of attribute
+ends
+//   (raw[]at &@;) ra_rest
+//ends:[@:Size=@.Offset-(&@-@:Base)]
+
+TAttrType enum ulong (
+  END_LIST  = 0xffffffff,
+  STANDARD  = 0x10,
+  ATTRLIST  = 0x20,
+  FILENAME  = 0x30,
+  VERSION   = 0x40,
+  SECURITY  = 0x50,
+  VOLNAME   = 0x60,
+  VOLINFO   = 0x70,
+  DATA      = 0x80,
+  IDXROOT   = 0x90,
+  IDXALLOC  = 0xa0,
+  BITMAP    = 0xb0,
+  SYMLINK   = 0xc0,
+  EAINFO    = 0xd0,
+  EADATA    = 0xe0
+)
+
+TFatAttrs set 32 of (
+  RO,Hidden,Sys,VolLbl,SubDir,Archive
+)
+
+Ta_standard struc
+   XLONG               FileCreationTime
+   XLONG               FileModification
+   XLONG               FrecModification
+   XLONG               FileLastAccessTm
+   TFatAttrs           FatAttributes           // As FAT + 0x800 = compressed
+   ULONG               ulReserved1             // unknown
+ends                                           // end of struct "a_standard"
+
+Ta_attrlist struc
+   ULONG               Type
+   USHORT              RecLength
+   BYTE                NameLength
+   BYTE                bFil1
+   LCN                 StartVcn
+   LCN                 MainMftRecord    // MFT rec containing header
+   USHORT              Identificator
+   TUnicodeChars(@.NameLength)  Name // name in Unicode
+ends                                    // end of struct "a_attrlist"
+
+TFileNameType enum byte (
+   FN_POSIX = 0x00,                     // Posix   style filename
+   FN_UNICO = 0x01,                     // Unicode style filename
+   FN_DOS83 = 0x02,                     // DOS 8.3 style filename
+   FN_UNDOS = 0x03                      // DOS & Unicode filename
+)
+
+Ta_filename struc
+   ULONG               MftParentDir            // Seq-nr parent-dir MFT entry
+   USHORT              usFil1                  // Unknown, part of seq-nr ?
+   USHORT              MftParentSeq            // Seq-nr parent-dir MFT entry
+   XLONG               FileCreationTime
+   XLONG               FileModification
+   XLONG               FrecModification
+   XLONG               FileLastAccessTm
+   XLONG               Allocated               // Allocated disk space
+   XLONG               RealSize                // Size of the attribute
+   XLONG               Flags
+   BYTE                FileNameLength
+   TFileNameType       FileNameType
+   TUnicodeChars(@.FileNameLength) FileName    // name in Unicode
+ends                                            // end of struct "a_filename"
+/*
+Ta_version struc
+   BYTE contents
+ends                               // end of struct "a_version"
+
+Ta_security struc
+   BYTE                contents
+ends                               // end of struct "a_security"
+*/
+
+Ta_volname(Sz) struc
+   array[@:Sz]of Char VolumeName     // Volume name in Unicode
+ends                                 // end of struct "a_volname"
+
+/*
+Ta_volinfo struc
+   raw[9*8 - Wrong size]            bFil1           // unknown
+   BYTE                ChkDskRequired  // Checkdisk flag
+ends                                   // end of struct "a_volinfo"
+*/
+/*
+Ta_data struc                           // main data attribute
+   BYTE                contents
+ends                                       // end of struct "a_data"
+*/
+
+Ta_idxroot struc
+   ULONG               I30                     // allways 0x30 ???
+   ULONG               ulOne                   // allways 0x01 ???
+   ULONG               Size
+   ULONG               Clusters                // clusters per index ???
+   ULONG               I10                     // allways 0x10 ???
+   ULONG               EntrySize1              // size of entry + 0x10 ???
+   ULONG               EntrySize2              // size of entry + 0x10 ???
+   USHORT              usOne                   // allways 0x01
+   USHORT              Flags                   // ???
+ends                                           // end of struct "a_idxroot"
+/*
+Ta_idxalloc struc
+   TSign4  Signature            // 'INDX'
+   USHORT              FixupOffset             // usualy 0x28
+   USHORT              FixupNumber             // number of fixups
+   LCN                 BufferVcn
+   USHORT              HeaderSize
+   ULONG               InUseLength
+   ULONG               TotalLength
+   (raw[@.FixupOffset-0x28]at &@;) OfsSkip
+   array[@.FixupNumber]of USHORT Fixup
+//   BYTE                EntryList[1]            // actual entry list
+//   BYTE                contents
+ends                                           // end of struct "a_idxalloc"
+*/
+/*
+typedef struct a_bitmap {
+   BYTE                contents;
+} A_BITMAP;                                     // end of struct "a_bitmap"
+
+typedef struct a_symlink {
+   BYTE                contents;
+} A_SYMLINK;                                    // end of struct "a_symlink"
+
+typedef struct a_eainfo {
+   BYTE                contents;
+} A_EAINFO;                                     // end of struct "a_eainfo"
+
+typedef struct a_eadata {
+   BYTE                contents;
+} A_EADATA;                                     // end of struct "a_eainfo"
+*/
+
+TAttr struc                       // MFT attribute header part
+   TAttrType           Type                    // type of attribute
+   USHORT              Length                  // length of this attribute
+   USHORT              usFil2                  // (used on some dir bitmaps)
+   BYTE                Residency               // 0 = resident, 1 in Runs
+   BYTE                NameLen                 // Length of name (if used)
+   USHORT              Offset                  // to name or resident data
+   BYTE                Compressed              // 1 = compressed
+   BYTE                bFil1
+   USHORT              Identificator
+   case @.Residency of
+      0: TResidentAttrRec//(&@@)           // Resident attribute
+      1: TNonResidentAttrRec//(&@@)        // Non-resident attribute
+   endc var
+   TUnicodeChars(@.NameLen) Name
+//   USHORT              Fixup[1];                // variable-size
+   case @.Type of
+     STANDARD: Ta_standard
+     ATTRLIST: Ta_attrlist
+     FILENAME: Ta_filename
+     VOLNAME:  Ta_volname(@@.var.0.Size exc 0)
+//     VOLINFO: Ta_volinfo
+     IDXROOT: Ta_idxroot
+//     IDXALLOC: Ta_idxalloc
+   endc Data
+   (raw[]at &@;) rest
+ends:[@:Size=@.Length]                            // end of struct "s_mftattr"
+
+TAttrTbl array of TAttr ?@.Type=0xffffffff!ulong;
+
+TFileFlags SET 16 of (
+  NONRES = 0,                     // holds non-resident attribs
+  DIRECT = 1                      // directory file-record
+)
+
+TMFTFileRec struc                         // MFT File table entry
+   TSign4 Signature                  // Signature "FILE"
+   USHORT              FixupOffset             // offset to fixup pattern
+   USHORT              FixupSize               // Size of fixup-list +1
+   ULONG               ulFil2
+   ULONG               ulFil3
+   USHORT              Sequence                // sequence nr in MFT
+   USHORT              HardLinks               // Hard-link count
+   USHORT              AttribOffset            // Offset to seq of Attributes
+   TFileFlags          Flags                   // 0x01 = NonRes; 0x02 = Dir
+   ULONG               RecLength               // Real size of the record
+   ULONG               AllLength               // Allocated size of the record
+   LCN                 BaseMftRec              // ptr to base MFT rec or 0
+   USHORT              MinIdentificator        // Minimum Identificator +1
+   USHORT              FixupPattern            // Current fixup pattern
+   array[@.FixupSize-1] of USHORT   FixupList  // Variable-size fixup-list
+                                               // followed by resident and
+                                               // part of non-res attributes
+   TAttrTbl Attr
+   (raw[]at &@;) rest
+ends:[@:Size=@.AllLength]                        // end of struct "s_mftfile"
+
+data
+0x0000 TMasterBootRec MBR
+//0x01C6 PPartInfo PartList
+0xBE00 array of TMFTFileRec:[@:Size=(FileSize-&@)and 0xFFFFFC00] FileTbl
+

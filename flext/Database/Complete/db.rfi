@@ -1,0 +1,294 @@
+% Paradox DBMS data file(db.rfi):Class: Database, Status: Complete, Last change: 01.07.2008 19:25:08
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+//include DOSFTime.rfi
+//include UNIXTime.rfi
+
+type
+// Paradox codes for field types
+TPXFldType enum byte (
+  pxfAlpha        = 0x01,
+  pxfDate         = 0x02,
+  pxfShort        = 0x03,
+  pxfLong         = 0x04,
+  pxfCurrency     = 0x05,
+  pxfNumber       = 0x06,
+  pxfLogical      = 0x09,
+  pxfMemoBLOb     = 0x0C,
+  pxfBLOb         = 0x0D,
+  pxfFmtMemoBLOb  = 0x0E,
+  pxfOLE          = 0x0F,
+  pxfGraphic      = 0x10,
+  pxfTime         = 0x14,
+  pxfTimestamp    = 0x15,
+  pxfAutoInc      = 0x16,
+  pxfBCD          = 0x17,
+  pxfBytes        = 0x18
+)
+
+TFldInfoRec STRUC PAS
+  fType: TPXFldType;
+  fSize: Byte;
+ends:let vSize=(@.fSize when(@.fType<>TPXFldType.pxfBCD)) exc 17;
+
+TPxFileType enum byte (
+  ftDB_ndx = 0, // this is an indexed .DB data file
+  ftPX = 1, // this is a primary index .PX file
+  ftDB = 2, // this is a non-indexed .DB data file
+  ftXnn = 3, // this is a non-incrementing secondary index .Xnn file
+  ftYnn = 4, // this is a secondary index .Ynn file (inc or non-inc)
+  ftXnn_inc = 5, // this is an incrementing secondary index .Xnn file
+  ftXGn = 6, // this is a non-incrementing secondary index .XGn file
+  ftYGn = 7, // this is a secondary index .YGn file (inc or non inc)
+  ftXGn_inc = 8 // this is an incrementing secondary index .XGn file
+)
+
+TMaxTableSize enum byte (
+   ts64M =1, //   64M    (block size = 0x0400 bytes)
+   ts128M=2, //  128M    (block size = 0x0800 bytes)
+   ts192M=3, //  192M    (block size = 0x0C00 bytes)
+   ts256M=4  //  256M    (block size = 0x1000 bytes)
+)
+
+TRAMPtr ulong
+
+TSortOrder enum byte (
+  soASCII = 0x00, // ASCII
+  soIntl = 0xB7, // International
+  soNorvDan = 0x82, // Norwegian/Danish
+  soNorvDan40 = 0xE6, // Norwegian/Danish (4.0)
+  soSwedFin = 0xF0 // Swedish/Finnish
+)
+
+TFileVersionID enum byte (
+  ver30=0x03, // version 3.0
+  ver35=0x04, // version 3.5
+  ver40_5=0x05, // version 4.x   (usually = 0x09)
+  ver40_6=0x06, //
+  ver40_7=0x07, //
+  ver40_8=0x08, //
+  ver40_9=0x09, //
+  ver50_A=0x0A, // version 5.x
+  ver50_B=0x0B, //
+  ver70=0x0C //version 7.x
+)
+
+TVer40ppHdr /*(ver)*/ struc pas
+  fileVerID2      :  int;
+  fileVerID3      :  int;
+  encryption2     :  ulong;
+/*  fileUpdateTime  :  case TFileVersionID @:ver of 
+    ver50_A,ver50_B,ver70: TTimeStamp
+   else TFileTime
+   endc; */
+  fileUpdateTime  :  ulong; //{ 4.0 only }
+  hiFieldID       :  word; //numFields+1
+  hiFieldIDinfo   :  word;
+  sometimesNumFields:int;
+  dosCodePage     :  int//word;
+  unknown6Cx6F    :  array[1-0x006C+0x006F] of byte;
+  changeCount4    :  int;
+  unknown72x77    :  array[1-0x0072+0x0077] of byte;
+ends
+
+TPxHeader0 STRUC PAS
+  recordSize              :  word;
+  headerSize              :  word;
+  fileType                :  TPxFileType;
+  maxTableSize            :  TMaxTableSize;
+  numRecords              :  long;
+  usedBlocks              :  word; //nextBlock               :  word;
+  fileBlocks              :  word;
+ENDS: assert[@.headerSize+@.fileBlocks*(0x0400*@.maxTableSize)=FileSize,
+  @.fileType<9,@.maxTableSize<=4,@.maxTableSize>0/*,
+  @.firstBlock=((1 when(@.numRecords>0))exc 0)*/]:let BlSize=
+  (0x0400*@.maxTableSize) when (@.maxTableSize<=4) exc 0;
+
+
+data
+0 TPxHeader0 Hdr0
+
+assert Hdr0:assert;
+
+descr ('Paradox Data or Index Files.',NL,
+  'Info Source: The PARADOX File Structure, Compiled by Randy Beck',NL,
+  '  bex@compuserve.com http://ourworld.compuserve.com/homepages/bex/',NL,
+  'Info Source: PARADOX 4.x FILE FORMATS, Revision 1, May 11, 1996',NL,
+  '  by Kevin Mitchell',NL,
+  '(pxformat.zip at www.wotsit.org)',NL)
+
+type
+
+PDataBlock ^TDataBlock near=word, REF=(@-1)*Hdr0:BlSize+Hdr0.headerSize;
+
+TPxHeader STRUC PAS
+  firstBlock              :  PDataBlock;
+  lastBlock               :  word;
+  unknown12x13            :  word;
+  modifiedFlags1          :  byte;
+  indexFieldNumber        :  byte;
+  primaryIndexWorkspace   :  TRAMPtr;
+  unknownPtr1A            :  TRAMPtr;
+  indexRootBlock	  :  PDataBlock; //PX only
+  indexLevels		  :  Byte; //PX only
+//  unknown1Ex20            :  array[1-0x001E+0x0020] of byte;
+  numFields               :  int;
+  primaryKeyFields        :  int;
+  encryption1             :  ulong;
+  sortOrder               :  TSortOrder;
+  modifiedFlags2          :  byte;
+  unknown2Bx2C            :  array[1-0x002B+0x002C] of byte;
+  changeCount1            :  byte;
+  changeCount2            :  byte;
+  unknown2F               :  byte;
+  tableNamePtrPtr         :  TRAMPtr//^pchar;
+  fldInfoPtr              :  TRAMPtr//PFldInfoRec;
+  writeProtected          :  byte;
+  fileVersionID           :  TFileVersionID;
+  maxBlocks               :  word;
+  unknown3C               :  byte;
+  auxPasswords            :  byte;
+  unknown3Ex3F            :  array[1-0x003E+0x003F] of byte;
+  cryptInfoStartPtr       :  TRAMPtr;
+  cryptInfoEndPtr         :  TRAMPtr;
+  unknown48               :  byte;
+  autoIncVal              :  long;
+  freeBlock 		  :  word; //according to PARADOX4.txt
+ // unknown4Dx4E            :  array[1-0x004D+0x004E] of byte;
+  indexUpdateRequired     :  byte;
+  unknown50x54            :  array[1-0x0050+0x0054] of byte;
+  refIntegrity            :  byte;
+  unknown56x57            :  array[1-0x0056+0x0057] of byte;
+  Part2: case @.fileVersionID of
+    ver40_5..ver70: TVer40ppHdr /*(@@.fileVersionID)*/
+  endc;
+  FldTbl: array[@.numFields] of TFldInfoRec;
+  tableNamePtr         :  TRAMPtr//pchar;
+  FldNamePtrTbl: array[@.numFields] of TRAMPtr;
+  tableName: array[79 when(@.fileVersionID<
+    TFileVersionID.ver70) exc 261] of Char,<0;
+  FldNameTbl: array[@.numFields] of pchar;
+//  cryptInfo
+  fieldNumbers: array[@.numFields] of int;
+  sortOrderID: pchar
+ends//: assert[@.firstBlock=((1 when(@.numRecords>0))exc 0)]
+
+data
+Hdr0:size; TPxHeader Hdr
+
+set byteorder rev
+
+const
+  longMask = -0x80000000;
+
+type
+
+TShort num-(2): displ=(COND(@<>0,(INT(@ xor -0x8000)),('null')))
+TUShort num+(2): displ=(INT(@ xor 0x8000))
+TLong num-(4): displ=(COND(@<>0,(INT(@ xor longMask)),('null')))
+
+
+type bit
+  TBit1 num+(1)
+  TBit11 num(11)
+  TBit4 num+(4)
+  TDoubleV struc
+    TBit1 S //Sign 1->Neg
+    TBit11 P
+    array[13]of TBit4 M
+  ends
+
+type
+  TDouble struc
+    TDoubleV V
+  ends: displ=(FLOAT(@.V.M,@.V.P-0x3FF,@.V.S xor 1))
+
+const
+  Days0=DateToDays(1/*Y*/,1,1)-1;
+  DaySec=24*60*60;
+
+type
+TDate num-(4):displ=(INT(DaysToDay(Days0+(@ xor longMask))),'.',
+  INT(DaysToMonth(Days0+(@ xor longMask))),'.',
+  INT(DaysToYear(Days0+(@ xor longMask)))/*,' ',
+  INT((@ div (60*60))mod 24),':',INT((@ div 60)mod 60),'''',
+  INT(@ mod 60),'"'*/)
+
+TTime num-(4):displ=(COND(@<>0,(INT((@ xor longMask)div 3600000),':',
+  INT(((@ xor longMask)mod 3600000)div 60000),'''',
+  INT(((@ xor longMask)mod 60000)div 1000),'"'),('null')))
+
+set byteorder norm
+
+type
+
+//TRecData raw[Hdr.recordSize]
+
+TLogical enum byte (null=0,False=0x80,True=0x81)
+
+TAlpha(Sz) array[@:Sz]of Char,<0;:displ=(COND(@[0]<>0,('''',@,''''),('null')))
+
+TTimestamp TDouble
+//Timestamp: ((($B0AB62CA-$ACFCF706)/366)/24/60/60)*$10000 = 128000
+//Looks like TDateTime
+
+TMemoInfo(Sz) struc
+  array[@:Sz-10]of Char,<0; Leader
+  byte BlIndex //$FF =>type 2, else type 3
+  num+(3) BlOfs
+  ulong Sz
+  int Ver
+ends:[@:Size=@:Sz]:displ=(COND(@.Sz>0,(@),('null')))
+
+TFieldData struc
+  case Hdr.FldTbl[@:#].fType of
+    pxfLogical: TLogical
+    pxfAlpha: TAlpha(Hdr.FldTbl[@@:#]:vSize)
+    pxfShort: TShort
+    pxfLong,pxfAutoInc: TLong
+    pxfNumber,pxfCurrency: TDouble
+  //  pxfTimestamp: TDouble
+    pxfDate: TDate
+    pxfTime: TTime
+    pxfTimestamp: TTimestamp
+    pxfMemoBLOb,pxfBLOb,pxfFmtMemoBLOb,pxfOLE,
+    pxfGraphic: TMemoInfo(Hdr.FldTbl[@@:#]:vSize)
+  /*
+    pxfBCD          = 0x17,
+    pxfBytes        = 0x18
+  */
+  endc V
+  raw[] Rest
+ends:[@:Size=Hdr.FldTbl[@:#]:vSize]
+
+TRecData struc
+  array[Hdr.numFields]of TFieldData Vals
+  raw[] Rest
+ends:[@:Size=Hdr0.recordSize]
+
+TIndexRec struc
+  raw[Hdr0.recordSize-6] Key
+  TUShort KeyBlock
+  TUShort BlCount
+  TUShort Zero
+ends:[@:Size=Hdr0.recordSize]
+
+TDataBlock STRUC PAS
+    nextBlock     : PDataBlock;
+    prevBlock     : PDataBlock;
+    addDataSize   : word;
+   %$IF (Hdr0.fileType=TPxFileType.ftPX)or(Hdr0.fileType=TPxFileType.ftYnn)
+       or(Hdr0.fileType=TPxFileType.ftYGn);
+    fileData      : array of TIndexRec;
+   %$ELSE
+    fileData      : array of TRecData;
+   %$ENDIF
+  //fileData size varies according to maxTableSize
+  rest: raw[] at &@;
+ends:[@:Size=Hdr0:BlSize,
+  @.fileData:Size=(@.addDataSize+Hdr0.recordSize)when(@.addDataSize>=0) exc 0]
+
+
+data
+//Hdr.headerSize array[Hdr.fileBlocks] of TDataBlock Blocks
+

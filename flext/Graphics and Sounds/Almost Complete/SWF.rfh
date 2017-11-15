@@ -1,0 +1,1300 @@
+% Macromedia Flash File(SWF.rfh):Class: Graphics and Sounds, Status: Almost Complete, Last change: 08.03.2008 17:57:24
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+THeader1 struc pas
+  Signature: array[3] of Char
+  Version: Byte //Single byte file version (e.g. 0x04 for SWF 4)
+  FileLength: ulong //Length of entire file in bytes
+ends
+
+data
+  0x0000 THeader1 Hdr1
+
+assert (Hdr1.Signature='FWS')and(Hdr1.FileLength=FileSize);
+
+descr ('Macromedia Flash File (SWF).',NL)
+descr (
+  'Info Src: Flash_File_Format__SWF__SDK.zip/Source/Macromedia.h.',NL)
+
+type bit
+  TBit1 num+(1)
+  TBit8 num+(8)
+  TBit11 num+(11)
+  TBit20 num+(20)
+  TBit23 num+(23)
+
+  TDoubleHi struc
+    TBit20 M
+    TBit11 P
+    TBit1 S //Sign 1->Neg
+  ends
+
+  TFloat struc
+    TBit23 M
+    TBit8 P
+    TBit1 S //Sign 1->Neg
+  ends: displ=(@.S,' 1.',HEX(@.M*2,6),'*2^',INT(@.P-0x7F));
+
+type
+  TDouble struc
+    ulong Lo
+    TDoubleHi Hi
+  ends: displ=(@.Hi.S,' 1.',HEX(@.Hi.M,5),HEX(@.Lo,8),'*2^',INT(@.Hi.P-0x3FF));
+
+type
+
+SI8 num-(1) //Signed 8-bit integer value
+SI16 num-(2) //Signed 16-bit integer value
+ 
+SI32 num-(4) //Signed 32-bit integer value
+ 
+//SI8[n] Signed 8-bit array - n is number of array elements
+ 
+//SI16[n] Signed 16-bit array - n is number of array elements
+ 
+UI8 num+(1) //Unsigned 8-bit integer value
+ 
+UI16 num+(2) //Unsigned 16-bit integer value
+ 
+UI32 num+(4) //Unsigned 32-bit integer value
+ 
+//UI8[n] Unsigned 8-bit array - n is number of array elements
+ 
+//UI16[n] Unsigned 16-bit array - n is number of array elements
+ 
+//UI32[n] Unsigned 32-bit array - n is number of array element
+
+fail void():assert[0]
+
+FIXED struc
+  UI16 Frac
+  SI16 Int
+ends:displ=(@.Int,'.',Hex(@.Frac,4))
+
+RGB struc
+  UI8 R
+  UI8 G
+  UI8 B
+ends 
+
+RGBA struc //Color with Alpha Record
+  UI8 R
+  UI8 G
+  UI8 B
+  UI8 A //Alpha
+ends 
+
+RGB_A(lvl) case @:lvl of
+ 1,2: RGB
+else RGBA
+endc
+
+set byteorder rev
+
+type bit
+
+UB1 num+(1)
+UB2 num+(2)
+UB3 num+(3)
+UB4 num+(4)
+UB5 num+(5)
+UB6 num+(6)
+UB7 num+(7)
+UB8 num+(8)
+
+SB(L) num-(@:L)
+UB(L) num+(@:L)
+FB(L) num+(@:L):displ=(INT(@ div 0x10000),'.',HEX(@ and 0xFFFF,4))
+
+RECT struc pas
+  Nbits: UB5
+  Xmin: SB(@.Nbits)
+  Xmax: SB(@.Nbits)
+  Ymin: SB(@.Nbits)
+  Ymax: SB(@.Nbits)
+ends
+
+//The MATRIX record represents a standard 2x3 transformation matrix.
+//It is used to describe the scale, rotation and translation of a graphic object. 
+MATRIX struc pas
+  hasScale: UB1 //Has scale values if equal to 1
+  Scale: case @.hasScale of
+   1: struc pas
+     NScaleBits: UB5 //Bits in each scale value field
+     ScaleX: FB(@.nScaleBits) //X scale value
+     ScaleY: FB(@.nScaleBits) //Y scale value
+    ends
+  endc
+  hasRotate: UB1 //Has rotate and skew values if equal to 1
+  Rotate: case @.hasRotate of
+   1: struc pas
+     NRotateBits: UB5 //Bits in each rotate value field
+     RotateSkew0: FB(@.nRotateBits) //First rotate and skew value
+     RotateSkew1: FB(@.nRotateBits) //Second rotate and skew value
+    ends
+  endc 
+  nTranslateBits: UB5 //Bits in each translate value field
+  TranslateX: SB(@.nTranslateBits) //X translate value in twips
+  TranslateY: SB(@.nTranslateBits) //Y translate value in twips
+ends
+
+//Color Transform Record
+//The CXFORM record defines a simple transform that can be applied to
+//the color space of a graphic object.
+CXFORM struc pas
+  hasAdd: UB1 //Has color addition values if equal to 1
+  hasMult: UB1 //Has color multiply values if equal to 1
+  nBits: UB4 //Bits in each value field
+  Mult: case @.hasMult of
+   1: struc pas
+     R: SB(@@@.nBits) //Red multiply value
+     G: SB(@@@.nBits) //Green multiply value
+     B: SB(@@@.nBits) //Blue multiply value
+    ends
+  endc
+  Add: case @.hasAdd of
+   1: struc pas
+     R: SB(@@@.nBits) //Red addition value
+     G: SB(@@@.nBits) //Green addition value
+     B: SB(@@@.nBits) //Blue addition value
+    ends
+  endc
+ends 
+
+//Color Transform with Alpha Record
+CXFORMWITHALPHA struc pas
+  hasAdd: UB1 //Has color addition values if equal to 1
+  hasMult: UB1 //Has color multiply values if equal to 1
+  nBits: UB4 //Bits in each value field
+  Mult: case @.hasMult of
+   1: struc pas
+     R: SB(@@@.nBits) //Red multiply value
+     G: SB(@@@.nBits) //Green multiply value
+     B: SB(@@@.nBits) //Blue multiply value
+     A: SB(@@@.nBits) //Alpha multiply value
+    ends
+  endc
+  Add: case @.hasAdd of
+   1: struc pas
+     R: SB(@@@.nBits) //Red addition value
+     G: SB(@@@.nBits) //Green addition value
+     B: SB(@@@.nBits) //Blue addition value
+     A: SB(@@@.nBits) //Alpha addition value
+    ends
+  endc
+ends 
+/*
+TPlaceObjectBitPart(Sz) struc pas
+  Mtr: MATRIX //Transform matrix data
+  ColorTransform: case @:Sz-@.Mtr:Size>6/*Min size of CXFORM*/ of
+    1: CXFORM //Color transform data
+  endc 
+  rest: raw[]
+ends:[@:Size=@:Sz]
+*/
+
+TPlaceFlags struc pas
+  Reserved: UB1 //Reserved Flags
+  HasClipACtions: UB1 //Has Clip Actions (added to Flash 5)
+  HasName: UB1 //Has name
+  HasRatio: UB1 //Has ratio
+  HasColorTransform: UB1 //Has color transform
+  HasMatrix: UB1 //Has matrix
+  HasCharacter: UB1 //Places a character
+  PlaceFlagMove: UB1 //Defines a character to be moved
+ends 
+
+/*
+TPlaceObject2BitPart(HasMatrix,HasColorTransform) struc pas
+  Mtr: case @:HasMatrix of
+    1: MATRIX //Transform matrix data
+  endc
+  ColorTransform: case @:HasColorTransform of
+    1: CXFORM //Color transform data
+  endc 
+ends
+*/
+
+TButtonState struc pas
+  Reserved: UB4 //Reserved bits - always 0
+  HitTest: UB1 //Button state hit test flag
+  Down: UB1 //Button state down flag
+  Over: UB1 //Button state over flag
+  Up: UB1 //Button state up flag
+ends
+
+set byteorder norm
+
+type
+
+//Gradients
+
+GRADRECORD(Lvl) struc pas
+  Ratio: UI8 //Ratio value
+  Color: RGB_A(@:Lvl)// RGB (Shape1 or Shape2), RGBA (Shape3)
+    //Color of gradient
+ends
+
+GRADIENT(Lvl) struc pas
+  nGrads: UI8 //NumGradients 1 to 8
+  Tbl: array[@.nGrads] of GRADRECORD(@@:Lvl)
+ends
+
+//Styles
+
+TFillStyleType enum UI8 (
+  solid=0x00, //solid fill
+  linear_gr=0x10, //linear gradient fill
+  radial_gr=0x12, //radial gradient fill
+  tiled_bm=0x40, //tiled bitmap fill
+  clipped_bm=0x41 //clipped bitmap fill
+)
+
+FILLSTYLE(lvl) struc pas
+  T: TFillStyleType //Type of fill style
+  D: case @.T of
+   solid: RGB_A(@@:lvl) //Solid fill color
+     //(with transparency information if Shape3)
+   linear_gr, radial_gr: struc pas
+     Mtr: MATRIX //Matrix for gradient fill
+     Gr: GRADIENT(@@@:Lvl) //Gradient fill
+    ends
+   tiled_bm, clipped_bm: struc pas
+     ID: UI16 //ID of bitmap character for fill
+     Mtr: MATRIX //Matrix for bitmap fill
+    ends
+  endc
+ends
+
+FILLSTYLEARRAY(Lvl) struc pas
+  Count: UI8 //Count of fill styles
+  CountExt: case @.Count of
+    0xFF: UI16
+  endc //Extended count of fill styles. Supported only for Shape2 and Shape3.
+  FillStyles: array[(@.CountExt.0xFF)exc @.Count]of FILLSTYLE(@@:Lvl) //Array of
+    //fill styles
+ends
+
+LINESTYLE(Lvl) struc pas
+  Width: UI16 //Width of line in twips
+  Color: RGB_A(@:Lvl) //Color value including alpha channel
+    //information for Shape3s
+ends
+
+LINESTYLEARRAY(Lvl) struc pas
+  Count: UI8 //Count of line styles
+  CountExt: case @.Count of
+    0xFF: UI16
+  endc //Extended count of fill styles. Supported only for Shape2 and Shape3.
+  LineStyles: array[(@.CountExt.0xFF)exc @.Count]of LINESTYLE(@@:Lvl) //Array
+    //of line styles
+ends
+
+
+set byteorder rev
+
+type bit
+
+TShapeNums struc pas  
+  NfillBits: UB4 //Number of fill index bits
+  NlineBits: UB4 //Number of line index bits
+ends
+
+STYLECHANGERECORD(Lvl,nFillBits,nLineBits) struc pas
+  NewStyles: UB1 //New styles flag. Used by DefineShape2 and DefineShape3 only.
+  LS: UB1 //Line style change flag
+  FS1: UB1 //Fill style 1 change flag
+  FS0: UB1 //Fill style 0 change flag
+  MoveTo: UB1 //Move to flag
+  Move: case @.MoveTo of
+   1: struc pas
+     nBits: UB5 //Move bit count
+     DeltaX: SB(@.nBits) //Delta X value
+     DeltaY: SB(@.nBits) //Delta Y value
+   ends
+  endc
+  FillStyle0: case @.FS0 of
+   1: UB(@@:nFillBits) //Fill 0 Style
+  endc
+  FillStyle1: case @.FS1 of
+   1: UB(@@:nFillBits) //Fill 1 Style
+  endc
+  LineStyle: case @.LS of
+   1: UB(@@:nLineBits) //Line Style
+  endc
+  NewS: case @.NewStyles of
+   1: struc pas
+     Al: align 8;
+     FillStyles: FILLSTYLEARRAY(@@@:Lvl) //Array of new fill styles
+     LineStyles: LINESTYLEARRAY(@@@:Lvl) //Array of new line styles
+     NumFillBits: UB4 //Number of fill index bits for new styles
+     NumLineBits: UB4 //Number of line index bits for new styles
+   ends
+  endc
+ends
+
+STRAIGHTEDGERECORD struc pas
+  nBits: UB4 //Number of bits per value - 2
+  LineFlag: UB1 //General Line equals 1,Vert/Horz Line equals 0
+  Delta: case @.LineFlag of
+    1: struc pas
+      X: SB(@@@.nBits+2)
+      Y: SB(@@@.nBits+2)
+    ends
+  else struc pas
+    vertFlag: UB1
+    V: SB(@@@.nBits+2)
+   ends
+  endc
+ends
+
+CURVEDEDGERECORD struc pas
+  nBits: UB4 //Number of bits per value - 2
+  ControlDeltaX: SB(@.nBits+2) //X control point change
+  ControlDeltaY: SB(@.nBits+2) //Y control point change
+  AnchorDeltaX: SB(@.nBits+2) //X anchor point change
+  AnchorDeltaY: SB(@.nBits+2) //Y anchor point change
+ends
+
+SHAPERECORD(Lvl,NfillBits,NlineBits) struc pas
+  Edge: UB1 //Edge record flag
+  D: case @.Edge of
+    0: STYLECHANGERECORD(@@:Lvl,@@:NfillBits,@@:NlineBits)
+  else struc pas
+    Straight: UB1 //Straight edge - always 1
+    D: case @.Straight of
+      0: CURVEDEDGERECORD
+    else STRAIGHTEDGERECORD
+    endc
+   ends
+  endc
+ends
+
+TShapeRecords(Lvl,NfillBits,NlineBits) array of SHAPERECORD(@:Lvl,
+  @:NfillBits,@:NlineBits) ?UB6(@)=0!UB6;
+
+
+TFontFlags struc pas
+  HasLayout: UB1 //Has font metrics/layout information
+  ShiftJIS: UB1 //ShiftJIS encoding
+  Unicode: UB1 //Unicode encoding
+  Ansi: UB1 //ANSI encoding
+  WideOffsets: UB1 //If 1, uses 32 bit offsets
+  WideCodes: UB1 //If 1, font uses 16-bit codes, otherwise font uses 8 bit codes
+  Italic: UB1 //Italic Font
+  Bold: UB1 //Bold Font
+  Reserved: UB8 //Reserved Flags
+ends
+
+TFontInfoFlags struc pas
+  Reserved: UB2 //Reserved bit fields
+  Unicode: UB1 //Unicode character codes
+  ShiftJIS: UB1 //ShiftJIS character codes
+  ANSI: UB1 //ANSI character codes
+  Italic: UB1 //Font is italic
+  Bold: UB1 //Font is bold
+  WideCodes: UB1
+ends
+
+TDefineEditTextFlags struc pas
+  HasText: UB1 //0 = text field has no default text
+  WordWrap: UB1 //0 = text will not wrap and scroll sideways.
+  Multiline: UB1 //0 = text field is one line only.
+  Password: UB1 //0 = characters are displayed as typed.
+  ReadOnly: UB1 //0 = text editing is enabled
+  HasTextColor: UB1 //0 = use default color
+  HasMaxLength: UB1 //0 = length of text is unlimited.
+  HasFont: UB1 //0 = use default font.
+  Reserved: UB2 //Reserved for future use
+  HasLayout: UB1 //0 = no margins, indents or leading
+  NoSelect: UB1 //0 = selections enabled
+  Border: UB1 //0 = text field is drawn without border.
+  Reserved: UB2 //Reserved for future use
+  UseOutlines: UB1
+ends 
+
+TEXTRECORDTYPE1(Lvl) struc pas
+  Reserved: UB3 //Reserved - always 0
+  HasFont: UB1 //1 if text font specified
+  HasColor: UB1 //1 if text color specified
+  HasYOffset: UB1 //1 if Y offset specified
+  HasXOffset: UB1 //1 if X offset specified
+  Al: case @.HasFont or @.HasColor or @.hasXOffset or @.hasYOffset of
+   1: align 8;
+  endc
+  FontID: case @.HasFont of
+   1: UI16 //Font ID for following text
+  endc
+  Color: case @.HasColor of
+   1: RGB_A(@@:Lvl) //Font color for following text
+  endc
+  TextXOffset: case @.hasXOffset of
+   1: SI16 //Font X offset for following text
+  endc
+  TextYOffset: case @.hasYOffset of
+   1: SI16 //Font Y offset for following text
+  endc
+  TextHeight: case @.HasFont of
+   1: UI16 //Font height for following text
+  endc
+ends
+
+GLYPHENTRY(NglyphBits,AdvanceBits) struc pas
+  Index: UB(@:NglyphBits) //Glyph index into current font
+  Advance: SB(@:AdvanceBits) //X advance value for glyph
+ends 
+
+TEXTRECORDTYPE0(NglyphBits,AdvanceBits) struc pas
+  nGlyphs: UB7 //Number of glyphs in record
+  GlyphEntries: array[@.nGlyphs] of GLYPHENTRY(@@:NglyphBits,@@:AdvanceBits)
+ends 
+
+TEXTRECORD(Lvl,NglyphBits,AdvanceBits) struc pas
+  RecType: UB1 //0 = glyph record, 1 = text style record
+  R: case @.RecType of
+    0: TEXTRECORDTYPE0(@@:NglyphBits,@@:AdvanceBits)
+  else TEXTRECORDTYPE1(@@:Lvl)
+  endc
+ends
+
+TTextRecords(Lvl,NglyphBits,AdvanceBits) array of
+  TEXTRECORD(@:Lvl,@:NglyphBits,@:AdvanceBits) ?UB8(@)=0!UB8;
+
+TSoundFormat enum UB4 (sndCompressNone=0, sndCompressADPCM=1, sndCompressMP3=2)
+
+TSoundRate enum UB2 (
+  sr5_5=0, //5.5 kHz
+  sr11=1, //11 kHz
+  sr22=2, //22 kHz
+  sr44=3  //44 kHz
+)
+
+TDefineSoundFlags struc pas
+  SoundFormat: TSoundFormat //Format of SoundData
+  SoundRate: TSoundRate //The sampling rate
+  Sound16bit: UB1 //0 = snd8Bit, 1 = snd16Bit Size of each sample
+  SoundStereo: UB1 //0 = sndMono, 1 = sndStereo, Mono or stereo sound
+ends
+
+TSOUNDINFOSync enum UB4 (
+  syncNoMultiple=0x1, //Don't start the sound if already playing.
+  syncStop=0x2 //Stop the sound.
+)
+
+TSOUNDINFOFlags struc pas
+  SyncFlags: TSOUNDINFOSync
+  HasEnvelope: UB1 //Has envelope information if equal to 1
+  HasLoops: UB1 //Has loop information if equal to 1
+  HasOutPoint: UB1 //Has out point information if equal to 1
+  HasInPoint: UB1 //Has in point information if equal to 1
+ends
+
+set byteorder norm
+
+type //Tag records
+
+TExportAssets struc pas
+  count: UI16 //number of assets
+  asset: array[@.count] of struc pas
+    tag: UI16 //tag of character to export 1
+    id: PChar //identifier string of asset
+   ends
+ends
+
+TImportAssets struc pas
+  URL: PChar //URL points to the asset in the "server" SWF and
+    //includes the asset identifier string
+  List: TExportAssets
+ends
+
+TPlaceObject(Sz) struc pas
+  CharacterId: UI16 //ID of character to place
+  Depth: UI16 //Depth of character
+ // BP: TPlaceObjectBitPart(@:Sz*8-32)
+  Mtr: MATRIX //Transform matrix data
+  ColorTransform: case @:Sz-4-@.Mtr:Size>0 of
+    1: CXFORM //Color transform data
+  endc
+  rest: raw[]
+ends:[@:Size=@:Sz]
+
+TDefineButton2 forward
+
+TPlaceObject2 struc pas
+  F: TPlaceFlags
+  Depth: UI16 //Depth of character
+  CharacterId: case @.F.HasCharacter of
+    1: UI16 //ID of character to place
+   endc
+ // BP: TPlaceObject2BitPart(@.F.HasMatrix,@.F.HasColorTransform)
+  Mtr: case @.F.HasMatrix of
+    1: MATRIX //Transform matrix data
+  endc
+  ColorTransform: case @.F.HasColorTransform of
+    1: CXFORMWITHALPHA //Color transform data
+  endc
+  Ratio: case @.F.HasRatio of
+    1: UI16 
+   endc
+  ClipDepth: case @.F.HasClipActions of
+    1: UI16
+   endc
+  Name: case @.F.HasName of
+    1: PChar //Name of character
+   endc
+  Button: case @.F.Reserved of
+    1: TDefineButton2
+   endc
+ends
+
+TRemoveObject struc pas
+  CharacterId UI16 //ID of character to remove
+  Depth UI16 //Depth of character
+ends 
+
+/*
+TRemoveObject2 struc pas
+  Depth UI16 // Depth of character
+ends
+*/
+
+
+// ACTIONS
+
+type 
+
+// Action codes
+TActionCode enum UI8 (
+ // Flash 1 and 2 actions
+  //sactionHasLength	= 0x80,
+  sactionNone		= 0x00,
+  sactionGotoFrame	= 0x81,	// frame num (WORD)
+  sactionGetURL		= 0x83,	// url (STR), window (STR)
+  sactionNextFrame	= 0x04,
+  sactionPrevFrame	= 0x05,
+  sactionPlay		= 0x06,
+  sactionStop		= 0x07,
+  sactionToggleQuality	= 0x08,
+  sactionStopSounds	= 0x09,
+  sactionWaitForFrame	= 0x8A,	// frame needed (WORD), actions to skip (BYTE)
+
+ // Flash 3 Actions
+  sactionSetTarget	= 0x8B,	// name (STR)
+  sactionGotoLabel	= 0x8C,	// name (STR)
+
+// Flash 4 Actions
+  sactionAdd		= 0x0A, // Stack IN: number, number, OUT: number
+  sactionSubtract	= 0x0B, // Stack IN: number, number, OUT: number
+  sactionMultiply	= 0x0C, // Stack IN: number, number, OUT: number
+  sactionDivide		= 0x0D, // Stack IN: dividend, divisor, OUT: number
+  sactionEquals		= 0x0E, // Stack IN: number, number, OUT: bool
+  sactionLess		= 0x0F, // Stack IN: number, number, OUT: bool
+  sactionAnd		= 0x10, // Stack IN: bool, bool, OUT: bool
+  sactionOr		= 0x11, // Stack IN: bool, bool, OUT: bool
+  sactionNot		= 0x12, // Stack IN: bool, OUT: bool
+  sactionStringEquals	= 0x13, // Stack IN: string, string, OUT: bool
+  sactionStringLength	= 0x14, // Stack IN: string, OUT: number
+  sactionStringAdd	= 0x21, // Stack IN: string, strng, OUT: string
+  sactionStringExtract	= 0x15, // Stack IN: string, index, count, OUT: substring
+  sactionPush		= 0x96, // type (BYTE), value (STRING or FLOAT)
+  sactionPop		= 0x17, // no arguments
+  sactionToInteger	= 0x18, // Stack IN: number, OUT: integer
+  sactionJump		= 0x99, // offset (WORD)
+  sactionIf		= 0x9D, // offset (WORD) Stack IN: bool
+  sactionCall		= 0x9E, // Stack IN: name
+  sactionGetVariable	= 0x1C, // Stack IN: name, OUT: value
+  sactionSetVariable	= 0x1D, // Stack IN: name, value
+  sactionGetURL2	= 0x9A, // method (BYTE) Stack IN: url, window
+  sactionGotoFrame2	= 0x9F, // flags (BYTE) Stack IN: frame
+  sactionSetTarget2	= 0x20, // Stack IN: target
+  sactionGetProperty  	= 0x22, // Stack IN: target, property, OUT: value
+  sactionSetProperty  	= 0x23, // Stack IN: target, property, value
+  sactionCloneSprite  	= 0x24, // Stack IN: source, target, depth
+  sactionRemoveSprite 	= 0x25, // Stack IN: target
+  sactionTrace        	= 0x26, // Stack IN: message
+  sactionStartDrag	= 0x27, // Stack IN: no constraint: 0, center, target
+                                //           constraint: x1, y1, x2, y2, 1, center, target
+  sactionEndDrag	= 0x28, // no arguments
+  sactionStringLess	= 0x29, // Stack IN: string, string, OUT: bool
+  sactionWaitForFrame2	= 0x8D, // skipCount (BYTE) Stack IN: frame
+  sactionRandomNumber 	= 0x30, // Stack IN: maximum, OUT: result
+  sactionMBStringLength = 0x31, // Stack IN: string, OUT: length
+  sactionCharToAscii	= 0x32, // Stack IN: character, OUT: ASCII code
+  sactionAsciiToChar	= 0x33, // Stack IN: ASCII code, OUT: character
+  sactionGetTime	= 0x34, // Stack OUT: milliseconds since Player start
+  sactionMBStringExtract= 0x35,// Stack IN: string, index, count, OUT: substring
+  sactionMBCharToAscii  = 0x36,// Stack IN: character, OUT: ASCII code
+  sactionMBAsciiToChar  = 0x37,// Stack IN: ASCII code, OUT: character
+
+ //Flash 5 Actions
+  sactionCallFunction	= 0x3D,
+  sactionCallMethod	= 0x52,
+  sactionConstantPool	= 0x88,
+  sactionDefineFunction	= 0x9B,
+  sactionDefineLocal	= 0x3C,
+  sactionDefineLocal2	= 0x41,
+  sactionDelete		= 0x3A,
+  sactionDelete2	= 0x3B,
+  sactionEnumerate	= 0x46,
+  sactionEquals2	= 0x49,
+  sactionGetMember	= 0x4E,
+ // sactionInitArray	= 0x42,
+  sactionInitObject	= 0x42,
+  sactionNewMethod	= 0x53,
+  sactionNewObject	= 0x40,
+  sactionSetMember	= 0x4F,
+  sactionTargetPath	= 0x45,
+  sactionWith		= 0x94,
+  sactionToNumber	= 0x4A,
+  sactionToString	= 0x4B,
+  sactionTypeOf		= 0x44,
+  sactionAdd2		= 0x47,
+  sactionLess2		= 0x48,
+  sactionModulo		= 0x3F,
+  sactionBitAnd		= 0x60,
+  sactionBitLShift	= 0x63,
+  sactionBitOr		= 0x61,
+  sactionBitRShift	= 0x64,
+  sactionBitURShift	= 0x65,
+  sactionBitXor		= 0x62,
+  sactionDecrement	= 0x51,
+  sactionIncrement	= 0x50,
+  sactionPushDuplicate	= 0x4C,
+  sactionReturn		= 0x3E,
+  sactionStackSwap	= 0x4D,
+  sactionStoreRegister	= 0x87,
+
+ // Reserved for Quicktime
+  sactionQuickTime	= 0xAA	// I think this is what they are using...
+)
+
+ACTIONRECORD forward 
+
+TActionGetURL struc pas
+  Url: PChar //Target URL string
+  Target: PChar //Target string
+ends
+ 
+TActionWaitForFrame struc pas
+  Frame: WORD //Frame to wait for
+  SkipCount: BYTE //Number of actions to skip if frame is not loaded
+ends
+ 
+
+
+TPushRec struc pas
+ T: BYTE //0 = string literal, 1 = floating-point literal 
+ D: case @.T of
+  0: PChar
+  1: TFloat
+ //Guessed values
+  6: TDouble
+  7: UI32
+  8: UI8
+ else fail
+ endc:assert[@.*:assert]
+ends:assert[@.D:assert]
+
+TActionPush(Sz) array of TPushRec ?not @:assert or (&@>=&@:@+(@:@ as TActionPush):Sz)!void;
+
+TActionConstantPool struc pas
+  Cnt: UI16
+  Tbl: array[@.Cnt] of PChar
+ends
+
+TACTIONRECORDs(Sz) array of ACTIONRECORD:[@:Size=@:Sz]
+
+TActionDefineFunction struc pas
+  FunctionName: PChar //name of function, empty if anonymous
+  NumParams: WORD //# of parameters
+  Params: array[@.NumParams] of PChar //parameter names 
+  codeSize: WORD //# of bytes of code that follow
+  cod: TACTIONRECORDs(@.codeSize)
+ends
+
+TActionWith struc pas
+  Size: UI16
+  withblock: PChar
+ends
+
+TActionData(Code,Sz) struc pas
+  D: case TActionCode @:Code of 
+    sactionGotoFrame: WORD //Frame index
+    sactionGetURL: TActionGetURL
+    sactionWaitForFrame: TActionWaitForFrame
+    sactionSetTarget: PChar //Target of action target 
+    sactionGoToLabel: PChar //Frame label 
+   //Flash 4 Action Model:
+    sactionPush: TActionPush(@@:Sz)
+   //Control Flow
+    sactionJump, sactionIf: int //BranchOffset in bytes from the end of action
+   //Movie Control
+    sactionGetURL2: BYTE //Method 0 = None, 1 = GET, 2 = POST
+    sactionGotoFrame2: BYTE //Play flag
+    sactionWaitForFrame2: BYTE //SkipCount
+   //Flash (SWF) 5 Action Model
+    sactionConstantPool: TActionConstantPool //constant pool
+    sactionDefineFunction: TActionDefineFunction
+    sactionWith: TActionWith
+    sactionStoreRegister: BYTE //register number
+  endc
+  Rest: raw[]
+ends:[@:Size=@:Sz]
+
+ACTIONRECORD struc pas
+  code: TActionCode
+  D: case @.Code and 0x80 of
+    0x80: struc pas
+      L: UI16 //The number of bytes (after this) in the ACTIONRECORD.
+      D: TActionData(@@@.code,@.L)
+    ends
+   endc
+ends
+
+TActionList array of ACTIONRECORD ?@.code=TActionCode.sactionNone!TActionCode;
+
+// BUTTONS
+
+type
+
+BUTTONRECORD struc pas
+  State: TButtonState
+  Character: UI16 //Button character ID
+  Layer: UI16 //Button character layer
+  Mtr: MATRIX //Button character matrix
+ //Src doesn't write it: ColorTransform: CXFORM //Character color transform
+ends
+
+TButtonList array of BUTTONRECORD ?UB8(@.State)=0!UI8;
+
+TDefineButton struc pas
+  ButtonId: UI16 //ID for this character
+  Buttons: TButtonList
+  Actions: TActionList //Actions to perform
+ends
+
+BUTTON2RECORD struc pas
+  State: TButtonState
+  Character: UI16 //Button character ID
+  Layer: UI16 //Button character layer
+  Mtr: MATRIX //Button character matrix
+  ColorTransform: CXFORMWITHALPHA //Character color transform
+ends
+
+TButton2List array of BUTTON2RECORD ?UB8(@.State)=0!UI8;
+
+TActionConditions set 16 of (
+  OverDownToIdle	= 8,
+  IdleToOverDown	= 7,
+  OutDownToIdle		= 6,
+  OutDownToOverDown	= 5,
+  OverDownToOutDown	= 4,
+  OverDownToOverUp	= 3,
+  OverUpToOverDown	= 2,
+  OverUpToIdle		= 1,
+  IdleToOverUp		= 0
+)
+
+// Each Button2ActionCondition consists of ActionOffset, Condition, Actions,
+// and ActionEndFlag
+TButton2ActionCondition struc pas
+  ActionOffset: UI16 //Points to next Button2Action condition
+  Condition: TActionConditions //Button state transitions triggering an action.
+  Actions: TActionList //Actions to perform
+ends
+
+TButton2ActionConditions array of TButton2ActionCondition ?@.ActionOffset=0;
+ 
+TDefineButton2 struc pas
+  ButtonId: UI16 //ID for this character
+  Flags: UI8 //0 or 1 Track as menu flag
+  Offset: UI16 //Offset to the first Button2ActionCondition
+    //(immediately following the BUTTONRECORDs)
+  Buttons: TButton2List
+  ActionConditions: TButton2ActionConditions //Specifies a series of
+    //actions to perform based on a condition.
+ends
+
+//Shapes
+
+SHAPE(Lvl) struc pas
+  Nums: TShapeNums //NfillBits & NlineBits
+  ShapeRecords: TShapeRecords(@:Lvl,@.Nums.NfillBits,@.Nums.NlineBits)
+ends
+
+SHAPEWITHSTYLE(Lvl) struc pas  
+  FillStyles: FILLSTYLEARRAY(@:Lvl) //Array of fill styles
+  LineStyles: LINESTYLEARRAY(@:Lvl) //Array of line styles
+  Nums: TShapeNums //NfillBits & NlineBits
+  ShapeRecords: TShapeRecords(@:Lvl,@.Nums.NfillBits,@.Nums.NlineBits)
+ends
+ 
+TDefineShape(Lvl) struc pas
+  ShapeId: UI16 //ID for this character
+  ShapeBounds: RECT //Bounds of the shape
+  Shapes: SHAPEWITHSTYLE(@:Lvl) //Shape information
+ends
+
+//Fonts and Text
+
+TGlyphOffsetTable array of UI16:[@:Size=UI16(@)/*@[0]*/]
+
+TDefineFont struc pas
+  FontId: UI16 //ID for this character
+  OffsetTable: TGlyphOffsetTable
+  ShapeTable: array[@.OffsetTable[0] div 2]of SHAPE
+ends 
+
+KERNINGRECORDW struc pas
+  Code1: WChar //The character code of the left hand character.
+  Code2: WChar //The character code of the right hand character.
+  Adjustment: SI16 //Adjustment relative to advance values.
+ends 
+
+KERNINGRECORD struc pas
+  Code1: Char //The character code of the left hand character.
+  Code2: Char //The character code of the right hand character.
+  Adjustment: SI16 //Adjustment relative to advance values.
+ends 
+
+
+TDefineFont2 struc pas
+  FontId: UI16 //ID for this character
+  F: TFontFlags
+  Name: str //Name of Font
+  nGlyphs: UI16 //Count of Glyphs in font
+  OffsetTable: case @.F.WideOffsets of
+   1: array[@@.nGlyphs+1]of UI32
+  else array[@@.nGlyphs+1]of UI16
+  endc
+  /*CodeOffset: case @.F.WideOffsets of
+   1: UI32
+  else UI16
+  endc*/
+  ShapeTable: array[@.nGlyphs]of SHAPE
+  /*
+  CodeTable: case @.F.WideCodes of
+   1: array[@@.nGlyphs]of UI16
+  else array[@@.nGlyphs]of UI8
+  endc
+  */
+  CodeTable: case @.F.WideCodes of
+   1: array[@@.nGlyphs]of WChar
+  else array[@@.nGlyphs]of Char
+  endc
+  Layout: case @.F.HasLayout of
+   1: struc pas
+     Ascent: SI16 //Font ascender height
+     Descent: SI16 //Font decender height
+     Leading: SI16 //Font leading height
+     AdvanceTable: array[@@@.nGlyphs]of SI16
+   ends
+  endc
+  Layout1: case @.F.HasLayout and(Hdr1.Version>4) of
+   1: struc pas
+     BoundsTable: array[@@@.nGlyphs]of RECT
+     nCount: UI16 //FontKerningCount
+     KerningTable: case @@@.F.WideCodes of
+      1: array[@@.nCount] of KERNINGRECORDW
+     else array[@@.nCount] of KERNINGRECORD
+     endc
+   ends
+  endc
+ends 
+
+TDefineFontInfo(Sz) struc pas
+  FontId: UI16 //Font ID this information is for
+  Name: str //Name of the font
+  F: TFontInfoFlags
+  CodeTable: case @.F.WideCodes of
+   1: array of WChar
+  else array of Char
+  endc
+ends:[@:Size=@:Sz]
+
+TDefineText(Lvl) struc pas
+  Id: UI16 //ID for this character
+  Bounds: RECT //Bounds of the text
+  Matrix: MATRIX //Matrix for the text
+  NglyphBits: UI8 //Bits in each glyph index
+  AdvanceBits: UI8 //Bits in each advance value
+  TextRecords: TTextRecords(@:Lvl,@.NglyphBits,@.AdvanceBits)
+ends
+
+TEditTextAlign enum UI8 (Left=0, Right=1, Center=2, Justify=3)
+
+TDefineEditText struc pas
+  Id: UI16 //ID for this character
+  Bounds: RECT //Rectangle that completely encloses the text field. 
+  F: TDefineEditTextFlags
+  Font: case @.F.HasFont of
+   1: struc pas
+     ID: UI16 //Font ID for text
+     Height: UI16 //Height of font in twips
+    ends
+  endc
+  TextColor: case @.F.HasTextColor of
+   1: RGBA //Color of text
+  endc
+  MaxLength: case @.F.HasMaxLength of
+   1: UI16 //Text is restricted to this length
+  endc
+  Layout: case @.F.HasLayout of
+   1: struc pas
+     Al: TEditTextAlign
+     LeftMargin: UI16 //Left margin in twips
+     RightMargin: UI16 //Right margin in twips
+     Indent: UI16 //Indent in twips
+     Leading: UI16//Leading in twips
+    ends
+  endc
+  VariableName: PChar //Name of the variable where the contents of
+                      //the text field are stored.
+  InitialText: case @.F.HasText of
+   1: PChar //Text that is initially displayed in the text field,
+            //before it is edited.
+  endc
+ends 
+
+//Sprites
+
+TDataBlocks forward
+
+TDefineSprite struc pas
+  ID: UI16 //ID of sprite
+  FrameCount: UI16 //Number of frames in Sprite.
+  ControlTags: TDataBlocks //A series of tags
+ends 
+
+TDefineVideo struc pas
+  ID: UI16 //ID of Movie
+  Name: PChar //Filename or URL of the movie.
+ends 
+
+//Sounds
+
+TDefineSound(Sz) struc pas
+  SoundId: UI16 //ID for this character
+  F: TDefineSoundFlags
+  SampleCount: UI32 //Number of samples.
+  SoundData: raw[] /*array of UI8*/ //The sound data - may be uncompressed, ADPCM or MP3
+ends 
+
+SOUNDENVELOPE struc pas
+  Mark44: UI32 //Mark44 information
+  Level0: UI16 //Level 0 information
+  Level1: UI16 //Level 1 information
+ends
+
+SOUNDINFO struc pas
+  F: TSOUNDINFOFlags
+  InPoint: case @.F.hasInPoint of
+   1: UI32 //Sound in point value
+  endc
+  OutPoint: case @.F.hasOutPoint of
+   1: UI32 //Sound out point value
+  endc
+  LoopCount: case @.F.hasLoops of
+   1: UI16 //Sound loop count
+  endc
+  Envelope: case @.F.hasEnvelope of
+   1: struc pas
+     nPoints: UI8 //Sound Envelope point count
+     Recs: array[@.nPoints]of SOUNDENVELOPE
+    ends
+  endc
+ends 
+
+TStartSound struc pas
+  Id: UI16 //ID of sound character to play
+  SI: SOUNDINFO //Sound style information
+ends 
+
+TSoundStreamHead struc pas
+  Playback: TDefineSoundFlags //SoundFormat is reserved and always 0
+  Stream: TDefineSoundFlags 
+  StreamSoundSampleCount: UI16 //Average number of samples in each SoundStreamBlock
+ends 
+
+TSoundStreamBlock(Sz) struc pas
+  D: raw[]
+ends:[@:Size=@:Sz]
+
+//Morph
+
+MORPHGRADRECORD struc pas
+  StartRatio: UI8 //Ratio value for start shape
+  StartCl: RGBA  //Color of gradient for start shape
+  EndRatio: UI8 //Ratio value for end shape
+  EndCl: RGBA //Color of gradient for end shape
+ends 
+
+MORPHGRADIENT struc pas
+  nGrads: UI8 //1 to 8
+  Tbl: array[@.nGrads] of MORPHGRADRECORD
+ends 
+
+MORPHFILLSTYLE struc pas
+  T: TFillStyleType //Type of fill style
+  D: case @.T of
+   solid: struc pas
+     StartCl: RGBA //Solid fill color with transparency information for start shape
+     EndCl: RGBA //Solid fill color with transparency information for end shape
+    ends
+   linear_gr, radial_gr: struc pas
+     StartMtr: MATRIX //Matrix for gradient fill for start shape
+     EndMtr: MATRIX //Matrix for gradient fill for end shape
+     Gr: MORPHGRADIENT //Gradient fill
+    ends
+   tiled_bm, clipped_bm: struc pas
+     ID: UI16 //ID of bitmap character for fill
+     StartMtr: MATRIX //Matrix for bitmap fill
+     EndMtr: MATRIX //Matrix for bitmap fill
+    ends
+  endc
+ends
+
+MORPHFILLSTYLES struc pas
+  Count: UI8 //Count of fill styles
+  CountEx: case @.Count of
+    0xFF: UI16 //Extended count of fill styles. 
+  endc
+  Tbl: array[(@.CountEx.0xFF)exc(@.Count)]of MORPHFILLSTYLE
+ends 
+
+MORPHLINESTYLE struc pas
+  StartW: UI16 //Width of line in start shape in twips
+  EndW: UI16 //Width of line in end shape in twips
+  StartCl: RGBA //Color value including alpha channel information for start shape
+  EndCl: RGBA //Color value including alpha channel information for end shape
+ends 
+
+MORPHLINESTYLES struc pas
+  Count: UI8 //Count of line styles
+  CountEx: case @.Count of
+    0xFF: UI16 //Extended count of line styles. 
+  endc
+  Tbl: array[(@.CountEx.0xFF)exc(@.Count)]of MORPHLINESTYLE
+ends 
+
+TDefineMorphShape struc pas
+  ID: UI16 //ID for this character
+  StartBounds: RECT //Bounds of the start shape
+  EndBounds: RECT //Bounds of the end shape
+  Offset: UI32 //Indicates offset to EndEdges
+  FillStyles: MORPHFILLSTYLES
+  LineStyles: MORPHLINESTYLES
+  StartEdges: SHAPE  //Contains the set of edges and the style
+    //bits that indicate style changes. Number of edges must
+    //equal the number of edges in EndEdges.
+  EndEdges: SHAPE //Contains only the set of edges, with no style information.
+    //Number of edges must equal the number of edges in StartEdges
+ends 
+
+//Bitmaps
+
+TDefineBits(Sz) struc pas
+  Id: UI16 //ID for this character
+  JPEGImage: raw[]
+ends:[@:Size=@:Sz]
+
+TDefineBitsJPEG2(Sz) struc pas
+  Id: UI16 //ID for this character
+  JPEGImage: raw[]
+//BitmapJPEGEncoding UI8[encoding data size] //JPEG encoding table
+//BitmapJPEGImage UI8[image data size] //JPEG compressed image
+ends:[@:Size=@:Sz]
+
+TDefineBitsJPEG3(Sz) struc pas
+  Id: UI16 //ID for this character
+  Offset UI32 //Count of bytes in BitmapJPEGEncoding and BitmapJPEGImage.
+  JPEGImage: raw[@.Offset]
+ //BitmapJPEGEncoding UI8[encoding data size] //JPEG encoding table
+ //BitmapJPEGImage UI8[image data size] //JPEG compressed image
+  AlphaData raw[] //ZLIB compressed array of alpha data
+ends:[@:Size=@:Sz]
+
+TDefineBitsLossless(Sz) struc pas
+  Id: UI16 //Bitmap ID for this character
+  Fmt: UI8 //Format of compressed data (3 = 8 bit image data,
+    //4 = 16 bit image data, 5 = 32 bit image data)
+  Width: UI16 //Width of bitmap image
+  Height: UI16 //Height of bitmap image
+  ColorTableSize: case @.Fmt of
+    3: Byte //This value is one less than the actual size of the color table.
+  endc
+//  ColorTableSize: num+(1 shl (@.Fmt-3)) //This value is one less than the actual size of the color table.
+  BM: raw[]//ZLIBBITMAPDATA //ZLIB compressed bitmap data
+ends:[@:Size=@:Sz]
+
+
+TJPEGTables(Sz) struc pas
+  JPEGEncoding: raw[] //JPEG encoding table
+ends:[@:Size=@:Sz]
+ 
+
+type
+
+THeader struc pas
+  FrameSize: RECT //Frame size in twips
+  FrameRate: UI16 //Frame delay in 8.8 fixed number of frames per second
+  FrameCount: UI16 //Total number of frames in movie
+ends
+
+data
+  Hdr1:Size; THeader Hdr
+
+type bit
+
+//TBit6 num+(6)
+TBit10 num+(10)
+
+TTagID enum TBit10 ( 
+  stagEnd 			= 0,
+  stagShowFrame 		= 1,
+  stagDefineShape		= 2,
+  stagFreeCharacter 		= 3,
+  stagPlaceObject 		= 4,
+  stagRemoveObject 		= 5,
+  stagDefineBits 		= 6,
+  stagDefineButton 		= 7,
+  stagJPEGTables 		= 8,
+  stagSetBackgroundColor	= 9,
+  stagDefineFont		= 10,
+  stagDefineText		= 11,
+  stagDoAction			= 12,
+  stagDefineFontInfo		= 13,
+  stagDefineSound		= 14,	// Event sound tags.
+  stagStartSound		= 15,
+  stagDefineButtonSound	= 17,
+  stagSoundStreamHead		= 18,
+  stagSoundStreamBlock	= 19,
+  stagDefineBitsLossless	= 20,	// A bitmap using lossless zlib compression.
+  stagDefineBitsJPEG2		= 21,	// A bitmap using an internal JPEG compression table.
+  stagDefineShape2		= 22,
+  stagDefineButtonCxform	= 23,
+  stagProtect			= 24,	// This file should not be importable for editing.
+  stagPathsArePostScript	= 25,	// assume shapes are filled as PostScript style paths
+ // These are the new tags for Flash 3.
+  stagPlaceObject2		= 26,	// The new style place w/ alpha color transform and name.
+  stagRemoveObject2		= 28,	// A more compact remove object that omits the character tag (just depth).
+ // This tag is used for RealMedia only
+  stagSyncFrame			= 29, // Handle a synchronization of the display list
+  stagFreeAll			= 31, // Free all of the characters
+  stagDefineShape3		= 32,	// A shape V3 includes alpha values.
+  stagDefineText2		= 33,	// A text V2 includes alpha values.
+  stagDefineButton2		= 34,	// A button V2 includes color transform, alpha and multiple actions
+  stagDefineBitsJPEG3		= 35,	// A JPEG bitmap with alpha info.
+  stagDefineBitsLossless2 = 36,	// A lossless bitmap with alpha info.
+  stagDefineSprite		= 39,	// Define a sequence of tags that describe the behavior of a sprite.
+  stagNameCharacter		= 40,	// Name a character definition, character id and a string, (used for buttons, bitmaps, sprites and sounds).
+  
+  stagSerialNumber		= 41,	// a tag command for the Flash Generator customer serial id and cpu information
+  stagDefineTextFormat	= 42,	// define the contents of a text block with formating information
+
+  stagFrameLabel		= 43,	// A string label for the current frame.
+  stagSoundStreamHead2	= 45,	// For lossless streaming sound, should not have needed this...
+  stagDefineMorphShape	= 46,	// A morph shape definition
+    
+  stagFrameTag			= 47,	// a tag command for the Flash Generator (WORD duration, STRING label)
+  stagDefineFont2		= 48,	// a tag command for the Flash Generator Font information
+  stagGenCommand		= 49,	// a tag command for the Flash Generator intrinsic
+  stagDefineCommandObj	= 50,	// a tag command for the Flash Generator intrinsic Command
+  stagCharacterSet		= 51,	// defines the character set used to store strings
+  stagFontRef			= 52,   // defines a reference to an external font source
+
+//Added by AX
+  stagExportAssets	= 56, 
+  stagImportAssets	= 57,
+  stagEnableDebugger	= 58,
+
+ // Flash 4 tags
+  stagDefineEditText		= 37,	// an edit text object (bounds, width, font, variable name)
+  stagDefineVideo		= 38,	// a reference to an external video stream
+
+ // NOTE: If tag values exceed 255 we need to expand SCharacter::tagCode from a BYTE to a WORD
+  stagDefineBitsPtr		= 1023  // a special tag used only in the editor
+)
+
+TTag struc
+  num+(6) Len
+  TTagID ID
+ends
+
+type
+
+TTagRec struc
+  TTag Tag
+  case @.Tag.Len of
+    0x3f: UI32
+  endc L32
+ends:displ=('(ID:',@.Tag.ID,',L:',HEX((@.L32.0x3F)exc(@.Tag.Len)),')')
+
+TTagData(Tag,Sz) struc
+  case TTagID @:Tag of
+   //Control Tags:
+    stagSetBackgroundColor: RGB
+    stagFrameLabel: PChar
+    stagExportAssets: TExportAssets
+    stagImportAssets: TImportAssets
+    stagProtect: case @@:Sz of
+      0: void //Can't edit
+      else PChar //MD5 encrypted Password
+     endc
+    stagEnableDebugger: PChar //MD5 encrypted Password
+    stagDefineBitsPtr: UI32
+   //Display List Tags:
+    stagPlaceObject: TPlaceObject(@@:Sz)
+    stagPlaceObject2: TPlaceObject2
+    stagRemoveObject: TRemoveObject
+    stagRemoveObject2: UI16 // Depth of character
+    //stagShowFrame: void
+   //Action tag
+    stagDoAction: TActionList
+   //Buttons
+    stagDefineButton: TDefineButton
+    stagDefineButton2: TDefineButton2
+   //Shapes
+    stagDefineShape: TDefineShape(1)
+    stagDefineShape2: TDefineShape(2)
+    stagDefineShape3: TDefineShape(3)
+   //Fonts
+    stagDefineFont: TDefineFont
+    stagDefineFont2: TDefineFont2
+    stagDefineText: TDefineText(1)
+    stagDefineText2: TDefineText(3)
+    stagDefineFontInfo: TDefineFontInfo(@@:Sz)
+    stagDefineEditText: TDefineEditText
+   //Sprites
+    stagDefineSprite: TDefineSprite
+    stagDefineVideo: TDefineVideo
+   //Sounds
+    stagDefineSound: TDefineSound(@@:Sz)
+    stagStartSound: TStartSound
+    stagSoundStreamHead,stagSoundStreamHead2: TSoundStreamHead
+    stagSoundStreamBlock: TSoundStreamBlock(@@:Sz)
+   //Morph
+    stagDefineMorphShape: TDefineMorphShape
+   //Bitmaps
+    stagDefineBits: TDefineBits(@@:Sz)
+    stagDefineBitsJPEG2: TDefineBitsJPEG2(@@:Sz)
+    stagDefineBitsJPEG3: TDefineBitsJPEG3(@@:Sz)
+    stagDefineBitsLossless: TDefineBitsLossless(@@:Sz)
+    stagDefineBitsLossless2: TDefineBitsLossless(@@:Sz)
+    stagJPEGTables: TJPEGTables(@@:Sz)
+  endc D
+  raw[] Rest
+ends:[@:Size=@:Sz]
+
+TDataBlock struc
+  TTagRec TR
+  TTagData(@.TR.Tag.ID,(@.TR.L32.0x3F)exc(@.TR.Tag.Len)) D
+ends //:[@:Size=(@.TR.L32.0x3F)exc(@.TR.Tag.Len)]
+
+TDataBlocks array of TDataBlock ?@.TR.Tag.ID=0;
+
+data
+  &Hdr+Hdr:Size; TDataBlocks Blocks
+

@@ -1,0 +1,60 @@
+% BDE Configuration file(CNF.RFH):Class: Database, Status: Almost Complete, Last change: 05.09.2011 21:16:50
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set encoding OEM
+type
+
+fail void():assert[0]
+
+TNodeData forward
+
+TNode struc
+  word K
+  case @.K of
+   3: TNodeData
+   2: void
+  else fail
+  endc D
+ends:assert[@.D.*:assert]
+
+TList array of TNode ?(@.K<>3)/*or not(@:assert)*//*@.K=2*/!void;//:assert[]
+
+TListRec struc
+  TList L
+  word E
+ends:assert[@.E=2]
+
+TValRec struc
+  word K
+  PChar V
+ends:assert[@.K=4]
+
+TNodeRec struc
+  word HasList
+  case @.HasList of
+   0: void
+   1: TListRec
+  else fail
+  endc D
+ends:assert[@.D.*:assert]
+
+TNodeData struc
+  word IsVal
+  PChar Name
+  case @.IsVal of
+   0: TNodeRec
+   1: TValRec
+  else fail
+  endc D
+ends:assert[@.D.*:assert]
+
+data
+0 TList L
+
+assert L[0].K=3;//L:assert;
+
+descr ('BDE Configuration file.')
+descr (NL,
+  'Info Src: Partially reconstructed by me (Alexei Hmelnov (mailto:alex@monster.icc.ru)).',NL)
+
+

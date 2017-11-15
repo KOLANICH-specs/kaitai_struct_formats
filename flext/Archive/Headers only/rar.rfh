@@ -1,0 +1,168 @@
+% RAR Archive Format(rar.rfh):Class: Archive, Status: Headers only, Last change: 21.01.2022 13:02:46
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include DosFTime.rfi
+type
+
+TRARMagic array[7] of Char
+
+data
+
+0 TRARMagic Magic
+
+assert
+  Magic='Rar!'#0x1A#7#0; //In fact it can be considered as a
+    //special marker block, but this way it looks more natural
+
+type
+
+TBlockType enum byte (
+  marker=0x72, //marker block
+  archive=0x73, //archive header
+  file=0x74, //file header
+  comment=0x75, //comment header
+  extra=0x76, //extra information
+  subblock=0x77, //subblock
+  recovery=0x78  //recovery record
+)
+
+type bit
+
+TBit num+(1)
+TBit3 num+(3)
+
+TBit14 num+(14)
+
+TArchiveFlags set 14 of (
+  Volume ^ 0x01, // Volume attribute (archive volume)
+  comment ^ 0x02, // Archive comment present
+  lock ^ 0x04, // Archive lock attribute
+  Solid ^ 0x08, // Solid attribute (solid archive)
+  Auth ^ 0x20  // Authenticity information present
+)
+
+TDictKind enum TBit3 (
+  Dict64K, //dictionary size   64 Kb
+  Dict128K, //dictionary size  128 Kb
+  Dict256K, //dictionary size  256 Kb
+  Dict512K, //dictionary size  512 Kb
+  Dict1024K, //dictionary size 1024 Kb
+  ?,?,
+  Dir // file is directory
+)
+
+TFileFlagsF set 5 of (
+  prev ^ 0x01, // file continued from previous volume
+  next ^ 0x02, // file continued in next volume
+  encrypt ^ 0x04, // file encrypted with password
+  comment ^ 0x08, // file comment present
+  solid ^ 0x10 // information from previous files is used (solid flag)
+               //  (for RAR 2.0 and later)
+)
+
+TFileFlags struc
+  TFileFlagsF F
+  TDictKind Kind
+  set 6 of () rest
+ends
+
+TRARFlags(TP) struc
+  case TBlockType @:TP of
+    archive: TArchiveFlags
+    file: TFileFlags
+  else TBit14
+  endc Spec //Type-Specific flags
+  TBit OldIgnore //if set, older RAR versions will ignore the block
+            //and remove it when the archive is updated.
+            //if clear, the block is copied to the new archive
+            //file when the archive is updated;
+  TBit HasADD_SIZE //ADD_SIZE field is present and the full block
+                   //size is HEAD_SIZE+ADD_SIZE.
+ends
+
+type
+
+//TRARBlock forward
+
+TComment(On) forward
+
+TMainHead(WithComment) struc
+  word Rsrv1
+  ulong Rsrv2
+  TComment(@:WithComment) Comment
+ends
+
+TOsCode enum byte (
+  DOS=0, //MS DOS
+  OS2=1, //OS/2
+  Win32=2,
+  Unix=3
+)
+
+TRARMethod enum byte (
+  storing=0x30, // storing
+  fastest=0x31, // fastest compression
+  fast=0x32, // fast compression
+  normal=0x33, // normal compression
+  good=0x34, // good compression
+  best=0x35  // best compression
+)
+
+TFileHead(DataSz,WithComment) struc
+  ulong UNP_SIZE  //Uncompressed file size
+  TOsCode HOST_OS //Operating system used for archiving
+  ulong FILE_CRC
+  TFileTime FTIME //Date and time in standard MS DOS format
+  byte UNP_VER    //RAR version needed to extract file
+  TRARMethod METHOD     //Packing method
+  word NAME_SIZE  //File name size
+  ulong ATTR      //File attributes
+  array[@.NAME_SIZE] of char FILE_NAME //File name - string of NAME_SIZE bytes size
+  TComment(@:WithComment) Comment
+  raw[@:DataSz] D
+ends
+
+TCommentHead struc
+  word UNP_SIZE //Uncompressed comment size
+  byte UNP_VER //RAR version needed to extract comment
+  TRARMethod METHOD //Packing method
+  word COMM_CRC //Comment CRC
+  array of Char COMMENT //Comment text
+ends
+
+TRARBlock struc
+  word CRC       //CRC of total block or block part
+  TBlockType TYPE      //Block type
+  TRARFlags(@.TYPE) FLAGS //Block flags
+  word SIZE      //Block size
+  case @.FLAGS.HasADD_SIZE of
+   1: ulong
+  endc ADD_SIZE //Optional field - added block size
+  case @.TYPE of
+    marker: void
+    archive: TMainHead(@@.FLAGS.Spec.archive and TArchiveFlags.comment<>0)
+    file: TFileHead(@@.ADD_SIZE.1 /*PACK_SIZE*/,
+      @@.FLAGS.Spec.file.F and TFileFlagsF.comment<>0)
+    comment: TCommentHead
+  // extra: raw[]
+  // subblock:
+  // recovery:
+  else raw[]
+  endc D
+ends:[@:Size=@.Size+((@.ADD_SIZE.1) exc 0)]
+
+TComment(On) case @:On of
+  1: TRARBlock
+endc :assert[not @:On or(@.1.TYPE = TBlockType.comment)]
+
+data
+Magic:Size TRARBlock Hdr
+Magic:Size+Hdr:Size array of TRARBlock:
+  [@:Size=FileSize-(Magic:Size+Hdr:Size)] Files
+
+assert Hdr:assert;
+
+descr ('RAR Archive File Format.',NL,
+  'Info Source: RAR version 2.02 - Technical information',NL,
+  '  (rar202.zip at www.wotsit.org)',NL)
+

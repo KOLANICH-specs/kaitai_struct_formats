@@ -1,0 +1,355 @@
+% ZIP Archive Format(ZIP.rfh):Class: Archive, Status: Headers only, Last change: 18.10.2021 19:59:20
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include DosFTime.rfi
+const
+  Days1601=DateToDays(1601,1,1);
+  DaySec=24*60*60;
+
+type
+//AUX
+TOSCode enum byte (
+  IBM=0,   //MS-DOS and OS/2 (FAT / VFAT / FAT32 file systems)
+  Amiga=1,
+  VMS=2,   //VAX/VMS
+  UNIX=3,
+  VM_CMS=4,//VM/CMS
+  Atari=5, //Atari ST
+  HPFS=6,  //OS/2 H.P.F.S.
+  Mac=7,   //Macintosh
+  Z=8,     //Z-System
+  CP_M=9,  //CP/M
+  NTFS=10, //Windows NTFS
+  MVS=11, //MVS (OS/390 - Z/OS)
+  VSE=12, //VSE
+  Acorn=13, //Acorn Risc
+  VFAT=14, //VFAT
+  AltVMS=15, //alternate MVS
+  BeOS=16, //BeOS
+  Tandem=17, //Tandem
+  OS400=18, //OS/400
+  OSX=19 //OS X (Darwin)
+)
+
+TMadeVer struc
+  byte PrgVer
+  TOSCode OS
+ends
+
+TComprMethod enum word (
+  Stored=0,     // The file is stored (no compression)
+  Shrunk=1,     // The file is Shrunk
+  Reduced1=2,   // The file is Reduced with compression factor 1
+  Reduced2=3,   // The file is Reduced with compression factor 2
+  Reduced3=4,   // The file is Reduced with compression factor 3
+  Reduced4=5,   // The file is Reduced with compression factor 4
+  Imploded=6,   //The file is Imploded
+  Tokenized=7,  //Reserved for Tokenizing compression algorithm
+  Deflated=8,   //The file is Deflated
+  DeflatedE=9,  //Enhanced Deflating using Deflate64(tm)
+  ImplodedPK=10,//PKWARE Data Compression Library Imploding (old IBM TERSE)
+                //11 - Reserved by PKWARE
+  BZIP2=12,     //File is compressed using BZIP2 algorithm
+                //13 - Reserved by PKWARE
+  LZMA=14,      //LZMA (EFS)
+                //15 - Reserved by PKWARE
+                //16 - Reserved by PKWARE
+                //17 - Reserved by PKWARE
+  TERSE=18,     //File is compressed using IBM TERSE (new)
+  LZ77=19,      //IBM LZ77 z Architecture (PFS)
+  WavPack=97,   //WavPack compressed data
+  PPMd=98       //PPMd version I, Rev 1
+)
+
+type bit
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+TBit4 num+(4)
+TBit5 num+(5)
+
+TNoMethodF set 2 of ()
+
+TImplodedF set 2 of (
+  Dict8k, //1 - 8K sliding dictionary was used, 0 - 4K
+  Tree3   //1- 3 Shannon-Fano trees were used, 0 - 2
+)
+
+TDeflatedF enum TBit2 (
+  Normal=0,   // (-en) compression option was used.
+  Maximum=1,  // (-ex) compression option was used.
+  Fast=2,     // (-ef) compression option was used.
+  SuperFast=3 // (-es) compression option was used.
+)
+
+TLZMAF set 2 of (
+  HasEOS //end-of-stream (EOS) marker is used
+)
+
+TFileFlags(Method) struc
+  TBit Encrypted
+  case TComprMethod @:Method of
+    Imploded: TImplodedF
+    Deflated: TDeflatedF
+    LZMA: TLZMAF
+  else TNoMethodF
+  endc MethodF
+  set 13 of (
+    LocZero, //the fields crc-32, compressed size and uncompressed size are set
+             //to zero in the local header
+    EnhDeflRsrv, //Bit 4: Reserved for use with method 8, for enhanced
+                 //deflating.
+    ComprPatch, //Bit 5: If this bit is set, this indicates that the file is
+               //compressed patched data.  (Note: Requires PKZIP
+               //version 2.70 or greater)
+    StrongEncrypt, //Strong encryption. If this bit is set, you MUST
+               //set the version needed to extract value to at least
+               //50 and you MUST also set bit 0.  If AES encryption
+               //is used, the version needed to extract value MUST
+               //be at least 51
+    Bit7Unused,
+    Bit8Unused,
+    Bit9Unused,
+    Bit10Unused,
+    UTF8, //Language encoding flag (EFS).  If this bit is set,
+          //the filename and comment fields for this file
+    EnhComprRsrv, //Reserved by PKWARE for enhanced compression
+    EncryptCentralDir // Set when encrypting the Central Directory to indicate
+                //selected data values in the Local Header are masked to
+                //hide their actual values.
+  ) FRest
+ends
+
+TDeflatedBlockType enum TBit2 (Stored=0,HTFixed=1,DynamicHT=2,Error=3)
+
+TDynamicHTData struc
+  TBit5 NLiterals //# of Literal codes sent - 256 (256 - 286) All other codes are never sent.
+  TBit5 NDist //# of Dist codes - 1 (1 - 32)
+  TBit4 NLen //# of Bit Length codes - 3 (3 - 19)
+  array[@.NLen+3]of TBit3 BitLenLens //The lengths of the bit length codes
+ends
+
+TDeflatedData struc
+  TBit IsLastBl //This bit is set to 1 if this is the last compressed block in the data
+  TDeflatedBlockType Typ
+  case @.Typ of
+   DynamicHT: TDynamicHTData
+  endc D
+ends: assert[@.Typ<>TDeflatedBlockType.Error]
+
+type
+TInternalAttr set 16 of (
+  IsText, //the file is apparently an ASCII or text file
+  HasControlFld ^ 0x2 //The 0x0002 bit of this field indicates, if set, that
+       //a 4 byte variable record length control field precedes each
+       //logical record indicating the length of the record.
+)
+
+TDiskNum word
+
+TExtraDataId enum Word (
+  Zip64=0x0001,      //Zip64 extended information extra field
+  AV=0x0007,         //AV Info
+  PFS=0x0008,        //Reserved for extended language encoding data (PFS)
+  OS2=0x0009,        //OS/2
+  NTFS=0x000a,       //NTFS
+  OpenVMS=0x000c,    //OpenVMS
+  UNIX=0x000d,       //UNIX
+  FS=0x000e,         //Reserved for file stream and fork descriptors
+  Patch=0x000f,      //Patch Descriptor
+  PKCS7=0x0014,      //PKCS#7 Store for X.509 Certificates
+  X509f=0x0015,      //X.509 Certificate ID and Signature for
+                     //individual file
+  X509d=0x0016,      //X.509 Certificate ID for Central Directory
+  StrongEncr=0x0017, //Strong Encryption Header
+  RMC=0x0018,        //Record Management Controls
+  PKCS7r=0x0019,     //PKCS#7 Encryption Recipient Certificate List
+  AS400=0x0065,      //IBM S/390 (Z390), AS/400 (I400) attributes  uncompressed
+  AS400C=0x0066,     //Reserved for IBM S/390 (Z390), AS/400 (I400) attributes - compressed
+  POSZIP=0x4690      //POSZIP 4690 (reserved)
+)                       
+
+TOs2Extra(Sz) struc
+  ulong BSize //Uncompressed Block Size
+  TComprMethod CType //Compression type
+  ulong EACRC //CRC value for uncompress block
+  raw[] D //Compressed block
+ends:[@:Size=@:Sz]
+
+TWinFileTime struc //Contains a 64-bit value representing the number of 100-nanosecond intervals since January 1, 1601 (UTC).
+  ulong dwLowDateTime
+  ulong dwHighDateTime
+ends
+
+
+TNTFSExtraDataVal(Id,Sz) struc
+  case @:id of
+   1: struc
+     TWinFileTime Mtime //File last modification time
+     TWinFileTime Atime //File last access time
+     TWinFileTime Ctime //File creation time
+    ends
+  endc C
+  raw[] Rest
+ends:[@:Size=@:Sz]
+
+TNTFSExtraDataRec struc
+  word Id //NTFS attribute tag value
+  word Sz //Size of attribute in bytes
+  TNTFSExtraDataVal(@.Id,@.Sz) D //Attribute data
+ends
+
+//TNTFSExtraDataTbl(Len) array of TNTFSExtraDataRec:[@:Size=@:Len]
+
+TNTFSExtra(Sz) struc
+  ulong Rsrv //Reserved for future use
+  array of TNTFSExtraDataRec Tbl
+ends:[@:Size=@:Sz]
+
+TZip64Extra struc
+  Uint64 FSize
+  Uint64 CSize
+ends
+
+TExtraDataVal(Id,Sz) struc
+  case TExtraDataId @:id of
+   OS2: TOs2Extra(@@:Sz)
+   NTFS: TNTFSExtra(@@:Sz)
+   Zip64: TZip64Extra
+   //!!!ToDo: add other kinds of Extra data
+  endc C
+  raw[] Rest
+ends:[@:Size=@:Sz]
+
+TExtraDataRec struc
+  TExtraDataId Id
+  word Sz
+  TExtraDataVal(@.Id,@.Sz) D
+ends
+
+TExtraDataTbl(Len) array of TExtraDataRec:[@:Size=@:Len]
+
+TExtraData(Len) struc
+  TExtraDataTbl(@:Len) Tbl
+  //raw[] rest
+ends:[@:Size=@:Len]
+
+// Local file header:
+TLocalFileHdr struc
+  ulong Sign //local file header signature     4 bytes  (0x04034b50)
+  int ExtrVer //version needed to extract       2 bytes
+  TFileFlags Flags //general purpose bit flag        2 bytes
+  TComprMethod ComprMethod //compression method              2 bytes
+  TFileTime LastModTime
+//  word LastModTime //last mod file time              2 bytes
+//  word LastModDate //last mod file date              2 bytes
+  ulong crc_32 //crc-32                          4 bytes
+  ulong CSize //compressed size                 4 bytes
+  ulong FSize //uncompressed size               4 bytes
+  word FNLen //filename length                 2 bytes
+  word ExtraLen //extra field length              2 bytes
+  array[@.FNLen] of Char FName //filename (variable size)
+  TExtraData(@.ExtraLen) Extra//extra field (variable size)
+ends:[@.Flags:Method=@.ComprMethod]:assert[@.Sign=0x04034b50,
+  @.Flags.FRest and 1 = 0]:let CSize=@.Extra.Tbl[?@.Id=TExtraDataId.Zip64].
+    D.C.Zip64.CSize exc @.CSize;
+
+//Data descriptor:
+/* This record is present when Flags.LocZero bit is set,
+  but then the @.Hdr.CSize expression will be incorrect, so
+  we made it invalid in assert clause (I suppose that we should
+  decompress the file data first to obtain its size in this case -
+).
+TDataDescr struc 
+  ulong crc_32 //crc-32                          4 bytes
+  ulong CSize //compressed size                 4 bytes
+  ulong FSize //uncompressed size               4 bytes
+ends
+*/
+
+TLocalFileData(Sz,ComprMethod) struc
+  case TComprMethod @:ComprMethod of
+    Deflated: TDeflatedData
+  endc D
+  raw[] Rest
+ends:[@:Size=@:Sz]
+
+
+TLocalFileRec struc
+  TLocalFileHdr Hdr
+  TLocalFileData(@.Hdr:CSize,@.Hdr.ComprMethod or (-@.Hdr.Flags.Encrypted)) D
+ //TDataDescr
+ends
+
+TLocalFiles array of TLocalFileRec ?not @.Hdr:assert!void;
+
+// File header:
+TFileHdr struc
+  ulong Sign //central file header signature   4 bytes  (0x02014b50)
+  TMadeVer MadeVer //version made by                 2 bytes
+  int ExtrVer //version needed to extract       2 bytes
+  TFileFlags Flags //general purpose bit flag        2 bytes
+  TComprMethod ComprMethod //compression method              2 bytes
+  TFileTime LastModTime
+//  word LastModTime //last mod file time              2 bytes
+//  word LastModDate //last mod file date              2 bytes
+  ulong crc_32 //crc-32                          4 bytes
+  ulong CSize //compressed size                 4 bytes
+  ulong FSize //uncompressed size               4 bytes
+  word FNLen //filename length                 2 bytes
+  word ExtraLen //extra field length              2 bytes
+  word CommentLen //file comment length             2 bytes
+  TDiskNum StartDiskNum //disk number start               2 bytes
+  TInternalAttr InternalAttr //internal file attributes        2 bytes
+  ulong ExternalAttr //external file attributes        4 bytes
+  ulong LocHdrOfs //relative offset of local header 4 bytes
+  array[@.FNLen] of Char FName //filename (variable size)
+  TExtraData(@.ExtraLen) Extra//extra field (variable size)
+  array[@.CommentLen] of Char Comment //Comment (variable size)
+ends:[@.Flags:Method=@.ComprMethod]:assert[@.Sign=0x02014b50]
+
+TCentralDirTbl array of TFileHdr ?not @:assert!void;
+
+// End of central dir record:
+
+TCentralDirEndRec struc
+  ulong Sign //end of central dir signature    4 bytes  (0x06054b50)
+  TDiskNum DiskNum //number of this disk             2 bytes
+  TDiskNum StartDiskNum //number of the disk with the start of the central directory  2 bytes
+  word DiskTotFiles //total number of entries in the central dir on this disk    2 bytes
+  word TotFiles //total number of entries in the central dir                 2 bytes
+  ulong DirSize //size of the central directory   4 bytes
+  ulong StartDirOfs //offset of start of central directory with respect to the starting disk number        4 bytes
+  word CommentLen //zipfile comment length          2 bytes
+  array[@.CommentLen] of Char Comment //Comment (variable size)
+ends:assert[@.Sign=0x06054b50]
+
+TCentralDir struc
+  TCentralDirTbl Tbl
+  try
+    DEnd: TCentralDirEndRec
+    BadF: TLocalFileHdr
+    Nothing: void
+  endt DirEnd
+ends:assert[(@:Size=@.DirEnd.DEnd.DirSize)exc 1/*,@.Tbl:Count=@.DirEnd.TotFiles*/]
+
+TZipFileData struc
+  TLocalFiles Files
+  TCentralDir Dir
+ends
+
+data
+0 TZipFileData D
+
+assert D.Files[0].Hdr:assert exc 0; //We just requre that the first file 
+  //should be present to consider the file as a ZIP archive
+
+descr ('ZIP Archive File Format.',NL,
+  'Info Source: zip_form.zip at www.wotsit.org',NL,
+  '  https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT',NL,
+  'To obtain this file you can also go to:',NL,
+  '  http://www.pkware.com/download.html',NL,
+  '  Then download --> appnote.zip',NL)
+
+//ToDo: use https://pkware.cachefly.net/webdocs/casestudies/APPNOTE.TXT
+

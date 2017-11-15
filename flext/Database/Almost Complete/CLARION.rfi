@@ -1,0 +1,193 @@
+% Clarion DBMS data file.(CLARION.rfi):Class: Database, Status: Almost Complete, Last change: 29.07.1999 11:01:58
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+  0 array [2] of char filesig /* file signature */
+
+assert filesig='C3';
+
+descr ('Clarion data file.',NL,
+  'Info Source: TB117.TXT in (CLARION.ZIP, www.wotsit.org).')
+
+type bit
+
+TBit4 num+(4)
+
+TKeyFTyp enum TBit4 (key,index)
+
+TKeyType struc
+  TKeyFTyp ftyp
+  set 4 of (dupsw, uprsw, optsw, loksw) Flags
+ends
+
+type
+
+TPrefix array[3] of char
+TName array[12] of char
+
+TSFAttr set 16 of (
+  locked=0, // file is locked
+  owned=1, // file is owned
+  encrypted=2, // records are encrypted
+  memo=3, // memo file exists
+  compressed=4, // file is compressed
+  reclaim=5, // reclaim deleted records
+  read_only=6, // file is read only
+  create=7 // file may be created
+)
+
+TFieldType enum byte (
+  LONG=1,
+  REAL=2,
+  STRING=3,
+  TOKEN=4, // STRING WITH PICTURE TOKEN
+  BYTE=5,
+  SHORT=6,
+  GROUP=7,
+  DECIMAL=8
+)
+
+TFldName array[16]of char
+
+TFieldDesc struc
+  TFieldType fldtype /* type of field */
+  TFldName fldname /* name of field */
+  word foffset /* offset into record */
+  word length /* length of field */
+  byte decsig /* significance for decimals */
+  byte decdec /* number of decimal places */
+  word arrnum /* array number */
+  word picnum /* picture number */
+ends
+
+TFldNum word()
+
+TKeyPart struc
+  TFieldType fldtype /* type of field */
+  TFldNum fldnum /* field number */
+  word elmoff /* record offset of this element */
+  byte elmlen /* length of element */
+ends
+
+TKeySection struc
+  byte numcomps /* number of components for key */
+  TFldName keynams       /* name of this key */
+  TKeyType/*???*/ comptype /* type of composite */
+  byte complen /* length of composite */
+  array[@.numcomps]of TKeyPart Fields
+ends
+
+TPicStr struc
+  word len
+  array[@.len] of Char Pic
+ends
+
+TArrayDimRec struc
+  word maxdim /* number of dims for array part */
+  word lendim /* length of field */
+ends
+
+TArrayDesc struc
+  word numdim /* dims for current field */
+  word totdim /* total number of dims for field */
+  word elmsiz /* total size of current field */
+  array[@.totdim] of TArrayDimRec Dim
+ends
+
+const
+  Days1801=DateToDays(1801,1,1)-4;
+
+type
+TAbsDate enum ulong ():displ=(INT(DaysToDay(Days1801+@)),'.',
+  INT(DaysToMonth(Days1801+@)),'.',
+  INT(DaysToYear(Days1801+@)))
+
+TAbsTime enum ulong ():displ=(INT((@-1)div 360000),':',
+  INT(((@-1)div 6000)mod 60),'''',
+  INT(((@-1)div 100)mod 60),'.',INT((@-1)mod 100),'"')
+
+THdr struc
+  TSFAttr sfatr                  /* file attribute and status */
+  byte numbkeys /* number of keys in file */
+  ulong numrecs /* number of records in file */
+  ulong numdels /* number of deleted records */
+  word numflds        /* number of fields */
+  word numpics        /* number of pictures */
+  word nummars        /* number of array descriptors */
+  word reclen         /* record length (including record header) */
+  ulong offset /* start of data area */
+  ulong logoef /* logical end of file */
+  ulong logbof /* logical beginning of file */
+  ulong freerec /* first usable deleted record */
+  TName recname /* record name without prefix */
+  TName memnam /* memo name without prefix */
+  TPrefix filpre /* file name prefix */
+  TPrefix recpre /* record name prefix */
+  word memolen        /* size of memo */
+  word memowid        /* column width of memo */
+  ulong reserved /* reserved */
+  TAbsTime chgtime /* time of last change */
+  TAbsDate chgdate /* date of last change */
+  word reserved2 /* reserved */
+  array[@.numflds]of TFieldDesc FieldDesc
+  array[@.numbkeys]of TKeySection Key
+  array[@.numpics]of TPicStr Pic //Picture descriptors
+  array[@.nummars]of TArrayDesc Pic //Picture descriptors
+ends
+
+data
+
+0x0002 THdr Hdr
+
+type
+
+TFldNum enum TFldNum = Hdr.FieldDesc[@-1].fldname;
+
+/*
+set byteorder rev
+type bit
+
+TDigit num+(4)
+TBCD(Sz) array[@:Sz*2] of TDigit:displ=(ShowArray(@,(@)))
+set byteorder norm
+*/
+
+type
+TBCD array of byte:displ=(ShowArray(@,(@)))
+
+type
+
+TRecKind set 8 of (new, old, revised, deleted, held)
+
+TFieldData case Hdr.FieldDesc[@:#].fldtype of
+  LONG: struc
+     ulong L
+     raw[] Rest
+    ends
+ //REAL
+  STRING: array of Char
+ //TOKEN=4, // STRING WITH PICTURE TOKEN
+  BYTE: struc
+     byte B
+     raw[] Rest
+  ends
+  SHORT: struc
+    word S
+    raw[] Rest
+  ends
+  //GROUP=7,
+  DECIMAL: TBCD //(Hdr.FieldDesc[@:#].length)
+else raw[]
+endc:[@:Size=(Hdr.FieldDesc[@:#].length when
+  (Hdr.FieldDesc[@:#].fldtype<>TFieldType.GROUP)) exc 0]
+
+TDataRec struc
+  TRecKind rhd /* record header type and status */
+  ulong rptr /* pointer for next deleted record or memo if active */
+  array[Hdr.numflds]of TFieldData FD
+  raw[] Rest
+ends:[@:Size=Hdr.reclen]
+
+data
+Hdr.offset array[Hdr.numrecs] of TDataRec Dat
+

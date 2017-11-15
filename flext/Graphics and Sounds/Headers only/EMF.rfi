@@ -1,0 +1,1106 @@
+% Enhanced metafile data structures(EMF.rfi):Class: Graphics and Sounds, Status: Headers only, Last change: 24.11.2009 8:56:52
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+SHORT int
+DWORD ulong
+
+TDescr(N) array[@:N]of WChar
+PDescr(Base,N) ^TDescr(@:N) HIDEREF near=DWORD REF=@+@:Base; :displ=(@^,'{',@,'}')
+
+TEnhancedMetaHeader struc
+  DWORD RecordType;       /* Record type */
+  DWORD RecordSize;       /* Size of the record in bytes */
+  LONG  BoundsLeft;       /* Left inclusive bounds */
+  LONG  BoundsRight;      /* Right inclusive bounds */
+  LONG  BoundsTop;        /* Top inclusive bounds */
+  LONG  BoundsBottom;     /* Bottom inclusive bounds */
+  LONG  FrameLeft;        /* Left side of inclusive picture frame */
+  LONG  FrameRight;       /* Right side of inclusive picture frame */
+  LONG  FrameTop;         /* Top side of inclusive picture frame */
+  LONG  FrameBottom;      /* Bottom side of inclusive picture frame */
+  DWORD Signature;        /* Signature ID (always 0x464D4520) */
+  DWORD Version;          /* Version of the metafile */
+  DWORD Size;             /* Size of the metafile in bytes */
+  DWORD NumOfRecords;     /* Number of records in the metafile */
+  WORD  NumOfHandles;     /* Number of handles in the handle table */
+  WORD  Reserved;         /* Not used (always 0) */
+  DWORD SizeOfDescrip;    /* Size of description string in WORDs */
+  PDescr(&@,@.SizeOfDescrip) OffsOfDescrip;    /* Offset of description string in metafile */
+  DWORD NumPalEntries;    /* Number of color palette entries */
+  LONG  WidthDevPixels;   /* Width of reference device in pixels */
+  LONG  HeightDevPixels;  /* Height of reference device in pixels */
+  LONG  WidthDevMM;       /* Width of reference device in millimeters */
+  LONG  HeightDevMM;      /* Height of reference device in millimeters */
+  raw[] at &@; Rest
+ends:[@:Size=@.RecordSize]
+
+type
+TEMFFuncCode enum DWORD (
+  EMR_HEADER                   =   1,
+  EMR_POLYBEZIER               =   2,
+  EMR_POLYGON                  =   3,
+  EMR_POLYLINE                 =   4,
+  EMR_POLYBEZIERTO             =   5,
+  EMR_POLYLINETO               =   6,
+  EMR_POLYPOLYLINE             =   7,
+  EMR_POLYPOLYGON              =   8,
+  EMR_SETWINDOWEXTEX           =   9,
+  EMR_SETWINDOWORGEX           =  10,
+  EMR_SETVIEWPORTEXTEX         =  11,
+  EMR_SETVIEWPORTORGEX         =  12,
+  EMR_SETBRUSHORGEX            =  13,
+  EMR_EOF                      =  14,
+  EMR_SETPIXELV                =  15,
+  EMR_SETMAPPERFLAGS           =  16,
+  EMR_SETMAPMODE               =  17,
+  EMR_SETBKMODE                =  18,
+  EMR_SETPOLYFILLMODE          =  19,
+  EMR_SETROP2                  =  20,
+  EMR_SETSTRETCHBLTMODE        =  21,
+  EMR_SETTEXTALIGN             =  22,
+  EMR_SETCOLORADJUSTMENT       =  23,
+  EMR_SETTEXTCOLOR             =  24,
+  EMR_SETBKCOLOR               =  25,
+  EMR_OFFSETCLIPRGN            =  26,
+  EMR_MOVETOEX                 =  27,
+  EMR_SETMETARGN               =  28,
+  EMR_EXCLUDECLIPRECT          =  29,
+  EMR_INTERSECTCLIPRECT        =  30,
+  EMR_SCALEVIEWPORTEXTEX       =  31,
+  EMR_SCALEWINDOWEXTEX         =  32,
+  EMR_SAVEDC                   =  33,
+  EMR_RESTOREDC                =  34,
+  EMR_SETWORLDTRANSFORM        =  35,
+  EMR_MODIFYWORLDTRANSFORM     =  36,
+  EMR_SELECTOBJECT             =  37,
+  EMR_CREATEPEN                =  38,
+  EMR_CREATEBRUSHINDIRECT      =  39,
+  EMR_DELETEOBJECT             =  40,
+  EMR_ANGLEARC                 =  41,
+  EMR_ELLIPSE                  =  42,
+  EMR_RECTANGLE                =  43,
+  EMR_ROUNDRECT                =  44,
+  EMR_ARC                      =  45,
+  EMR_CHORD                    =  46,
+  EMR_PIE                      =  47,
+  EMR_SELECTPALETTE            =  48,
+  EMR_CREATEPALETTE            =  49,
+  EMR_SETPALETTEENTRIES        =  50,
+  EMR_RESIZEPALETTE            =  51,
+  EMR_REALIZEPALETTE           =  52,
+  EMR_EXTFLOODFILL             =  53,
+  EMR_LINETO                   =  54,
+  EMR_ARCTO                    =  55,
+  EMR_POLYDRAW                 =  56,
+  EMR_SETARCDIRECTION          =  57,
+  EMR_SETMITERLIMIT            =  58,
+  EMR_BEGINPATH                =  59,
+  EMR_ENDPATH                  =  60,
+  EMR_CLOSEFIGURE              =  61,
+  EMR_FILLPATH                 =  62,
+  EMR_STROKEANDFILLPATH        =  63,
+  EMR_STROKEPATH               =  64,
+  EMR_FLATTENPATH              =  65,
+  EMR_WIDENPATH                =  66,
+  EMR_SELECTCLIPPATH           =  67,
+  EMR_ABORTPATH                =  68,
+
+  EMR_GDICOMMENT               =  70,
+  EMR_FILLRGN                  =  71,
+  EMR_FRAMERGN                 =  72,
+  EMR_INVERTRGN                =  73,
+  EMR_PAINTRGN                 =  74,
+  EMR_EXTSELECTCLIPRGN         =  75,
+  EMR_BITBLT                   =  76,
+  EMR_STRETCHBLT               =  77,
+  EMR_MASKBLT                  =  78,
+  EMR_PLGBLT                   =  79,
+  EMR_SETDIBITSTODEVICE        =  80,
+  EMR_STRETCHDIBITS            =  81,
+  EMR_EXTCREATEFONTINDIRECTW   =  82,
+  EMR_EXTTEXTOUTA              =  83,
+  EMR_EXTTEXTOUTW              =  84,
+  EMR_POLYBEZIER16             =  85,
+  EMR_POLYGON16                =  86,
+  EMR_POLYLINE16               =  87,
+  EMR_POLYBEZIERTO16           =  88,
+  EMR_POLYLINETO16             =  89,
+  EMR_POLYPOLYLINE16           =  90,
+  EMR_POLYPOLYGON16            =  91,
+  EMR_POLYDRAW16               =  92,
+  EMR_CREATEMONOBRUSH          =  93,
+  EMR_CREATEDIBPATTERNBRUSHPT  =  94,
+  EMR_EXTCREATEPEN             =  95,
+  EMR_POLYTEXTOUTA             =  96,
+  EMR_POLYTEXTOUTW             =  97,
+
+//#if(WINVER >= 0x0400)
+  EMR_SETICMMODE               =  98,
+  EMR_CREATECOLORSPACE         =  99,
+  EMR_SETCOLORSPACE            = 100,
+  EMR_DELETECOLORSPACE         = 101,
+  EMR_GLSRECORD                = 102,
+  EMR_GLSBOUNDEDRECORD         = 103,
+  EMR_PIXELFORMAT              = 104,
+//#endif /* WINVER >= 0x0400 */
+
+//#if (WINVER >= 0x0500)
+  EMR_DRAWESCAPE               = 105,
+  EMR_EXTESCAPE                = 106,
+  EMR_STARTDOC                 = 107,
+  EMR_SMALLTEXTOUT             = 108,
+  EMR_FORCEUFIMAPPING          = 109,
+  EMR_NAMEDESCAPE              = 110,
+  EMR_COLORCORRECTPALETTE      = 111,
+  EMR_SETICMPROFILEA           = 112,
+  EMR_SETICMPROFILEW           = 113,
+  EMR_ALPHABLEND               = 114,
+  EMR_ALPHADIBBLEND            = 115,
+  EMR_TRANSPARENTBLT           = 116,
+  EMR_TRANSPARENTDIB           = 117,
+  EMR_GRADIENTFILL             = 118,
+  EMR_SETLINKEDUFIS            = 119,
+  EMR_SETTEXTJUSTIFICATION     = 120
+//#endif
+/*
+#define EMR_MIN                          1
+#if (WINVER >= 0x0500)
+#define EMR_MAX                        120
+#elif (WINVER >= 0x0400)
+#define EMR_MAX                        104
+#else
+#define EMR_MAX                         97
+#endif
+*/
+)
+
+include Float.rfi
+/*
+type bit
+  TBit num+(1)
+  TBit1 num+(1)
+  TBit2 num+(2)
+  TBit3 num+(3)
+  TBit4 num+(4)
+  TBit8 num+(8)
+  TBit11 num+(11)
+  TBit20 num+(20)
+  TBit23 num+(23)
+  TDoubleHi struc
+    TBit20 M
+    TBit11 P
+    TBit1 S //Sign 1->Neg
+  ends
+
+  TFloat struc
+    TBit23 M
+    TBit8 P
+    TBit1 S //Sign 1->Neg
+  ends: displ=(@.S,' 1.',HEX(@.M*2,6),'*2^',INT(@.P-0x7F));
+
+type
+  TDouble struc
+    ulong Lo
+    TDoubleHi Hi
+  ends: displ=(@.Hi.S,' 1.',HEX(@.Hi.M,5),HEX(@.Lo,8),'*2^',INT(@.Hi.P-0x3FF));
+
+  Single TFloat
+
+*/
+
+type
+  Single TSingle
+
+const
+  LF_FULLFACESIZE = 64;
+  LF_FACESIZE = 32;
+  ELF_VENDOR_SIZE = 4;
+
+const
+  hiBit = 0x80000000;
+
+type //Windows data types
+  TSmallPoint struc
+    int X
+    int Y
+  ends
+
+  TPoint struc
+    long X
+    long Y
+  ends
+
+  TRect struc
+    TPoint S
+    TPoint E
+  ends
+
+  LongInt long
+
+  COLOR16 word
+  COLORREF ulong
+
+  TSIZE struc pas
+    cx: Longint;
+    cy: Longint;
+  ends
+
+  TPALETTEENTRY struc pas
+    peRed: Byte;
+    peGreen: Byte;
+    peBlue: Byte;
+    peFlags: Byte;
+  ends
+
+  TLOGPALETTE struc pas
+    palVersion: Word;
+    palNumEntries: Word;
+    palPalEntry: array[@.palNumEntries] of TPaletteEntry;
+  ends
+
+  TLOGFONTW struc pas
+    lfHeight: Longint;
+    lfWidth: Longint;
+    lfEscapement: Longint;
+    lfOrientation: Longint;
+    lfWeight: Longint;
+    lfItalic: Byte;
+    lfUnderline: Byte;
+    lfStrikeOut: Byte;
+    lfCharSet: Byte;
+    lfOutPrecision: Byte;
+    lfClipPrecision: Byte;
+    lfQuality: Byte;
+    lfPitchAndFamily: Byte;
+    lfFaceName: array[LF_FACESIZE] of WChar,<0;
+  ends
+
+  TPANOSE struc pas
+    bFamilyType: Byte;
+    bSerifStyle: Byte;
+    bWeight: Byte;
+    bProportion: Byte;
+    bContrast: Byte;
+    bStrokeVariation: Byte;
+    bArmStyle: Byte;
+    bLetterform: Byte;
+    bMidline: Byte;
+    bXHeight: Byte;
+  ends
+
+  TExtLogFontW struc pas
+    elfLogFont: TLogFontW;
+    elfFullName: array[LF_FULLFACESIZE] of WChar;
+    elfStyle: array[LF_FACESIZE] of WChar;
+    elfVersion: DWORD;     /* 0 for the first release of NT */
+    elfStyleSize: DWORD;
+    elfMatch: DWORD;
+    elfReserved: DWORD;
+    elfVendorId: array[ELF_VENDOR_SIZE] of Byte;
+    elfCulture: DWORD;     /* 0 for Latin */
+    elfPanose: TPanose;
+  ends
+
+  TRGNDATAHEADER struc
+    DWORD dwSize;
+    DWORD iType;
+    DWORD nCount;
+    DWORD nRgnSize;
+    TRect rcBound;
+    raw[] hdrRest
+  ends:[@:Size=@.dwSize]
+
+  TRGNDATA0(Sz) struc
+    TRGNDATAHEADER H
+    array[@.H.nCount]of TRect R
+    raw[] Rest
+  ends:[@:Size=@:Sz]
+
+  TRGNDATA(Sz) case @:Sz>0x20 of
+   1: TRGNDATA0(@:Sz)
+  endc
+
+  TBrushStyle enum ULONG (
+    BS_SOLID                = 0,
+    BS_NULL                 = 1,
+    BS_HATCHED              = 2,
+    BS_PATTERN              = 3,
+    BS_INDEXED              = 4,
+    BS_DIBPATTERN           = 5,
+    BS_DIBPATTERNPT         = 6,
+    BS_PATTERN8X8           = 7,
+    BS_DIBPATTERN8X8        = 8,
+    BS_MONOPATTERN          = 9
+  )
+
+  TLogBrush struc
+   TBrushStyle lbStyle;
+   COLORREF lbColor;
+   ULONG     lbHatch;
+  ends
+
+type
+// Base text record type for the enhanced metafile.
+  TEMRTEXT struc pas
+    ptlReference: TPoint;
+    nChars: DWORD;
+    offString: DWORD; /* Offset to the string*/
+    fOptions: DWORD;
+    rcl: TRect;
+    offDx: DWORD;     /* Offset to the inter-character spacing array.*/
+                      /* This is always given.*/
+  ends
+
+  TEMRTEXTA struc pas
+    H: TEMRTEXT
+    S: array[@.H.nChars]of Char
+    Al: align 4 at &@;
+    Space: array[@.H.nChars]of DWORD
+  ends
+
+//Decoding PDF protection
+  TWChar Word():displ=(COND((@>0xF020)and(@<=0xF120),
+    (Chr(0xF120-@)),(WChar(@))),'[',HEX(@),']')
+
+  TEMRTEXTW struc pas
+    H: TEMRTEXT
+    S: array[@.H.nChars]of TWChar:displ=('''',ShowArray(@,(@)),'''')//WChar
+    Al: align 4 at &@;
+    Space: array[@.H.nChars]of DWORD
+  ends
+
+  /* Record structures for the enhanced metafile.*/
+
+  TEMRSELECTCLIPPATH struc pas
+    iMode: DWORD;
+  ends
+
+  TBkMode enum DWORD (
+    TRANSPARENT = 1,
+    OPAQUE = 2
+  )
+
+  TEMRSetBkMode struc pas
+    iMode: TBkMode;
+  ends
+
+  TSetRop2Mode enum DWORD (//Binary raster ops
+    R2_BLACK       = 1,
+    R2_NOTMERGEPEN = 2,
+    R2_MASKNOTPEN  = 3,
+    R2_NOTCOPYPEN  = 4,
+    R2_MASKPENNOT  = 5,
+    R2_NOT         = 6,
+    R2_XORPEN      = 7,
+    R2_NOTMASKPEN  = 8,
+    R2_MASKPEN     = 9,
+    R2_NOTXORPEN   = 10,
+    R2_NOP         = 11,
+    R2_MERGENOTPEN = 12,
+    R2_COPYPEN     = 13,
+    R2_MERGEPENNOT = 14,
+    R2_MERGEPEN    = 15,
+    R2_WHITE       = 16
+  )
+
+  TEMRSetRop2 struc pas
+    iMode: TSetRop2Mode;
+  ends
+
+  TEMRSETMITERLIMIT struc pas
+    eMiterLimit: Single;
+  ends
+
+  TEMRRESTOREDC struc pas
+    iRelative: Longint;   /* Specifies a relative instance*/
+  ends
+
+  TEMRSETARCDIRECTION struc pas
+    iArcDirection: DWORD; /* Specifies the arc direction in the advanced graphics mode.*/
+  ends
+
+  TEMRSETMAPPERFLAGS struc pas
+    dwFlags: DWORD;
+  ends
+
+  TEMRSETTEXTCOLOR struc pas
+    crColor: COLORREF;
+  ends
+
+  THGDIObject enum DWORD (
+    WHITE_BRUSH = 0+hiBit,
+    LTGRAY_BRUSH = 1+hiBit,
+    GRAY_BRUSH = 2+hiBit,
+    DKGRAY_BRUSH = 3+hiBit,
+    BLACK_BRUSH = 4+hiBit,
+    NULL_BRUSH = 5+hiBit,
+   // HOLLOW_BRUSH = NULL_BRUSH+hiBit,
+    WHITE_PEN = 6+hiBit,
+    BLACK_PEN = 7+hiBit,
+    NULL_PEN = 8+hiBit,
+    OEM_FIXED_FONT = 10+hiBit,
+    ANSI_FIXED_FONT = 11+hiBit,
+    ANSI_VAR_FONT = 12+hiBit,
+    SYSTEM_FONT = 13+hiBit,
+    DEVICE_DEFAULT_FONT = 14+hiBit,
+    DEFAULT_PALETTE = 15+hiBit,
+    SYSTEM_FIXED_FONT = 16+hiBit,
+    DEFAULT_GUI_FONT = 17+hiBit,
+    DC_BRUSH = 18+hiBit,
+    DC_PEN = 19+hiBit
+  )
+
+  TEMRSELECTOBJECT struc pas
+    ihObject: THGDIObject;   /* Object handle index */
+  ends
+
+  TEMRSETCOLORSPACE struc pas
+    ihCS: DWORD;  /* ColorSpace handle index */
+  ends
+
+  TEMRSELECTPALETTE struc pas
+    ihPal: DWORD;   /* Palette handle index, background mode only */
+  ends
+
+  TEMRRESIZEPALETTE struc pas
+    ihPal: DWORD;   /* Palette handle index */
+    cEntries: DWORD;
+  ends
+
+  TEMRSETPALETTEENTRIES struc pas
+    ihPal: DWORD;      /* Palette handle index */
+    iStart: DWORD;
+    cEntries: DWORD;
+    aPalEntries: array[@.cEntries] of TPaletteEntry; /* The peFlags fields do not contain any flags */
+  ends
+
+  TCOLORADJUSTMENT struc pas
+    caSize: Word;
+    caFlags: Word;
+    caIlluminantIndex: Word;
+    caRedGamma: Word;
+    caGreenGamma: Word;
+    caBlueGamma: Word;
+    caReferenceBlack: Word;
+    caReferenceWhite: Word;
+    caContrast: SHORT;
+    caBrightness: SHORT;
+    caColorfulness: SHORT;
+    caRedGreenTint: SHORT;
+  ends
+
+  TEMRGDICOMMENT struc pas
+    cbData: DWORD;   /* Size of data in bytes*/
+    Data: array[@.cbData] of Byte;
+  ends
+
+  TEMREOF struc pas
+    nPalEntries: DWORD;   /* Number of palette entries */
+    offPalEntries: DWORD; /* Offset to the palette entries */
+    nSizeLast: DWORD;     /* Same as nSize and must be the last DWORD */
+                          /* of the record.  The palette entries, */
+                          /* if exist, precede this field. */
+  ends
+
+  TEMRSCALEVIEWPORTEXTEX struc pas
+    xNum: Longint;
+    xDenom: Longint;
+    yNum: Longint;
+    yDenom: Longint;
+  ends
+
+  TXFORM struc pas
+    eM11: Single;
+    eM12: Single;
+    eM21: Single;
+    eM22: Single;
+    eDx: Single;
+    eDy: Single;
+  ends
+
+
+  TEMRMODIFYWORLDTRANSFORM struc pas
+    xform: TXForm;
+    iMode: DWORD;
+  ends
+
+  TEMRSETPIXELV struc pas
+    ptlPixel: TPoint;
+    crColor: COLORREF;
+  ends
+
+  TEMREXTFLOODFILL struc pas
+    ptlStart: TPoint;
+    crColor: COLORREF;
+    iMode: DWORD;
+  ends
+
+  TEMRROUNDRECT struc pas
+    rclBox: TRect;     /* Inclusive-inclusive bounding rectangle */
+    szlCorner: TSize;
+  ends
+
+  TEMRARC struc pas
+    rclBox: TRect;     /* Inclusive-inclusive bounding rectangle */
+    ptlStart: TPoint;
+    ptlEnd: TPoint;
+  ends
+
+  TEMRANGLEARC struc pas
+    ptlCenter: TPoint;
+    nRadius: DWORD;
+    eStartAngle: Single;
+    eSweepAngle: Single;
+  ends
+
+  TEMRPOLYLINE struc pas
+    rclBounds: TRect;    /* Inclusive-inclusive bounds in device units */
+    cptl: DWORD;
+    aptl: array[@.cptl] of TPoint;
+  ends
+
+  TEMRPOLYLINE16 struc pas
+    rclBounds: TRect; /* Inclusive-inclusive bounds in device units*/
+    cpts: DWORD;
+    apts: array[@.cpts] of TSmallPoint;
+  ends
+
+  TEMRPOLYDRAW struc pas
+    rclBounds: TRect;    /* Inclusive-inclusive bounds in device units*/
+    cptl: DWORD;         /* Number of points*/
+    aptl: array[@.cptl] of TPoint;  /* Array of points*/
+    abTypes: array[@.cptl] of Byte; /* Array of point types*/
+  ends
+
+  TEMRPOLYDRAW16 struc pas
+    rclBounds: TRect;
+    cpts: DWORD;
+    apts: array[@.cpts] of TSmallPoint;
+    abTypes: array[@.cpts] of Byte;
+  ends
+
+  TEMRPOLYPOLYLINE struc pas
+    rclBounds: TRect; /* Inclusive-inclusive bounds in device units*/
+    nPolys: DWORD;    /* Number of polys*/
+    cptl: DWORD;      /* Total number of points in all polys*/
+    aPolyCounts: array[@.nPolys] of DWORD; /* Array of point counts for each poly*/
+    aptl: array[@.cptl] of TPoint;       /* Array of points*/
+  ends
+
+  TEMRPOLYPOLYLINE16 struc pas
+    rclBounds: TRect;
+    nPolys: DWORD;
+    cpts: DWORD;
+    aPolyCounts: array[@.nPolys] of DWORD;
+    apts: array[@.cpts] of TSmallPoint;
+  ends
+
+  TEMRINVERTRGN struc pas
+    rclBounds: TRect; /* Inclusive-inclusive bounds in device units */
+    cbRgnData: DWORD; /* Size of region data in bytes*/
+    RgnData: TRGNDATA(@.cbRgnData)//raw[@.cbRgnData]
+  ends
+
+  TEMRFILLRGN struc pas
+    rclBounds: TRect;  /* Inclusive-inclusive bounds in device units*/
+    cbRgnData: DWORD;  /* Size of region data in bytes*/
+    ihBrush: DWORD;    /* Brush handle index */
+    RgnData: TRGNDATA(@.cbRgnData)//raw[@.cbRgnData]
+  ends
+
+  TEMRFRAMERGN struc pas
+    rclBounds: TRect;   /* Inclusive-inclusive bounds in device units*/
+    cbRgnData: DWORD;   /* Size of region data in bytes*/
+    ihBrush: DWORD;     /* Brush handle index*/
+    szlStroke: TSize;
+    RgnData: TRGNDATA(@.cbRgnData)//raw[@.cbRgnData]
+  ends
+
+  TTRIVERTEX struc pas
+    x: Longint;
+    y: Longint;
+    Red: COLOR16;
+    Green: COLOR16;
+    Blue: COLOR16;
+    Alpha: COLOR16;
+  ends
+
+  TEMRGRADIENTFILL struc pas
+    rclBounds: TRect;   /* Inclusive-inclusive bounds in device units*/
+    nVer: DWORD;
+    nTri: DWORD;
+    ulMode: ULONG;
+    Ver: array[@.nVer] of TTriVertex;
+  ends
+
+  TRGNOp enum DWORD (
+    RGN_AND = 1,
+    RGN_OR = 2,
+    RGN_XOR = 3,
+    RGN_DIFF = 4,
+    RGN_COPY = 5
+  )
+
+  TEMREXTSELECTCLIPRGN struc pas
+    cbRgnData: DWORD; /* Size of region data in bytes*/
+    iMode: TRGNOp;
+    RgnData: TRGNDATA(@.cbRgnData)//raw[@.cbRgnData]
+  ends
+
+  TGraphicsMode enum DWORD (
+    GM_COMPATIBLE = 1,
+    GM_ADVANCED = 2
+  )
+
+  TEMREXTTEXTOUTA struc pas
+    rclBounds: TRect;     /* Inclusive-inclusive bounds in device units*/
+    iGraphicsMode: TGraphicsMode; /* Current graphics mode*/
+    exScale: Single;       /* X and Y scales from Page units to .01mm units*/
+    eyScale: Single;       /*   if graphics mode is GM_COMPATIBLE.*/
+    emrtext: TEMRTextA;    /* This is followed by the string and spacing array*/
+  ends
+
+  TEMREXTTEXTOUTW struc pas
+    rclBounds: TRect;     /* Inclusive-inclusive bounds in device units*/
+    iGraphicsMode: TGraphicsMode; /* Current graphics mode*/
+    exScale: Single;       /* X and Y scales from Page units to .01mm units*/
+    eyScale: Single;       /*   if graphics mode is GM_COMPATIBLE.*/
+    emrtext: TEMRTextW;    /* This is followed by the string and spacing array*/
+  ends
+
+  TEMRPOLYTEXTOUTA struc pas
+    rclBounds: TRect;     /* Inclusive-inclusive bounds in device units*/
+    iGraphicsMode: TGraphicsMode; /* Current graphics mode*/
+    exScale: Single;       /* X and Y scales from Page units to .01mm units*/
+    eyScale: Single;       /*   if graphics mode is GM_COMPATIBLE.*/
+    cStrings: Longint;
+    aemrtext: array[@.cStrings] of TEMRTextA; /* array of TEMRText structures.  This is*/
+                                       /* followed by the strings and spacing arrays.*/
+  ends
+
+  TEMRPOLYTEXTOUTW struc pas
+    rclBounds: TRect;     /* Inclusive-inclusive bounds in device units*/
+    iGraphicsMode: TGraphicsMode; /* Current graphics mode*/
+    exScale: Single;       /* X and Y scales from Page units to .01mm units*/
+    eyScale: Single;       /*   if graphics mode is GM_COMPATIBLE.*/
+    cStrings: Longint;
+    aemrtext: array[@.cStrings] of TEMRTextW; /* array of TEMRText structures.  This is*/
+                                       /* followed by the strings and spacing arrays.*/
+  ends
+
+  TEMRBITBLT struc pas
+    rclBounds: TRect;        /* Inclusive-inclusive bounds in device units*/
+    xDest: Longint;
+    yDest: Longint;
+    cxDest: Longint;
+    cyDest: Longint;
+    dwRop: DWORD;
+    xSrc: Longint;
+    ySrc: Longint;
+    xformSrc: TXForm;        /* Source DC transform*/
+    crBkColorSrc: COLORREF; /* Source DC BkColor in RGB*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+                             /* (DIB_RGB_COLORS)*/
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+  ends
+
+  TEMRSTRETCHBLT struc pas
+    rclBounds: TRect; /* Inclusive-inclusive bounds in device units*/
+    xDest: Longint;
+    yDest: Longint;
+    cxDest: Longint;
+    cyDest: Longint;
+    dwRop: DWORD;
+    xSrc: Longint;
+    ySrc: Longint;
+    xformSrc: TXForm;        /* Source DC transform*/
+    crBkColorSrc: COLORREF; /* Source DC BkColor in RGB*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+                             /* (DIB_RGB_COLORS)*/
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    cxSrc: Longint;
+    cySrc: Longint;
+  ends
+
+  TEMRMASKBLT struc pas
+    rclBounds: TRect;        /* Inclusive-inclusive bounds in device units*/
+    xDest: Longint;
+    yDest: Longint;
+    cxDest: Longint;
+    cyDest: Longint;
+    dwRop: DWORD;
+    xSrc: Longint;
+    ySrc: Longint;
+    xformSrc: TXForm;        /* Source DC transform*/
+    crBkColorSrc: COLORREF; /* Source DC BkColor in RGB*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+                             /* (DIB_RGB_COLORS)*/
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    xMask: Longint;
+    yMask: Longint;
+    iUsageMask: DWORD;       /* Mask bitmap info color table usage*/
+    offBmiMask: DWORD;       /* Offset to the mask TBitmapInfo structure if any*/
+    cbBmiMask: DWORD;        /* Size of the mask TBitmapInfo structure if any*/
+    offBitsMask: DWORD;      /* Offset to the mask bitmap bits if any*/
+    cbBitsMask: DWORD;       /* Size of the mask bitmap bits if any*/
+  ends
+
+  TEMRPLGBLT struc pas
+    rclBounds: TRect;
+    aptlDest: array[3] of TPoint;
+    xSrc: Longint;
+    ySrc: Longint;
+    cxSrc: Longint;
+    cySrc: Longint;
+    xformSrc: TXForm;        /* Source DC transform*/
+    crBkColorSrc: COLORREF; /* Source DC BkColor in RGB*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+                             /* (DIB_RGB_COLORS)*/
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    xMask: Longint;
+    yMask: Longint;
+    iUsageMask: DWORD;       /* Mask bitmap info color table usage*/
+    offBmiMask: DWORD;       /* Offset to the mask TBitmapInfo structure if any*/
+    cbBmiMask: DWORD;        /* Size of the mask TBitmapInfo structure if any*/
+    offBitsMask: DWORD;      /* Offset to the mask bitmap bits if any*/
+    cbBitsMask: DWORD;       /* Size of the mask bitmap bits if any*/
+  ends
+
+  TEMRSETDIBITSTODEVICE struc pas
+    rclBounds: TRect;
+    xDest: Longint;
+    yDest: Longint;
+    xSrc: Longint;
+    ySrc: Longint;
+    cxSrc: Longint;
+    cySrc: Longint;
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+    iStartScan: DWORD;
+    cScans: DWORD;
+  ends
+
+  TEMRSTRETCHDIBITS struc pas
+    rclBounds: TRect;
+    xDest: Longint;
+    yDest: Longint;
+    xSrc: Longint;
+    ySrc: Longint;
+    cxSrc: Longint;
+    cySrc: Longint;
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+    dwRop: DWORD;
+    cxDest: Longint;
+    cyDest: Longint;
+  ends
+
+  TEMRALPHABLEND struc pas
+    rclBounds: TRect;
+    xDest: Longint;
+    yDest: Longint;
+    cxDest: Longint;
+    cyDest: Longint;
+    dwRop: DWORD;
+    xSrc: Longint;
+    ySrc: Longint;
+    xformSrc: TXFORM;         /* Source DC transform*/
+    crBkColorSrc: COLORREF;  /* Source DC BkColor in RGB*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    cxSrc: Longint;
+    cySrc: Longint;
+  ends
+
+  TEMRTRANSPARENTBLT struc pas
+    rclBounds: TRect;
+    xDest: Longint;
+    yDest: Longint;
+    cxDest: Longint;
+    cyDest: Longint;
+    dwRop: DWORD;
+    xSrc: Longint;
+    ySrc: Longint;
+    xformSrc: TXFORM;         /* Source DC transform*/
+    crBkColorSrc: COLORREF;  /* Source DC BkColor in RGB*/
+    iUsageSrc: DWORD;        /* Source bitmap info color table usage*/
+    offBmiSrc: DWORD;        /* Offset to the source TBitmapInfo structure*/
+    cbBmiSrc: DWORD;         /* Size of the source TBitmapInfo structure*/
+    offBitsSrc: DWORD;       /* Offset to the source bitmap bits*/
+    cbBitsSrc: DWORD;        /* Size of the source bitmap bits*/
+    cxSrc: Longint;
+    cySrc: Longint;
+  ends
+
+  TEMREXTCREATEFONTINDIRECTW struc pas
+    ihFont: DWORD;     /* Font handle index*/
+    elfw: TExtLogFontW;
+  ends
+
+  TEMRCREATEPALETTE struc pas
+    ihPal: DWORD;        /* Palette handle index*/
+    lgpl: TLogPalette;   /* The peFlags fields in the palette entries*/
+                         /* do not contain any flags*/
+  ends
+
+  TEMRCREATECOLORSPACE struc pas
+    ihCS: DWORD;          /* ColorSpace handle index*/
+//    lcs: TLogColorSpaceW; !!!Temp
+  ends
+
+  TEMRCREATEPEN struc pas
+    ihPen: DWORD;   /* Pen handle index*/
+//    lopn: TLogPen; !!!Temp
+  ends
+
+  TEMREXTCREATEPEN struc pas
+    ihPen: DWORD;      /* Pen handle index*/
+    offBmi: DWORD;     /* Offset to the TBitmapInfo structure if any*/
+    cbBmi: DWORD;      /* Size of the TBitmapInfo structure if any*/
+                       /* The bitmap info is followed by the bitmap*/
+                       /* bits to form a packed DIB.*/
+    offBits: DWORD;    /* Offset to the brush bitmap bits if any*/
+    cbBits: DWORD;     /* Size of the brush bitmap bits if any*/
+//    elp: TExtLogPen;  !!!Temp  /* The extended pen with the style array.*/
+  ends
+
+  TEMRCREATEBRUSHINDIRECT struc pas
+    ihBrush: DWORD; /* Brush handle index*/
+    lb: TLogBrush;  /* The style must be BS_SOLID, BS_HOLLOW,*/
+                    /* BS_NULL or BS_HATCHED.*/
+  ends
+
+  TEMRCREATEMONOBRUSH struc pas
+    ihBrush: DWORD; /* Brush handle index*/
+    iUsage: DWORD;  /* Bitmap info color table usage*/
+    offBmi: DWORD;  /* Offset to the TBitmapInfo structure*/
+    cbBmi: DWORD;   /* Size of the TBitmapInfo structure if any*/
+                    /* The bitmap info is followed by the bitmap*/
+                    /* bits to form a packed DIB.*/
+    offBits: DWORD; /* Offset to the bitmap bits*/
+    cbBits: DWORD;  /* Size of the bitmap bits*/
+  ends
+
+  TEMRCREATEDIBPATTERNBRUSHPT struc pas
+    ihBrush: DWORD; /* Brush handle index*/
+    iUsage: DWORD;  /* Bitmap info color table usage*/
+    offBmi: DWORD;  /* Offset to the TBitmapInfo structure*/
+    cbBmi: DWORD;   /* Size of the TBitmapInfo structure if any*/
+                    /* The bitmap info is followed by the bitmap*/
+                    /* bits to form a packed DIB.*/
+    offBits: DWORD; /* Offset to the bitmap bits*/
+    cbBits: DWORD;  /* Size of the bitmap bits*/
+  ends
+
+  TEMRFORMAT struc pas
+    dSignature: DWORD; /* Format signature, e.g. ENHMETA_SIGNATURE.*/
+    nVersion: DWORD;   /* Format version number.*/
+    cbData: DWORD;     /* Size of data in bytes.*/
+    offData: DWORD;    /* Offset to data from GDICOMMENT_IDENTIFIER.*/
+                       /* It must begin at a DWORD offset.*/
+  ends
+
+  TEMRGLSRECORD struc pas
+    cbData: DWORD;              /* Size of data in bytes */
+    Data: raw[@.cbData]
+  ends
+
+  TEMRGLSBOUNDEDRECORD struc pas
+    rclBounds: TRect;           /* Bounds in recording coordinates */
+    cbData: DWORD;              /* Size of data in bytes */
+    Data: raw[@.cbData]
+  ends
+
+  TEMRPIXELFORMAT struc pas
+   // !!!Temp pfd: TPixelFormatDescriptor;
+  ends
+
+  TEMR_X struc pas
+  ends //To be described
+
+/*** Undocumented structures ***/
+
+const
+  SMALLTEXT_TYPE_WITHOUT_CLIP = 0x100;
+      // if set use EMRSMALLTEXTOUT else use EMRSMALLTEXTOUTCLIP
+  SMALLTEXT_TYPE_ANSI         = 0x200;
+      // if set use ANSI version else UNICODE
+
+
+type
+
+  TEMRSMALLTEXTOUT struc pas
+    ptlReference: TPoint;
+    nChars: DWORD;
+    fOptions: DWORD;
+    iGraphicsMode : TGraphicsMode;   //See iMode parameter of SetGraphicsMode
+    exScale       : Single;  //X and Y scales from Page units to .01mm units
+    eyScale       : Single;  // if graphics mode is GM_COMPATIBLE.
+    rclClip       : case @.fOptions and SMALLTEXT_TYPE_WITHOUT_CLIP of
+       0: TRect
+     endc
+    cString       : case @.fOptions and SMALLTEXT_TYPE_ANSI of
+      0: Array[@@.nChars] of WChar
+      else Array[@@.nChars] of char
+     endc
+  ends
+
+type
+
+TEnhancedMetaRecord struc
+  TEMFFuncCode Function; /* Function number (defined in WINGDI.H) */
+  DWORD Size;          /* Total size of the record in WORDs */
+  case @.Function of
+    EMR_POLYBEZIER               : TEMRPOLYLINE
+    EMR_POLYGON                  : TEMRPOLYLINE
+    EMR_POLYLINE                 : TEMRPOLYLINE
+    EMR_POLYBEZIERTO             : TEMRPOLYLINE
+    EMR_POLYLINETO               : TEMRPOLYLINE
+    EMR_POLYPOLYLINE             : TEMRPOLYPOLYLINE
+    EMR_POLYPOLYGON              : TEMRPOLYPOLYLINE
+    EMR_SETWINDOWEXTEX           : TSize
+    EMR_SETWINDOWORGEX           : TPoint
+    EMR_SETVIEWPORTEXTEX         : TSize
+    EMR_SETVIEWPORTORGEX         : TPoint
+    EMR_SETBRUSHORGEX            : TPoint
+    EMR_EOF                      : TEMREOF
+    EMR_SETPIXELV                : TEMRSETPIXELV
+    EMR_SETMAPPERFLAGS           : TEMRSETMAPPERFLAGS
+    EMR_SETMAPMODE               : TEMRSelectClipPath
+    EMR_SETBKMODE                : TEMRSetBkMode
+    EMR_SETPOLYFILLMODE          : TEMRSelectClipPath
+    EMR_SETROP2                  : TEMRSetRop2
+    EMR_SETSTRETCHBLTMODE        : TEMRSelectClipPath
+    EMR_SETTEXTALIGN             : TEMRSelectClipPath
+    EMR_SETCOLORADJUSTMENT       : TCOLORADJUSTMENT
+    EMR_SETTEXTCOLOR             : TEMRSETTEXTCOLOR
+    EMR_SETBKCOLOR               : TEMRSETTEXTCOLOR
+    EMR_OFFSETCLIPRGN            : TPoint
+    EMR_MOVETOEX                 : TPoint
+    EMR_SETMETARGN               : void
+    EMR_EXCLUDECLIPRECT          : TRect
+    EMR_INTERSECTCLIPRECT        : TRect
+    EMR_SCALEVIEWPORTEXTEX       : TEMRSCALEVIEWPORTEXTEX
+    EMR_SCALEWINDOWEXTEX         : TEMRSCALEVIEWPORTEXTEX
+    EMR_SAVEDC                   : void
+    EMR_RESTOREDC                : TEMRRESTOREDC
+    EMR_SETWORLDTRANSFORM        : TXFORM
+    EMR_MODIFYWORLDTRANSFORM     : TEMRMODIFYWORLDTRANSFORM
+    EMR_SELECTOBJECT             : TEMRSELECTOBJECT
+    EMR_CREATEPEN                : TEMRCREATEPEN
+    EMR_CREATEBRUSHINDIRECT      : TEMRCREATEBRUSHINDIRECT
+    EMR_DELETEOBJECT             : TEMRSELECTOBJECT
+    EMR_ANGLEARC                 : TEMRANGLEARC
+    EMR_ELLIPSE                  : TRect
+    EMR_RECTANGLE                : TRect
+    EMR_ROUNDRECT                : TEMRROUNDRECT
+    EMR_ARC                      : TEMRARC
+    EMR_CHORD                    : TEMRARC
+    EMR_PIE                      : TEMRARC
+    EMR_SELECTPALETTE            : TEMRSELECTPALETTE
+    EMR_CREATEPALETTE            : TEMRCREATEPALETTE
+    EMR_SETPALETTEENTRIES        : TEMRSETPALETTEENTRIES
+    EMR_RESIZEPALETTE            : TEMRRESIZEPALETTE
+    EMR_REALIZEPALETTE           : void
+    EMR_EXTFLOODFILL             : TEMREXTFLOODFILL
+    EMR_LINETO                   : TPoint
+    EMR_ARCTO                    : TEMRARC
+    EMR_POLYDRAW                 : TEMRPOLYDRAW
+    EMR_SETARCDIRECTION          : TEMRSETARCDIRECTION
+    EMR_SETMITERLIMIT            : TEMRSETMITERLIMIT
+
+    EMR_BEGINPATH                : void
+    EMR_ENDPATH                  : void
+    EMR_CLOSEFIGURE              : void
+    EMR_FILLPATH                 : TRect
+    EMR_STROKEANDFILLPATH        : TRect
+    EMR_STROKEPATH               : TRect
+    EMR_FLATTENPATH              : void
+    EMR_WIDENPATH                : void
+    EMR_SELECTCLIPPATH           : TEMRSelectClipPath
+    EMR_ABORTPATH                : void
+
+    EMR_GDICOMMENT               : TEMRGDICOMMENT
+    EMR_FILLRGN                  : TEMRFILLRGN
+    EMR_FRAMERGN                 : TEMRFRAMERGN
+    EMR_INVERTRGN                : TEMRINVERTRGN
+    EMR_PAINTRGN                 : TEMRINVERTRGN
+    EMR_EXTSELECTCLIPRGN         : TEMREXTSELECTCLIPRGN
+    EMR_BITBLT                   : TEMRBITBLT
+    EMR_STRETCHBLT               : TEMRSTRETCHBLT
+    EMR_MASKBLT                  : TEMRMASKBLT
+    EMR_PLGBLT                   : TEMRPLGBLT
+    EMR_SETDIBITSTODEVICE        : TEMRSETDIBITSTODEVICE
+    EMR_STRETCHDIBITS            : TEMRSTRETCHDIBITS
+    EMR_EXTCREATEFONTINDIRECTW   : TEMREXTCREATEFONTINDIRECTW
+    EMR_EXTTEXTOUTA              : TEMREXTTEXTOUTA
+    EMR_EXTTEXTOUTW              : TEMREXTTEXTOUTW
+    EMR_POLYBEZIER16             : TEMRPOLYLINE16
+    EMR_POLYGON16                : TEMRPOLYLINE16
+    EMR_POLYLINE16               : TEMRPOLYLINE16
+    EMR_POLYBEZIERTO16           : TEMRPOLYLINE16
+    EMR_POLYLINETO16             : TEMRPOLYLINE16
+    EMR_POLYPOLYLINE16           : TEMRPOLYPOLYLINE16
+    EMR_POLYPOLYGON16            : TEMRPOLYPOLYLINE16
+    EMR_POLYDRAW16               : TEMRPOLYDRAW16
+    EMR_CREATEMONOBRUSH          : TEMRCREATEMONOBRUSH
+    EMR_CREATEDIBPATTERNBRUSHPT  : TEMRCREATEDIBPATTERNBRUSHPT
+    EMR_EXTCREATEPEN             : TEMREXTCREATEPEN
+    EMR_POLYTEXTOUTA             : TEMRPOLYTEXTOUTA
+    EMR_POLYTEXTOUTW             : TEMRPOLYTEXTOUTW
+
+  //#if(WINVER >= 0x0400)
+    EMR_SETICMMODE               : TEMRSelectClipPath
+    EMR_CREATECOLORSPACE         : TEMRCREATECOLORSPACE
+    EMR_SETCOLORSPACE            : TEMRSETCOLORSPACE
+    EMR_DELETECOLORSPACE         : TEMRSETCOLORSPACE
+    EMR_GLSRECORD                : TEMRGLSRECORD
+    EMR_GLSBOUNDEDRECORD         : TEMRGLSBOUNDEDRECORD
+    EMR_PIXELFORMAT              : TEMRPIXELFORMAT
+  //#endif /* WINVER >= 0x0400 */
+
+  //#if (WINVER >= 0x0500)
+    EMR_DRAWESCAPE               : TEMR_X
+    EMR_EXTESCAPE                : TEMR_X
+    EMR_STARTDOC                 : TEMR_X
+    EMR_SMALLTEXTOUT             : TEMRSMALLTEXTOUT
+    EMR_FORCEUFIMAPPING          : TEMR_X
+    EMR_NAMEDESCAPE              : TEMR_X
+    EMR_COLORCORRECTPALETTE      : TEMR_X
+    EMR_SETICMPROFILEA           : TEMR_X
+    EMR_SETICMPROFILEW           : TEMR_X
+    EMR_ALPHABLEND               : TEMRAlphaBlend
+    EMR_ALPHADIBBLEND            : TEMR_X
+    EMR_TRANSPARENTBLT           : TEMRTRANSPARENTBLT
+    EMR_TRANSPARENTDIB           : TEMR_X
+    EMR_GRADIENTFILL             : TEMRGRADIENTFILL
+    EMR_SETLINKEDUFIS            : TEMR_X
+    EMR_SETTEXTJUSTIFICATION     : TEMR_X
+  endc Parameters /* Parameter values passed to GDI function */
+  raw[] at &@; rest;
+ends:[@:Size=(@.Size when(@.Size>=8))exc 8]
+
+

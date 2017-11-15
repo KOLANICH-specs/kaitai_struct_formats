@@ -1,0 +1,261 @@
+% RSC - format of classifier of GIS Panorama ver. 7.2.(rsc.rfh):Class: GIS files, Status: Almost Complete, Last change: 12.11.2020 19:01:48
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+//set encoding oem
+set encoding ansi
+
+type
+
+TRSCSign array[4]of Char,<0;
+TRscHdr0 struc
+  TRSCSign Sign
+  ulong FSize
+  ulong Ver //?
+ends
+
+data
+
+0 TRscHdr0 Hdr0
+
+assert (Hdr0.Sign='RSC')and(Hdr0.FSize=FileSize)and(Hdr0.Ver=0x0702);
+
+descr ('RSC - format of classifier of the GIS Panorama ver. 7.2.',NL)
+descr ('  Partially reconstructed by me (AX) using Panorama API data structures',NL)
+
+type bit
+  TBit num+(1)
+  TBit1 num+(1)
+  TBit2 num+(2)
+  TBit3 num+(3)
+  TBit4 num+(4)
+  TBit8 num+(8)
+  TBit11 num+(11)
+  TBit20 num+(20)
+  TBit23 num+(23)
+  TDoubleHi struc
+    TBit20 M
+    TBit11 P
+    TBit1 S //Sign 1->Neg
+  ends
+
+  TFloat struc
+    TBit23 M
+    TBit8 P
+    TBit1 S //Sign 1->Neg
+  ends: displ=(@.S,' 1.',HEX(@.M*2,6),'*2^',INT(@.P-0x7F));
+
+type
+  TDouble struc
+    ulong Lo
+    TDoubleHi Hi
+  ends: displ=(@.Hi.S,' 1.',HEX(@.Hi.M,5),HEX(@.Lo,8),'*2^',INT(@.Hi.P-0x3FF));
+
+type
+u1 num+(1):displ=(INT(@))
+u2 num+(2):displ=(INT(@))
+
+TRSCDate array[8]of Char;
+TRSCName32 array[32]of Char,<0; 
+TRSCName16 array[16]of Char,<0; 
+
+include rsc_gdi.rfi
+
+type
+
+TObjLoc enum u1 (
+  OL_LINE      = 0,         // Tшэхщэvщ
+  OL_SQUARE    = 1,         // ¦ыю•рфэющ
+  OL_MARK      = 2,         // Tюўхўэvщ
+  OL_TEXT      = 3,         // ¦юфяшё№
+  OL_VECTOR    = 4,         // TхъЄюЁэvщ
+  OL_PATTERN   = 5)         // +рсыюэ
+
+
+TObjRec struc
+  ulong Sz
+  long ExCode
+  long i1
+  long i2
+  char LocCh
+  array[11]of Char,<0; sExCode
+  array[3]of ulong X
+  ulong SemC1
+  ulong X5
+  TRSCName32 Name
+  TObjLoc Loc
+  u1 Layer
+  u1 Scale //Scalable sign
+  u1 Direct
+  Byte GenLvl
+  Byte Yb1
+  Byte Yb2
+  Byte Yb3
+  long SemC1a //¦юф ёхьрэЄшъш, яЁш ъюЄюЁюь тvсшЁрхЄё  фрээр  чряшё№ (фы  ёхЁшщ)
+  array[5]of ulong Y
+  raw[] Rest
+ends:[@:Size=@.Sz]
+
+TObjSec(Sz,Cnt) array[@:Cnt]of(TObjRec):[@:Size=@:Sz]
+
+TSegRec struc
+  ulong Sz
+  TRSCName32 Name
+  TRSCName16 Key
+  sint N1
+  sint Order //¦юЁ фюъ
+  word SemCnt
+  array[@.SemCnt]of long SemTbl //Semantics of the layer
+  raw[] Rest
+ends:[@:Size=@.Sz]
+
+TSegSec(Sz,Cnt) array[@:Cnt]of(TSegRec):[@:Size=@:Sz]
+
+TParRec struc
+  ulong Sz
+  u2 N
+  TImgFnInfo F
+  raw[] Rest
+ends:[@:Size=@.Sz]
+
+TParSec(Sz,Cnt) array[@:Cnt]of(TParRec):[@:Size=@:Sz]
+
+
+TSEMTYPE enum int (    // TL¦- ¦=L++=L- T+¦L=TL¦L
+   TUNDEFINED = -1,    // ¦эрўхэшх эх єёЄрэютыхэю
+   TSTRING    = 0,     // Tшьтюы№эр  ёЄЁюър
+   TNUMBER    = 1,     // +шёыютюх чэрўхэшх
+   TANYFILE   = 9,     // Lь  Їрщыр чрЁхушёЄЁшЁютрээюую Єшяр
+   TBMPFILE   = 10,    // Lь  Їрщыр BMP
+   TOLEFILE   = 11,    // Lь  Їрщыр,юсЁрсрЄvтрхьюую OLE-ёхЁтхЁюь
+   TREFER     = 12,    // Tёvыър эр яЁюшчтюы№эvщ юс·хъЄ ърЁЄv
+                       // (єэшъры№эvщ эюьхЁ юс·хъЄр)
+   TMAPFILE   = 13,    // Lь  Їрщыр-ярёяюЁЄр Ёрщюэр
+   TTXTFILE   = 14,    // Lь  ЄхъёЄютюую Їрщыр
+   TPCXFILE   = 15,    // Lь  Їрщыр PCX
+   TCODE      = 16,    // ¦эрўхэшх т тшфх ўшёыютюую ъюфр
+                       // шч ъырёёшЇшърЄюЁр чэрўхэшщ
+   TDATE      = 17,    // ¦эрўхэшх фрЄv т ўшёыютюь тшфх (++++¦¦--)
+   TANGLE     = 18,    // Lуыютр  тхышўшэр т Ёрфшрэрї
+   TTIME      = 19,    // ¦эрўхэшх тЁхьхэш т ўшёыютюь тшфх (++¦¦TT)
+   TFONT      = 20,    // Lь  °ЁшЇЄр ("Arial", "Courier"...)
+   TCOLOR     = 21     // +шёыютюх чэрўхэшх ЎтхЄр т RGB
+//   TLAST      = 21     // T+¦-=-- +¦L=LгL T¦LT¦L ¦+-+T
+)
+
+TSemRec struc
+  long Code
+  TSEMTYPE DT
+  word Y
+  TRSCName32 Name
+  TRSCName16 Key
+  ulong X0
+  ulong X1
+  word Len
+  word Prec
+  ulong ClsFileOfs
+  long ClsCnt
+  ulong X5
+  ulong X6
+  raw[] Rest
+ends:[@:Size=0x54]
+
+TSemSec(Sz,Cnt) array[@:Cnt]of(TSemRec):[@:Size=@:Sz]
+
+
+TTxtRec struc
+  TRSCName32 Name
+  TRSCName32 Name1
+  long N
+  ulong F
+ends
+
+TTxtSec(Sz,Cnt) array[@:Cnt]of TTxtRec
+
+
+TLimRec struc
+  ulong Sz
+  long ExCode
+  long Loc
+  long l2
+  long Sem1 //¦юф яхЁтющ ёхь.
+  u2 Cnt1
+  u2 C1
+  long Sem2
+  u2 Cnt2
+  u2 C2
+  array[@.Cnt1]of TDouble Lim1
+  array[@.Cnt2]of TDouble Lim2
+/*  array[@.Cnt1]of case @@.Cnt2 of
+   0: u1
+   else array[@@@.Cnt2]of u1
+   endc PosInCode*/
+  array[@.Cnt2 when (@.Cnt2>0) exc 1]of array[@@.Cnt1]of u1 PosInCode
+  raw[] Rest
+ends:[@:Size=@.Sz]
+
+TLimSec(Sz,Cnt) array[@:Cnt]of(TLimRec)//:[@:Size=@:Sz]
+
+TPalRec struc
+  array[256]of TColor PalTbl
+  array[32]of Char,0; Name
+ends
+
+TPalSec(Sz,Cnt) array[@:Cnt]of(TPalRec):[@:Size=@:Sz]
+
+TPosRec struc
+  ulong Sz
+  long ExCode
+  TObjLoc Loc
+  byte B0 //in fact Loc takes 4 bytes
+  u2 W0   //
+  u2 RqSemCnt
+  u2 SemCnt
+  array[@.RqSemCnt]of Long RqSem
+  array[@.SemCnt]of Long Sem
+  raw[] Rest
+ends:[@:Size=@.Sz]
+
+TPosSec(Sz,Cnt) array[@:Cnt]of(TPosRec):[@:Size=@:Sz]
+
+TSecStart(Sz,Cnt) struc
+  TRSCSign Sign
+  case @.Sign of
+    'OBJ': TObjSec(@@:Sz,@@:Cnt)
+    'SEG': TSegSec(@@:Sz,@@:Cnt)
+    'PAR': TParSec(@@:Sz,@@:Cnt) //+ЄюсЁрцхэшх юс·хъЄют
+    'PRN': TParSec(@@:Sz,@@:Cnt) //+ЄюсЁрцхэшх юс·хъЄют яЁш яхўрЄш
+    'SEM': TSemSec(@@:Sz,@@:Cnt)
+    'TXT': TTxtSec(@@:Sz,@@:Cnt)
+    'LIM': TLimSec(@@:Sz,@@:Cnt)
+    'PAL': TPalSec(@@:Sz,@@:Cnt) //¦рышЄЁv
+    'POS': TPosSec(@@:Sz,@@:Cnt)
+  endc data
+  raw[] at 0; rest
+ends:[@:Size=@:Sz+4]
+
+PSecStart(Sz,Cnt) ^TSecStart(@:Sz,@:Cnt) NEAR=ulong,REF=@-4;:displ=(@^.Sign,'{',@,'}')
+
+TSecInfo struc
+  PSecStart Ofs
+  ulong Sz
+  long Cnt
+ends:[@.Ofs:Sz=@.Sz,@.Ofs:Cnt=@.Cnt]
+
+TRscHdr struc
+  ulong X3
+  ulong X4
+  long X5
+  long Language
+  long ObjCnt
+  TRSCDate Date
+  TRSCName32 RSCType
+  TRSCName32 Name
+  array[8]of Byte Code
+  long Scale
+  long X8
+  array[13] of TSecInfo SecInfo
+ends
+
+data
+Hdr0:Size; TRscHdr Hdr
+

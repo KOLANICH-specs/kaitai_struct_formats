@@ -1,0 +1,80 @@
+% Windows animated cursors(ANI.rfh):Class: Graphics and Sounds, Status: Partial, Last change: 14.01.2022 11:52:16
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include ICO.RFI
+
+type
+  TANITag array[4] of Char
+
+  TTblOfLong array of long
+
+  TAnihSec struc
+    DWORD cbSizeOf // Num bytes in AniHeader (36 bytes)
+    DWORD cFrames // Number of unique Icons in this cursor
+    DWORD cSteps // Number of Blits before the animation cycles
+    DWORD cx // reserved, must be zero.
+    DWORD cy // reserved, must be zero.
+    DWORD cBitCount // reserved, must be zero.
+    DWORD cPlanes   //
+    DWORD JifRate // Default Jiffies (1/60th of a second) if rate chunk not present.
+    DWORD flags // Animation Flag (see AF_ constants)
+  ends
+
+  TANIListSec(Sz) forward
+
+  TANIMainSec struc
+    TANITag Tag
+    DWORD Sz
+    case @.Tag of
+     'LIST': TANIListSec(@@.Sz)
+     'anih': TAnihSec
+     'rate': TTblOfLong
+     'seq ': TTblOfLong
+    else raw[]
+    endc Dat
+  ends:[@.Dat:Size=@.Sz]
+
+  TANIINFOSec struc
+    TANITag Tag
+    DWORD Sz
+    case @.Tag of
+      'INAM','IART': array of Char
+    else
+      raw[]
+    endc Dat
+  ends:[@.Dat:Size=@.Sz]
+
+  TANIFramSec struc
+    TANITag Tag
+    DWORD Sz
+    case @.Tag of
+      'icon': subfile[@@.Sz] spec 'ICO.RFH' //raw[] //TIconHeader //Should be rewritten using blocks
+    else
+      raw[]
+    endc Dat
+  ends:[@.Dat:Size=@.Sz]
+
+  TANIListSec(Sz) struc
+    TANITag Tag
+    case @.Tag of
+      'ACON': array of TANIMainSec
+      'INFO': array of TANIINFOSec
+      'fram': array of TANIFramSec
+    else 
+      raw[]
+    endc Tbl
+  ends:[@:Size=@:Sz]
+
+  TANIHdr struc
+    TANITag Tag
+    case @.Tag of
+     'RIFF': struc
+       DWORD Sz
+       TANIListSec(@.Sz) Lst
+     ends
+    endc Dat
+  ends
+
+data
+0 TANIHdr Hdr
+

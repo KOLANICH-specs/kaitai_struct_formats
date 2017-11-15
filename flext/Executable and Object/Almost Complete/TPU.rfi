@@ -1,0 +1,692 @@
+% Turbo Pascal 6.0,7.0 and Delphi 1.0 Units(TPU.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 08.03.2008 18:02:22
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include DOSFTime.rfi
+
+type
+
+TChar4 array[4] of Char
+
+data
+0 TChar4 Magic
+
+%$IF Magic='TPU9';
+const
+  Ver=6;
+descr ('Borland Pascal 6.0 unit file.')
+//assert 0; //temp fail
+%$ELSIF Magic='TPUQ';
+const
+  Ver=7;
+descr ('Borland Pascal 7.0 unit file.')
+%$ELSIF Magic='DCU1';
+//Delphi1.0
+const
+  Ver=8;
+descr ('Borland Delphi 1.0 unit file.')
+//assert 0; //temp fail
+%$ELSE
+assert 0; //fail
+%$END
+
+descr (NL,'Info Source: Reconstructed by me (Alexei Hmelnov).',NL)
+
+type bit
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(2)
+TBit6 num+(6)
+TBit7 num+(7)
+TBit12 num+(12)
+TBit13 num+(13)
+TBit14 num+(14)
+
+%$IF Ver=8;
+TNameKind enum TBit6 (nkConst=1,nkType=2,nkVar=3,nkProc=4,nkUnit=5)
+TNameScope enum TBit2 (pub/*public*/,prt/*protected*/,prv/*private*/)
+%$ELSE
+TNameScope enum TBit (pub/*public*/,prv/*private*/)
+%$IF Ver=7;
+TNameKind enum TBit7 (nkUnit=0x53/*'S'*/,
+  nkConst=0x4F/*'O'*/,nkType=0x50/*'P'*/,
+  nkVar=0x51/*'Q'*/,nkProc=0x52/*'R'*/)
+%$ELSE
+//Ver=6;
+TNameKind enum TBit7 (nkUnit=0x59/*'Y'*/,
+  nkConst=0x50/*'P'*/,nkType=0x51/*'Q'*/,
+  nkVar=0x52/*'R'*/,nkProc=0x53/*'S'*/)
+%$END
+%$END
+type bit
+TNameKS struc
+  TNameKind K
+  TNameScope S
+ends
+
+type
+PNameInf ^TNameInf near
+PNameInf0 ^TNameInf0 near
+TNameInf0 struc
+  PNameInf Next
+  TNameKS Kind
+  Str Name
+  void Inf
+ends
+
+%TNameRefTbl array[0x40] of PNameInf
+PNameTree ^TNameTree near
+TNameTree struc
+  word Size
+%  TNameRefTbl Ref
+  array[@.Size div 2+1] of PNameInf Tbl
+ends
+
+PProcRefTbl ^TProcRefTbl near
+PCodeDescrTbl ^TCodeDescrTbl near
+PConstGrDescrTbl ^TConstGrDescrTbl near
+PVarGrDescrTbl ^TVarGrDescrTbl near
+PDLLDescrTbl ^TDLLDescrTbl near
+PUnitCodeRefTbl ^TUnitCodeRefTbl near
+PFileDescrTbl ^TFileDescrTbl near
+PSourceStrInfo ^TSourceStrInfo near
+PTPUDataBlocks ^TTPUDataBlocks near
+
+
+%$IF Ver>6;
+TTPUHeader struc
+  Long Long0
+  PNameInf Units
+  PNameTree NameTree
+  PProcRefTbl ProcRefTbl
+  PCodeDescrTbl CodeDescrTbl
+  PConstGrDescrTbl ConstGrOfs
+  PVarGrDescrTbl VarGrOfs
+  PDLLDescrTbl DLLsOfs
+  PUnitCodeRefTbl UnitCodeRefOfs
+  PFileDescrTbl FDscOfs
+  PSourceStrInfo SourceStrNum
+  PTPUDataBlocks DebugInfoOfs
+  word DataStart
+  word SymbolInfo
+  word CodeSize
+  word DataSize
+  word CReloSize
+  word DReloSize
+  word VarSize
+  PNameTree ImplNames
+  word Options
+  word ObjList
+  word W10
+  word W11
+  word W12
+ends
+%$ELSE
+TTPUHeader struc
+  Long Long0
+  PNameInf Units
+  PNameTree NameTree
+  PProcRefTbl ProcRefTbl
+  PCodeDescrTbl CodeDescrTbl
+  PConstGrDescrTbl ConstGrOfs
+  PVarGrDescrTbl VarGrOfs
+  PDLLDescrTbl DLLsOfs
+  PUnitCodeRefTbl UnitCodeRefOfs
+  PFileDescrTbl FDscOfs
+  PSourceStrInfo SourceStrNum
+// word DebugInfoOfs
+  PTPUDataBlocks DataStart
+//  word SymbolInfo
+  word CodeSize
+  word DataSize
+  word CReloSize
+  word DReloSize
+  word VarSize
+  PNameTree ImplNames
+  word Options
+  word ObjList
+  word W10
+  word W11
+  word W12
+ends
+%$END
+
+
+data
+  0x0004 TTPUHeader Hdr
+
+const
+  ThisUnit = &(PNameInf0(Hdr.Units)^.Inf)/*-&Hdr*/;
+
+type
+
+PTypeDefRec ^TTypeDefRec near
+
+TRefInf struc
+  word Ofs
+  word TPUOfs
+ends
+
+TTypeRefInf struc
+  case word of
+    ThisUnit: PTypeDefRec
+  else
+    word
+  endc Ofs
+  word TPUOfs
+ends :[@.Ofs:Case=@.TPUOfs] %(@.TPUOfs=ThisUnit)]
+
+type
+
+%$IF Ver=8;
+TTypeDefVMT enum word (
+  vmtStandard = 0,
+  vmtArray = 0x0001,
+  vmtRecord = 0x0002,
+  vmtObject = 0x0003,
+  vmtFile = 0x0004,
+  vmtText = 0x0005,
+  vmtString = 0x0009,
+
+  vmtSubRange = 0x000d,
+  vmtShortInt = 0x010d,
+  vmtByte = 0x020d,
+  vmtSubRange1 = 0x040d,
+  vmtInteger = 0x050d,
+  vmtWord = 0x060d,
+  vmtLongInt = 0x0d0d,
+
+  vmtBoolean = 0x000e,
+  vmtByteBool = 0x100e,
+  vmtWordBool = 0x140e,
+  vmtLongBool = 0x1c0e,
+
+  vmtChar = 0x020f,
+
+  vmtEnum = 0x0010,
+
+  vmtSet = 0x1008,
+
+  vmtSingle = 0x000b,
+  vmtDouble = 0x040b,
+  vmtExtended = 0x020b,
+  vmtComp = 0x060b,
+  vmtReal = 0x040c,
+
+  vmtPointer = 0x0d09,
+
+  vmtProcType = 0x0d07,
+
+%-------------------------------}
+%   Additional types for DELPHI }
+%-------------------------------}
+
+  vmtSetEnum = 0x0208,
+  vmtSetInt = 0x608,
+  vmtTObject = 0x2d09,
+  vmtTClass = 0x4d09,
+  vmtTObject1 = 0x0303,
+  vmtTObject2 = 0x0703
+)
+%$ELSE
+TTypeDefVMT enum word (
+  vmtStandard = 0,
+  vmtArray = 0x0001,
+  vmtRecord = 0x0002,
+  vmtObject = 0x0003,
+  vmtFile = 0x0004,
+  vmtText = 0x0005,
+  vmtString = 0x0009,
+
+  vmtSubRange = 0x000c,
+  vmtShortInt = 0x010c,
+  vmtByte = 0x020c,
+  vmtSubRange1 = 0x040c,
+  vmtInteger = 0x050c,
+  vmtWord = 0x060c,
+  vmtLongInt = 0x0d0c,
+
+  vmtBoolean = 0x000d,
+  vmtByteBool = 0x100d,
+  vmtWordBool = 0x140d,
+  vmtLongBool = 0x1c0d,
+
+  vmtChar = 0x020e,
+
+  vmtEnum = 0x000f,
+
+  vmtSet = 0x1007,
+
+  vmtSingle = 0x000a,
+  vmtDouble = 0x040a,
+  vmtExtended = 0x020a,
+  vmtComp = 0x060a,
+  vmtReal = 0x040b,
+
+  vmtPointer = 0x0d08,
+
+  vmtProcType = 0x0d06,
+
+%-----------------------------------------------}
+%   Additional types for DELPHI (h = hDCU-1)    }
+%-----------------------------------------------}
+
+  vmtSetEnum = 0x0207,
+  vmtSetInt = 0x607,
+  vmtTObject = 0x2d08,
+  vmtTClass = 0x4d08,
+  vmtTObject1 = 0x0302,
+  vmtTObject2 = 0x0702
+)
+%$END
+
+%-------------- Type Information ----------------------------
+
+%$IF Ver>6;
+TTypeDef struc
+  word size
+  PNameInf NameRef
+%  word OpIndex
+  word Next %for object methods
+%  PNameInf Next %for object methods
+ends
+%$ELSE
+TTypeDef struc
+  word size
+//  PNameInf NameRef
+  word OpIndex
+%  PNameInf Next %for object methods
+ends
+%$END
+
+TArrayDef struc
+% TTypeDef TD
+  TTypeRefInf ValType
+  TTypeRefInf IndexType
+ends
+
+TParmInf struc
+  TTypeRefInf T
+  Byte kind
+ends
+
+TProcTypeDef struc
+% TTypeDef TD
+  TTypeRefInf FType
+  int ArgNum
+  array[@.ArgNum] of TParmInf Args
+ends
+
+/*
+PFieldInf ^TFieldInf near
+TFieldInf struc
+  PFieldInf Next
+  TNameKS Kind
+  Str Name
+%%%%%%%%%%%%%%%%
+  Byte Flag
+  Word FieldOfs
+  Word TypeOfs
+  PFieldInf NextOfs
+  TTypeRefInf FType
+ends
+*/
+
+TRecordDef struc
+% TTypeDef TD
+  PNameTree RefTblOfs
+% PFieldInf NameLstOfs
+  PNameInf NameLstOfs
+ends
+
+TObjectDef struc
+  TRecordDef RD
+  TTypeRefInf Ancestor
+  word VMTSize
+  word VMTGrOfs
+  word DynGrSize
+  Word DynGrOfs //{?}
+  word PrevObj //Список всех объектов файла с началом H^.ObjList
+  TRefInf Ref1
+  TRefInf Ref2
+ends
+
+TPointerDef struc
+% TTypeDef TD
+  TTypeRefInf BasicType
+ends
+
+TSubRangeDef struc
+% TTypeDef TD
+  long Min
+  long Max
+  TTypeRefInf BasicType
+ends
+
+TTypeDefRec struc
+  TTypeDefVMT VMT
+  TTypeDef TD
+  Case @.VMT of
+    vmtStandard: void %TTypeDef
+    vmtSubRange,
+    vmtShortInt,
+    vmtByte,
+    vmtSubRange1,
+    vmtInteger,
+    vmtWord,
+    vmtLongInt,
+
+    vmtBoolean,
+    vmtByteBool,
+    vmtWordBool,
+    vmtLongBool,
+
+    vmtChar,
+    vmtEnum: TSubRangeDef
+
+    vmtSet: TPointerDef
+
+    vmtSingle,
+    vmtDouble,
+    vmtExtended,
+    vmtComp,
+    vmtReal: void %TTypeDef
+
+    vmtPointer: TPointerDef
+
+    vmtProcType: TProcTypeDef
+
+    vmtArray,
+    vmtString: TArrayDef
+    vmtRecord: TRecordDef
+    vmtObject: TObjectDef
+    vmtFile,
+    vmtText: TPointerDef
+
+  %-----------------------------------------------}
+  %   Additional types for DELPHI (h = hDCU-1)    }
+  %-----------------------------------------------}
+
+    vmtSetEnum,
+    vmtSetInt: TPointerDef
+    vmtTObject,
+    vmtTClass: TPointerDef
+    vmtTObject1,
+    vmtTObject2: TObjectDef
+  endc TI
+ends
+
+%---------------------------------------------------
+
+PUnitRefInf ^TUnitRefInf near
+
+TUnitRefInf struc
+  ulong TPU
+  PNameInf Next
+  PNameInf Prev %{Двунаправленный список}
+  Byte IsSystem
+ends
+
+TFuncInf struc
+  byte Options
+  byte b2 % { = $08,$0C-дин.метод,0-external}
+  word ProcTblOfs
+  word ScopeOfs %{При определении внутри объекта(метод)}
+  PNameTree Names
+  word VMTOfs %{Для вирт. методов}
+  TTypeDefRec PT
+ends
+
+%TConstRefInf forward
+%TVarInf forward
+
+TConstRefInf struc
+  word Ofs
+  word TPUOfs
+ends
+
+%$IF Ver>6;
+TVarInf struc
+  Byte IsConst
+  word VarOfs
+  word GrOfs
+  PNameInf NextOfs %{для полей записей}
+  TTypeRefInf TypeRef
+ends
+%$ELSE
+TVarInf struc
+  Byte IsConst
+  word VarOfs
+  word GrOfs
+  TTypeRefInf TypeRef
+ends
+%$END
+
+TNameInfData(hCase) case TNameKind @:hCase of
+  nkUnit: TUnitRefInf % unit
+  nkConst: TConstRefInf % const
+  nkVar: TVarInf % var
+  nkType: TTypeRefInf % type
+  nkProc: TFuncInf % proc
+endc
+
+TNameInf struc
+  PNameInf Next
+  TNameKS Kind
+  Str Name
+  TNameInfData(@.Kind.K) Inf
+ends
+
+TProcRef struc
+  word W0
+  word W1
+  word CTblOfs
+  word CodeStart
+ends
+
+TProcRefTbl array of TProcRef:[@:Size=Hdr.CodeDescrTbl-Hdr.ProcRefTbl]
+
+%TProcRefs array of TProcRef:[Procs:Size=Hdr.CodeDescrTbl-Hdr.ProcRefTbl]
+%TProcRefTbl struc
+%  TProcRefs Procs
+%ends:[Procs:Size=Hdr.CodeDescrTbl-Hdr.ProcRefTbl]
+
+TCodeRef struc
+  word W1
+  word CodeSize
+  word ReloSize
+  word DebugOfs
+ends
+
+TCodeDescrTbl array of TCodeRef:[@:Size=Hdr.ConstGrOfs-Hdr.CodeDescrTbl]
+
+/*
+TCodeRefs array of TCodeRef
+TCodeDescrTbl struc
+ TCodeRefs CRefs
+ends:[CRefs:Size=Hdr.ConstGrOfs-Hdr.CodeDescrTbl]
+*/
+
+TGrDescrRec struc
+  word Ofs
+  word Size
+  word ReloSize
+  word ObjRef
+ends
+
+TConstGrDescrTbl array of TGrDescrRec:[@:Size=Hdr.VarGrOfs-Hdr.ConstGrOfs]
+TVarGrDescrTbl array of TGrDescrRec:[@:Size=Hdr.DLLsOfs-Hdr.VarGrOfs]
+/*
+TGrDescrs array of TGrDescrRec
+TConstGrDescrTbl struc
+  TGrDescrs CDsc
+ends:[CDsc:Size=Hdr.VarGrOfs-Hdr.ConstGrOfs]
+TVarGrDescrTbl struc
+  TGrDescrs VDsc
+ends:[VDsc:Size=Hdr.DLLsOfs-Hdr.VarGrOfs]
+*/
+
+TDLLDescrRec struc
+  ulong NilPtr
+  str FName
+ends
+
+TDLLDescrTbl array of TDLLDescrRec:[@:Size=Hdr.UnitCodeRefOfs-Hdr.DLLsOfs]
+/*
+TDLLDescrs array of TDLLDescrRec
+TDLLDescrTbl struc
+  TDLLDescrs DLLDsc
+ends:[DLLDsc:Size=Hdr.UnitCodeRefOfs-Hdr.DLLsOfs]
+*/
+
+%$IF Ver>6;
+TUnitCodeRec struc
+  ulong DataPtr
+  str Name
+ends
+%$ELSE
+TUnitCodeRec struc
+  word DataOfs
+  str Name
+ends
+%$END
+
+TUnitCodeRefTbl array of TUnitCodeRec:
+  [@:Size=Hdr.FDscOfs-Hdr.UnitCodeRefOfs]
+/*
+TUnitCodeRefs array of TUnitCodeRec
+TUnitCodeRefTbl struc
+  TUnitCodeRefs UCRef
+ends:[UCRef:Size=Hdr.FDscOfs-Hdr.UnitCodeRefOfs]
+*/
+
+TSrcFileKind enum byte (srcIncl=3,srcMain=4,srcLink=5,srcRes=6)
+
+TFileDescrRec struc
+  TSrcFileKind Tag
+  word W0
+  TFileTime/*ulong*/ DateTimePack
+  str FName
+ends
+
+TFileDescrTbl array of TFileDescrRec:[@:Size=Hdr.SourceStrNum-Hdr.FDscOfs]
+/*
+TFileDescrs array of TFileDescrRec
+TFileDescrTbl struc
+  TFileDescrs FDsc
+ends:[FDsc:Size=Hdr.SourceStrNum-Hdr.FDscOfs]
+*/
+
+TSourceStrInfo struc
+  word W0
+  word W1
+  word SrcLines
+ends
+
+%$IF Ver>6;
+TDebugInfo raw[Hdr.DataStart-Hdr.DebugInfoOfs]
+TSymbolInfo raw[Hdr.SymbolInfo]
+%$END
+
+TCodeInfoItem raw[Hdr.CodeDescrTbl^[#].CodeSize]
+TCodeInfo array of (TCodeInfoItem): [@:Size=Hdr.CodeSize]
+/*
+TCodeInfo array of(raw[Hdr.CodeDescrTbl^[#].CodeSize]):
+  [@:Size=Hdr.CodeSize]
+TCodeInfo raw[Hdr.CodeSize]
+*/
+
+TDataInfoItem raw[Hdr.ConstGrOfs^[#].Size]
+TDataInfo array of(TDataInfoItem): [@:Size=Hdr.DataSize]
+/*
+TDataInfo array of(raw[Hdr.ConstGrOfs^[#].Size]):
+  [@:Size=Hdr.DataSize]
+TDataInfo raw[Hdr.DataSize]
+*/
+
+type bit
+TRefTblKind enum TBit2 (p/*Proc*/,d/*ConstInCode*/,v/*Var*/,c/*Const*/)
+TRefAddrPart enum TBit2 (None,Ofs,Seg,Ptr)
+%$IF Ver=8;
+TCodeUnitRefBase TBit14
+TRefUnused TBit
+%$ELSE
+TCodeUnitRefBase TBit12
+TRefUnused TBit3
+%$END
+
+const
+%$IF Ver>6;
+  UnitCodeDataSz=4;
+%$ELSE
+  UnitCodeDataSz=2;
+%$END
+
+type bit
+TCodeUnitRef ^str -(Hdr.UnitCodeRefOfs+UnitCodeDataSz) hideref NIL- near=
+  TCodeUnitRefBase: displ=(@^,'{',@,'}')
+
+TWhereInf struc
+  TCodeUnitRef U
+  TRefAddrPart K
+  TRefTblKind T
+  TRefUnused Z
+  TBit13 TblNDX
+ends
+
+type
+TReloRec struc
+  TWhereInf Where
+  word AddrOfs
+  word CodeOfs
+ends
+
+TCReloInfoItem array[Hdr.CodeDescrTbl^[#].ReloSize div 8] of TReloRec
+TCReloInfo array of (TCReloInfoItem): [@:Size=Hdr.CReloSize]
+/*
+TCReloInfo array of (array[Hdr.CodeDescrTbl^[#].ReloSize div 8] of TReloRec):
+  [@:Size=Hdr.CReloSize]
+*/
+TDReloInfoItem array[Hdr.ConstGrOfs^[#].ReloSize div 8] of TReloRec
+TDReloInfo array of TDReloInfoItem: [@:Size=Hdr.DReloSize]
+/*
+TDReloInfo array of (array[Hdr.ConstGrOfs^[#].ReloSize div 8] of TReloRec):
+  [@:Size=Hdr.DReloSize]
+TDReloInfo array of TReloRec : [@:Size=Hdr.DReloSize]
+TCReloInfo raw[Hdr.CReloSize]
+TDReloInfo raw[Hdr.DReloSize]
+*/
+
+%$IF Ver>6;
+TTPUDataBlocks struc
+  TDebugInfo DebugInfo
+  align16 FAl0
+  TSymbolInfo SymbolInfo
+  align16 FAl1
+  TCodeInfo CodeInf
+  align16 FAl2
+  TDataInfo DataInf
+  align16 FAl3
+  TCReloInfo CRelo
+  align16 FAl4
+  TDReloInfo DRelo
+ends
+%$ELSE
+TTPUDataBlocks struc
+  TCodeInfo CodeInf
+  align16 FAl2
+  TDataInfo DataInf
+  align16 FAl3
+  TCReloInfo CRelo
+  align16 FAl4
+  TDReloInfo DRelo
+ends
+%$END
+
+autoname
+
+TNameInf .Name _Inf
+%$IF Ver>6;
+TTypeDefRec .TD.NameRef^.Name TD_
+%$END
+%TFieldInf .Name Fld_
+

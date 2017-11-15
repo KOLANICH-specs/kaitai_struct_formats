@@ -1,0 +1,69 @@
+% True Type fonts PANOSE font properties(TTFPANOSE.RFI):Class: Font file, Status: Auxiliary, Last change: 08.03.2008 18:04:08
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TPANOSEFamilyKind enum byte (
+  Any, No_Fit, Text_and_Display, Script, Decorative, Pictorial)
+
+TPANOSESerifStyle enum byte (
+  Any                = 0,
+  No_Fit             = 1,
+  Cove               = 2,
+  Obtuse_Cove        = 3,
+  Square_Cove        = 4,
+  Obtuse_Square_Cove = 5,
+  Square             = 6,
+  Thin               = 7,
+  Bone               = 8,
+  Exaggerated        = 9,
+  Triangle           = 10,
+  Normal_Sans        = 11,
+  Obtuse_Sans        = 12,
+  Perp_Sans          = 13,
+  Flared             = 14,
+  Rounded            = 15
+)
+
+TPANOSEWeight enum byte (
+  Any, No_Fit, Very_Light, Light, Thin, Book,
+  Medium, Demi, Bold, Heavy, Black, Nord)
+  
+TPANOSEProportion enum byte (
+  Any, No_Fit, Old_Style, Modern, Even_Width, Expanded,
+  Condensed, Very_Expanded, Very_Condensed, Monospaced)
+  
+TPANOSEContrast enum byte (
+  Any, No_Fit, None, Very_Low, Low,
+  Medium_Low, Medium, Medium_High, High, Very_High)
+  
+TPANOSEStrokeVariation enum byte (
+  Any, No_Fit, GradualDiagonal,GradualTransitional,
+  GradualVertical, GradualHorizontal, RapidVertical,
+  RapidHorizontal, InstantVertical)
+  
+TPANOSEArmStyle enum byte (
+  Any, No_Fit, Straight_ArmsHorizontal, Straight_ArmsWedge,
+  Straight_ArmsVertical, Straight_ArmsSingle_Serif,
+  Straight_ArmsDouble_Serif, NonStraight_ArmsHorizontal,
+  NonStraight_ArmsWedge, NonStraight_ArmsVertical,
+  NonStraight_ArmsSingle_Serif, NonStraight_ArmsDouble_Serif)
+
+TPANOSELetterform enum byte (
+  Any, No_Fit, NormalContact, NormalWeighted, NormalBoxed,
+  NormalFlattened, NormalRounded, NormalOff_Center,
+  NormalSquare, ObliqueContact, ObliqueWeighted,
+  ObliqueBoxed, ObliqueFlattened, ObliqueRounded,
+  ObliqueOff_Center, ObliqueSquare)
+  
+TPANOSEMidline enum byte (
+  Any,No_Fit,
+  StandardTrimmed,StandardPointed,StandardSerifed,
+  HighTrimmed,HighPointed,HighSerifed,
+  ConstantTrimmed,ConstantPointed,ConstantSerifed,
+  LowTrimmed,LowPointed,LowSerifed)
+  
+TPANOSEXHeight enum byte (
+  Any,No_Fit,ConstantSmall,ConstantStandard,ConstantLarge,
+  DuckingSmall,DuckingStandard,DuckingLarge)
+

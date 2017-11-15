@@ -1,0 +1,52 @@
+% Library files (DOS,WINDOWS)(LIB.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 07.03.2008 9:30:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include obj.rfi
+
+type
+
+TLibFlags set 8 of (CaseSensitive)
+
+TLibHdrDataRec struc
+  ulong DictOfs
+  word DictSizeInBlocks
+  TLibFlags Flags
+  raw[] rest
+ends
+
+TLibHdrRec struc
+  TObjRecKind Kind
+  word size
+  TLibHdrDataRec Data
+ends :[@.Data:Size=@.size]:assert[@.Kind=TObjRecKind.okLIBHDR]
+
+data
+0x0000 TLibHdrRec LibHdr
+
+assert LibHdr.Kind=TObjRecKind.okLIBHDR;
+
+const
+  BlockSize = LibHdr:Size;
+
+type
+  TModuleRec struc
+    TObjRecStm Stream
+    (align BlockSize at &@;) rest
+  ends:displ=('{',HEX(&@),'}',@)
+
+data
+LibHdr:Size array of TModuleRec ?@.Stream[0].Kind=
+  TObjRecKind.okLIBEnd!TObjRec; Stream
+//LibHdr:Size array of TModuleRec:[@:Size=LibHdr.Data.DictOfs-
+//  LibHdr:Size] Stream
+
+type
+  TLibDictBlock struc
+    array[37] of Byte Bucket //@*2 - offset in the block
+    byte FreeStart  //@*2 - offset in the block
+    raw[0x200-38] at &@; Data
+  ends
+
+data
+LibHdr.Data.DictOfs array[LibHdr.Data.DictSizeInBlocks] of TLibDictBlock Dict
+

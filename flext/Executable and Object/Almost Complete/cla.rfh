@@ -1,0 +1,302 @@
+% Java-machine executable (class file)(cla.rfh):Class: Executable and Object, Status: Almost Complete, Last change: 03.07.2020 15:42:24
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder rev
+type
+  u1 num +(1)
+  u2 num +(2)
+  u4 num +(4)
+
+data
+0 u4 magic
+
+assert magic=0xCAFEBABE;
+
+descr ('CLASS file (Java VM executable).',NL,
+  'Info Source: The JavaTM Virtual Machine Specification',NL,
+  '  by Tim Lindholm and Frank Yellin',NL,
+  '  at http://java.sun.com',NL,
+  '  Java Virtual Machine Specification. The class File Format',NL,
+  '  at https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-4.html',NL)
+
+type
+  TCPInfoTag enum u1 of (
+    C_Class = 7,
+    C_Fieldref = 9,
+    C_Methodref = 10,
+    C_InterfaceMethodref = 11,
+    C_String = 8,
+    C_Integer = 3,
+    C_Float = 4,
+    C_Long = 5,
+    C_Double = 6,
+    C_NameAndType = 12,
+    C_MethodHandle = 15,
+    C_MethodType = 16,
+    C_InvokeDynamic = 18,
+    C_Utf8 = 1
+  )
+
+//  TConstNDX1 u1()
+//  TConstNDX u2()
+  TUtf8NDX u2()
+  TClassNDX u2()
+  TNameTypeNDX u2()
+  TFldRefNdx u2()
+  TMethRefNdx u2()
+  TIMethRefNdx u2()
+
+  TRefInfo struc
+    TClassNDX class_index
+    TNameTypeNDX NameTypeNdx
+  ends
+
+  TLongInfo struc
+    u4 high_bytes
+    u4 low_bytes
+  ends
+
+  TNameTypeInfo struc
+    TUtf8NDX nameNdx %Utf8
+    TUtf8NDX descrNdx %Utf8
+  ends
+
+  TUtf8Str struc
+    u2 len
+    array[@.len] of Char val %in fact Utf-8 encoding
+  ends
+
+  TMethodRefKind enum u1 of (
+    REF_getField=1, //getfield C.f:T
+    REF_getStatic=2, //getstatic C.f:T
+    REF_putField=3, //putfield C.f:T
+    REF_putStatic=4, //putstatic C.f:T
+    REF_invokeVirtual=5, //invokevirtual C.m:(A*)T
+    REF_invokeStatic=6, //invokestatic C.m:(A*)T
+    REF_invokeSpecial=7, //invokespecial C.m:(A*)T
+    REF_newInvokeSpecial=8, //new C; dup; invokespecial C.<init>:(A*)void
+    REF_invokeInterface=9 //invokeinterface C.m:(A*)T
+  )
+
+  TMethodHandleInfo struc
+    TMethodRefKind ref_kind
+    case @.ref_kind of
+     REF_getField,REF_getStatic,REF_putField,REF_putStatic: TFldRefNdx
+     REF_invokeVirtual,REF_invokeStatic,REF_invokeSpecial,REF_newInvokeSpecial: TMethRefNdx
+     REF_invokeInterface: TIMethRefNdx
+    else
+      u2 //Just in case
+    endc ref_index
+  ends
+
+  TInvokeDynamicInfo struc
+    u2 bootstrap_method_attr_index //index into the bootstrap_methods array of the bootstrap method table
+    TNameTypeNDX name_and_type_index
+  ends
+
+  cp_info struc
+    TCPInfoTag Tag
+    case @.Tag of
+      C_Class: TUtf8NDX %name_index,Utf8
+      C_Fieldref,
+      C_Methodref,
+      C_InterfaceMethodref: TRefInfo
+      C_String: TUtf8NDX %string_index,Utf8
+      C_Integer: u4 %Bytes
+      C_Float: u4 %Bytes,IEEE 754
+      C_Long: TLongInfo
+      C_Double: TLongInfo
+      C_NameAndType: TNameTypeInfo
+      C_Utf8: TUtf8Str
+     //new:
+      C_MethodHandle: TMethodHandleInfo
+      C_MethodType: TUtf8NDX //descriptor_index
+      C_InvokeDynamic: TInvokeDynamicInfo
+    endc info
+  ends
+
+  attribute_info forward
+/*
+  attribute_info struc
+    TConstNDX name_index,Ult8
+    u4 len
+    array[@.len]of u1 info
+  ends
+*/
+  TFieldAccessFlags set 16 of (
+  //Flag Name    Value   Meaning                        Used By
+    ACC_PUBLIC =    0, //Is public; may be accessed
+                       //from outside its package.      Any field
+    ACC_PRIVATE =   1, //Is private; usable only within
+                       //the defining class.            Class field
+    ACC_PROTECTED = 2, //Is protected; may be accessed
+                       //within subclasses.             Class field
+    ACC_STATIC =    3, //Is static.                     Any field
+    ACC_FINAL =     4, //Is final; no further
+                       //overriding or assignment after
+                       //initialization.                Any field
+    ACC_VOLATILE =  6, //Is volatile; cannot be cached. Class field
+    ACC_TRANSIENT = 7  //Is transient; not written or
+                       //read by a persistent object
+                       //manager.                       Class field
+  )
+
+  field_info struc
+    TFieldAccessFlags access_flags
+    TUtf8NDX nameNdx
+    TUtf8NDX descrNdx
+    u2 attr_count
+    array[@.attr_count]of attribute_info attributes
+  ends
+
+  TMethodAccessFlags set 16 of (
+  //Flag Name    Value   Meaning                        Used By
+    ACC_PUBLIC =    0, //Is public; may be accessed
+                       //from outside its package.      Any method
+    ACC_PRIVATE =   1, //Is private; usable only within
+                       //the defining class.            Class/instance
+    ACC_PROTECTED = 2, //Is protected; may be accessed
+                       //within subclasses.             Class/instance
+    ACC_STATIC =    3, //Is static.                     Class/instance
+    ACC_FINAL =     4, //Is final; no overriding
+                       //allowed.                       Class
+    ACC_SYNCHRONIZED=5,//Is synchronized; wrap use in
+                       //monitor lock.                  Class/instance
+    ACC_NATIVE=     8, //Is native; implemented in a
+                       //language other than Java.      Class/instance
+    ACC_ABSTRACT = 10  //Is abstract; no implementation
+                       //is provided.                   Any method
+  )
+
+  method_info struc
+    TMethodAccessFlags access_flags
+    TUtf8NDX nameNdx
+    TUtf8NDX descrNdx
+    u2 attr_count
+    array[@.attr_count]of attribute_info attributes
+  ends
+
+  TClassAccessFlags set 16 of (
+  //Flag Name    Value   Meaning                        Used By
+    ACC_PUBLIC =    0, //Is public; may be accessed     Class,
+                       //from outside its package.      interface
+    ACC_FINAL =     4, //Is final; no subclasses
+                       //allowed.                       Class
+    ACC_SUPER =     5, //Treat superclass methods       Class,
+                       //specially in invokespecial.    interface
+    ACC_INTERFACE = 9, //Is an interface.               Interface
+    ACC_ABSTRACT = 10  //Is abstract; may not be        Class,
+                       //instantiated.                  interface
+  )
+
+  TClassFile struc
+    u2 minor_version
+    u2 major_version
+    u2 C_pool_count
+    array[@.C_pool_count-1]of cp_info TAKES 2 when(
+      (@.Tag=TCPInfoTag.C_Long)or(@.Tag=TCPInfoTag.C_Double)); C_pool
+    TClassAccessFlags access_flags
+    TClassNDX this_class
+    TClassNDX super_class
+    u2 interfaces_count
+    array[@.interfaces_count]of TClassNDX interfaces
+    u2 fields_count
+    array[@.fields_count] of field_info fields
+    u2 methods_count
+    array[@.methods_count]of method_info methods
+    u2 attr_count
+    array[@.attr_count]of attribute_info attributes
+  ends
+
+data
+0004 TClassFile Hdr
+
+
+type
+//  TUtf8NDX:displ=('''',Hdr.C_pool[@-1].info.C_Utf8.val,'''{str:',@,'}')
+  TClassNDX:displ=(Hdr.C_pool[@-1].info.C_Class,'{class:',@,'}')
+  TNameTypeNDX:displ=(Hdr.C_pool[@-1].info.C_NameAndType.nameNdx,'{name:',@,'}')
+  //TNameTypeNDX enum TNameTypeNDX Hdr.C_pool[@-1].info.C_NameAndType.nameNdx;
+  //TRefNDX u2():displ=(Hdr.C_pool[@-1].info.C_Fieldref.NameTypeNdx,'{',@,'}')
+  /*TRefNDX enum u2 Hdr.C_pool[@-1].info.C_Fieldref.NameTypeNdx;
+  TFldRefNdx TRefNDX
+  TMethRefNdx TRefNDX
+  TIMethRefNdx TRefNDX*/
+  TFldRefNdx:displ=(Hdr.C_pool[@-1].info.C_Fieldref.NameTypeNdx,'{field:',@,'}')
+  TMethRefNdx:displ=(Hdr.C_pool[@-1].info.C_Fieldref.NameTypeNdx,'{method:',@,'}')
+  TIMethRefNdx:displ=(Hdr.C_pool[@-1].info.C_Fieldref.NameTypeNdx,'{imethod:',@,'}')
+
+//  TConstNDX1 enum TConstNDX1 = Hdr.C_pool[@-1]
+//  TConstNDX enum TConstNDX = Hdr.C_pool[@-1]
+  TConstNDX1 num+(1):displ=(Hdr.C_pool[@-1],'{',@,'}')
+  TConstNDX num+(2):displ=(Hdr.C_pool[@-1],'{',@,'}')
+
+include java_cod.rfi
+
+type
+  TAttrData raw[]
+
+  TCodeExcRec struc
+    u2 start_pc
+    u2 end_pc
+    u2 handler_pc
+    TClassNDX catch_type
+  ends
+
+  TCodeAttr struc
+    u2 max_stack
+    u2 max_locals
+    u4 CodeLen
+    TOpSeries(@.CodeLen) code
+  %  raw[@.CodeLen] code
+    u2 ExcTblLen
+    array[@.ExcTblLen]of TCodeExcRec exc_tbl
+    u2 AttrCnt
+    array[@.AttrCnt]of attribute_info attributes
+  ends//:[@.code:Size=@.CodeLen]
+
+  TExcAttr struc
+    u2 NumExc
+    array[@.NumExc]of TClassNDX ExcNdxTbl
+  ends
+
+  TLinNumRec struc
+    u2 pc
+    u2 l
+  ends
+
+  TLinNumAttr struc
+    u2 Len
+    array[@.Len]of TLinNumRec LinNumTbl
+  ends
+
+  TLocVarRec struc
+    u2 start_pc
+    u2 len
+    TUtf8NDX name_index
+    TUtf8NDX descr_index
+    u2 index
+  ends
+
+  TLocVarTblAttr struc
+    u2 Len
+    array[@.Len]of TLocVarRec LocVarTbl
+  ends
+
+  attribute_info struc
+    TUtf8NDX name_index %Ult8
+    u4 len
+    case Hdr.C_pool[@.name_index-1].
+         info.C_Utf8.val of
+      'SourceFile': TUtf8NDX
+      'ConstantValue': TConstNDX
+      'Code': TCodeAttr
+      'Exceptions': TExcAttr
+      'LineNumberTable': TLinNumAttr
+      'LocalVariableTable': TLocVarTblAttr
+    else
+      TAttrData
+    endc info
+  ends:[@.info:Size=@.len]
+
+

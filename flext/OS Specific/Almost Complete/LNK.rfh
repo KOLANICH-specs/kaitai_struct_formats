@@ -1,0 +1,111 @@
+% Windows Short Cut (*.lnk)(LNK.rfh):Class: OS Specific, Status: Almost Complete, Last change: 29.07.1999 11:06:08
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include GUID.rfi
+
+type
+
+TLnkPathBlockTag enum byte (
+  B0 = 0x1F,
+  Drv = 0x23,
+  Dir = 0x31,
+  File = 0x32
+)
+
+TLnkPathBlock struc pas
+  Sz: Word
+  Tag: TLnkPathBlockTag
+  Inf: case @.Tag of
+    B0: void //unknown purpose expected size 0x14
+    Drv: struc pas
+       Name: pchar
+       Zero: raw[16]
+       W: Word
+     ends
+    Dir,File: struc pas
+      B0: Byte
+      FileSize: ulong
+      X: raw[6]
+      Name: pchar
+      NameDOS: pchar
+     ends
+  endc
+  Rest: raw[]
+ends:[@:Size=@.Sz]
+
+TLnkPathInfo struc pas
+  Sz: Word
+  Tbl: array of TLnkPathBlock
+ends:[@:Size=@.Sz]
+
+TLnkTargetInfo struc pas
+  Sz: ULong
+  Some: raw[40] at &@; //array[10] of ULong
+  DriveLbl: PChar
+  FName: PChar
+  Rest: raw[] at &@;
+ends:[@:Size=@.Sz]
+
+TLnkStr(F,UC) case @:F of
+  0: void
+else struc pas
+    L: word
+    S: case @@:UC of
+      0: array[@@.L] of Char
+    //else array[2*@@.L] of Char
+    else array[@@.L] of WChar
+    endc
+  ends
+endc
+
+TLnkFlags set 32 of (
+  Path, //path components
+  Tgt, //target program
+  ?,
+  RelPathS,
+  WorkDirS,
+  ArgsS,
+  IconS,
+  UniCodeS
+)
+
+TDateTimeInfo raw[8]
+
+TLnkHdr struc pas
+  Sz: ulong
+  GUID: TGUID // CLSID_ShellLink: TGUID = (
+    // D1:$00021401; D2:$0000; D3:$0000; D4:($C0,$00,$00,$00,$00,$00,$00,$46));
+  Flags: TLnkFlags
+  L0x20: ulong
+  ChangeT: TDateTimeInfo
+  OpenT: TDateTimeInfo
+  CreateT: TDateTimeInfo
+  FileSize: ulong
+  L0: ulong
+  L1: ulong
+  ShortCut: Word
+  Rest: raw[] at &@;
+ends:[@:Size=@.Sz]
+
+data
+0 TLnkHdr Hdr
+
+type
+
+TLnkData struc pas
+  Path: case Hdr.Flags and TLnkFlags.Path=0 of
+      0: TLnkPathInfo
+    endc
+  W0: Word //always zero for all known samples
+  Tgt: case Hdr.Flags and TLnkFlags.Tgt=0 of
+      0: TLnkTargetInfo
+    endc
+  RelPathS: TLnkStr(Hdr.Flags and TLnkFlags.RelPathS,Hdr.Flags and TLnkFlags.UniCodeS)
+  WorkDirS: TLnkStr(Hdr.Flags and TLnkFlags.WorkDirS,Hdr.Flags and TLnkFlags.UniCodeS)
+  ArgsS: TLnkStr(Hdr.Flags and TLnkFlags.ArgsS,Hdr.Flags and TLnkFlags.UniCodeS)
+  IconS: TLnkStr(Hdr.Flags and TLnkFlags.IconS,Hdr.Flags and TLnkFlags.UniCodeS)
+ends
+
+data
+Hdr:Size TLnkData Dat
+

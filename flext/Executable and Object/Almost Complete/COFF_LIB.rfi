@@ -1,0 +1,77 @@
+% COFF Archive (Library) File Format.(COFF_LIB.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 05.02.2018 9:36:50
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+0 array[8] of char ArchSign
+
+assert ArchSign='!<arch>'#10;
+descr ('COFF Archive (Library) File Format.',NL,
+  'Info Source: WinNT.h',NL,
+  'Info Source: MSDN Library Visual studio 6.0.\Specifications\Platforms\',NL,
+  '  Microsoft Portable Executable and Common Object File Format Specification',NL,
+  '    Revision 5.0 October 1997',NL)
+
+const
+  Days1970=DateToDays(1970,1,1);
+  DaySec=24*60*60;
+
+type
+
+TDateStr array[12]of char,<32;:displ=(INT(DaysToDay(Days1970+StrToInt(@) div DaySec)),'.',
+  INT(DaysToMonth(Days1970+StrToInt(@) div DaySec)),'.',
+  INT(DaysToYear(Days1970+StrToInt(@) div DaySec)),' ',
+  INT((StrToInt(@) div (60*60))mod 24),':',INT((StrToInt(@) div 60)mod 60),'''',
+  INT(StrToInt(@) mod 60),'"');
+
+IMAGE_ARCHIVE_MEMBER_HEADER struc pas
+  Name: array[16]of char,<32;     // File member name - `/' terminated.
+  Date: TDateStr;     // File member date - decimal.
+  UserID: array[6]of char,<32;    // File member user id - decimal.
+  GroupID: array[6]of char,<32;   // File member group id - decimal.
+  Mode: array[8]of char,<32;      // File member mode - octal.
+  Size: array[10]of char,<32;     // File member size - decimal.
+  EndHeader: array[2]of char; // String to end header.
+ends:assert[@.EndHeader='`'#10]
+
+TMangledName PChar():displ=(DemangleVC_Wine(@))
+
+set byteorder rev
+type
+
+ULongRev num+(4)
+
+set byteorder norm
+type
+
+IMAGE_ARCHIVE_MEMBER_Data1 struc
+  ULongRev NOfSymbols
+  array[@.NOfSymbols] of ULongRev NameMemberOffsets
+  array[@.NOfSymbols] of TMangledName Names
+  raw[] Rest
+ends
+
+IMAGE_ARCHIVE_MEMBER_Data2 struc
+  ULong NOfMembers
+  array[@.NOfMembers] of ULong MemberOffsets
+  ULong NOfSymbols
+  array[@.NOfSymbols] of Word hNameMember
+  array[@.NOfSymbols] of TMangledName Names
+  raw[] Rest
+ends    
+
+IMAGE_ARCHIVE_LONG_NAMES array of PChar
+
+IMAGE_ARCHIVE_MEMBER_Block struc pas
+  H: IMAGE_ARCHIVE_MEMBER_HEADER
+  D: case (@:#+1)*((@.H.Name='/')and(@:#<2)+(@.H.Name='//')and(@:#=2)) of
+     1: IMAGE_ARCHIVE_MEMBER_Data1
+     2: IMAGE_ARCHIVE_MEMBER_Data2
+     3: IMAGE_ARCHIVE_LONG_NAMES
+     else subfile[] spec 'COFF_OBJ.RFI'//raw[]
+     endc
+  Al: align 2 at &@.D;
+ends:[@.D:Size=StrToInt(@.H.Size,10)]:displ=('{',ADDR(&@),'}',@)
+
+data
+8 array of IMAGE_ARCHIVE_MEMBER_Block:[@:Size=FileSize-8] Blocks
+

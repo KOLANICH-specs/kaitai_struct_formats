@@ -1,0 +1,15 @@
+% Windows Metafile(WMF.rfi):Class: Graphics and Sounds, Status: Complete, Last change: 24.06.1999 21:08:56
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include MetaFile.rfi
+
+data
+
+0 TPlaceableMetaHeader PlHdr
+
+assert PlHdr.Key=0x9AC6CDD7;
+
+data
+PlHdr:Size TStandardMetafile Dat
+
+

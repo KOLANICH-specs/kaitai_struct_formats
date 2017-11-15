@@ -1,0 +1,52 @@
+% Bitmap file header and palette (Windows or OS/2)(BMP_OS2.rfi):Class: Graphics and Sounds, Status: Complete, Last change: 09.04.2006 10:38:26
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include bmp_dat.rfi
+const
+  BMISize = 0x28;
+  BMCSize = 0xC;
+type
+
+TBitmapCompression enum DWORD (
+  BI_RGB = 0,
+  BI_RLE8 = 1,
+  BI_RLE4 = 2,
+  BI_BITFIELDS = 3,
+  BI_JPEG = 4,
+  BI_PNG = 5
+)
+
+TBitmapInfoHeader struc
+  DWORD biSize
+  case @.biSize of
+    BMCSize: struc
+      WORD    bcWidth
+      WORD    bcHeight
+      WORD    bcPlanes
+      WORD    bcBitCount
+    ends
+  else struc
+      long biWidth
+      long biHeight
+      Word biPlanes
+      Word biBitCount
+      TBitmapCompression biCompression
+      DWORD biSizeImage
+      long biXPelsPerMeter
+      long biYPelsPerMeter
+      DWORD biClrUsed
+      DWORD biClrImportant
+      raw[] rest
+    ends
+  endc I
+ends:[@:Size = @.biSize]
+
+TBitmapInfo struc
+  TBitmapInfoHeader Hdr
+  case @.Hdr.biSize of
+   BMCSize: TOS2Pal(@@.Hdr.I.BMCSize.bcBitCount)
+  else TWinPal(@@.Hdr.I.BMISize.biBitCount,@@.Hdr.I.BMISize.biClrUsed)
+  endc bmiColors
+ends
+
+

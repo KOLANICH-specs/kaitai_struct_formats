@@ -1,0 +1,802 @@
+% Mac OS X ABI Mach-O File(Mach-O.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 13.09.2016 11:12:18
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+  0 ulong magic /* mach magic number identifier */
+
+%$IF magic=0xfeedface;
+const
+  mode64=0;
+  revbytes=0;
+set byteorder norm
+descr ('Mac OS X ABI 32-bit Mach-O File, byte order LSB.')
+%$ELSIF magic=0xcefaedfe;
+const
+  mode64=0;
+  revbytes=1;
+set byteorder rev
+descr ('Mac OS X ABI 32-bit Mach-O File, byte order MSB.')
+%$ELSIF magic=0xfeedfacf;
+const
+  mode64=1;
+  revbytes=0;
+set byteorder norm
+descr ('Mac OS X ABI 64-bit Mach-O File, byte order LSB.')
+%$ELSIF magic=0xcffaedfe;
+const
+  mode64=1;
+  revbytes=1;
+set byteorder rev
+descr ('Mac OS X ABI 64-bit Mach-O File, byte order MSB.')
+%$ELSE
+assert 0; //fail
+%$END
+descr (NL,
+  'Info Src: Mac OS X ABI Mach-O File Format Reference.',NL,
+  'Info Src: /usr/include/mach-o/loader.h',NL,
+  'Info Src: machoview',NL)
+
+type bit
+bit1 num+(1)
+bit2 num+(2)
+bit3 num+(3)
+bit4 num+(4)
+bit8 num+(8)
+
+type
+
+int32_t num-(4)
+uint32_t num+(4)
+uint24_t num+(3)
+int16_t num-(2)
+uint16_t num+(2)
+uint8_t num+(1)
+uint64_t struc
+ %$IF revbytes;
+  uint32_t hi
+  uint32_t lo
+ %$ELSE
+  uint32_t lo
+  uint32_t hi
+ %$END
+ends:displ=(HEX(@.hi),HEX(@.lo,8))
+
+%$IF mode64;
+native_uint_t uint64_t
+%$ELSE
+native_uint_t uint32_t
+%$END
+
+//Start from mach/machine.h
+
+cpu_type_machine_t enum uint24_t(
+  ANY=0xFFFFFF,
+  VAX=1,
+  MC680x0=6,
+  X86=7,
+  MIPS=8, //skip
+  MC98000=10,
+  HPPA=11,
+  ARM=12, //skip
+  MC88000=13,
+  SPARC=14,
+  I860=15,
+  ALPHA=16, //skip
+  POWERPC=18
+) 
+cpu_type_capability_t set 8 of (ABI64)
+
+cpu_type_t struc
+ %$IF revbytes;
+  cpu_type_capability_t caps
+  cpu_type_machine_t machine
+ %$ELSE
+  cpu_type_machine_t machine
+  cpu_type_capability_t caps
+ %$END
+ends
+
+cpu_ANY_subtype_t enum uint32_t (
+  MULTIPLE=0xFFFFFFFF,
+  LITTLE_ENDIAN=0,
+  BIG_ENDIAN=1
+)
+
+cpu_VAX_subtype_t enum uint32_t (
+  VAX_ALL=0,
+  VAX780=1,
+  VAX785=2,
+  VAX750=3,
+  VAX730=4,
+  UVAXI=5,
+  UVAXII=6,
+  VAX8200=7,
+  VAX8500=8,
+  VAX8600=9,
+  VAX8650=10,
+  VAX8800=11,
+  UVAXIII=12
+)
+
+/*
+ *         680x0 subtypes
+ *
+ * The subtype definitions here are unusual for historical reasons.
+ * NeXT used to consider 68030 code as generic 68000 code.  For
+ * backwards compatability:
+ *
+ *        CPU_SUBTYPE_MC68030 symbol has been preserved for source code
+ *        compatability.
+ *
+ *        CPU_SUBTYPE_MC680x0_ALL has been defined to be the same
+ *        subtype as CPU_SUBTYPE_MC68030 for binary comatability.
+ *
+ *        CPU_SUBTYPE_MC68030_ONLY has been added to allow new object
+ *        files to be tagged as containing 68030-specific instructions.
+ */
+
+cpu_MC680x0_subtype_t enum uint32_t (
+  MC68030=1, /* compat */
+  MC68040=2,
+  MC68030_ONLY=3
+)
+
+cpu_X86_subtype_t enum uint32_t (
+  ALL=0,
+  I386=0x03,
+  I486=0x04,
+  I486SX=0x84,
+  PENT=0x05,
+  PENTPRO=0x16,
+  PENTII_M3=0x36,
+  PENTII_M5=0x56,
+  CELERON=0x67,
+  CELERON_MOBILE=0x77,
+  PENTIUM_3=0x08,
+  PENTIUM_3_M=0x18,
+  PENTIUM_3_XEON=0x28,
+  PENTIUM_M=0x09,
+  PENTIUM_4=0x0A,
+  PENTIUM_4_M=0x1A,
+  ITANIUM=0x0B,
+  ITANIUM_2=0x1B,
+  XEON=0x0C,
+  XEON_MP=0x1C
+)
+
+cpu_MIPS_subtype_t enum uint32_t (
+  MIPS_ALL=0,
+  MIPS_R2300=1,
+  MIPS_R2600=2,
+  MIPS_R2800=3,
+  MIPS_R2000a=4,        /* pmax */
+  MIPS_R2000=5,
+  MIPS_R3000a=6,        /* 3max */
+  MIPS_R3000=7
+)
+
+cpu_MC98000_subtype_t enum uint32_t (
+  ALL=0,
+  MC98601=1
+)
+
+/*
+ *        HPPA subtypes for Hewlett-Packard HP-PA family of
+ *        risc processors. Port by NeXT to 700 series.
+ */
+
+cpu_HPPA_subtype_t enum uint32_t (
+  HPPA_7100        =0, /* compat */
+  HPPA_7100LC        =1
+)
+
+cpu_MC88000_subtype_t enum uint32_t (
+  MC88000_ALL=0,
+  MC88100=1,
+  MC88110=2
+)
+
+cpu_SPARC_subtype_t enum uint32_t (
+  ALL=0
+)
+
+/*
+ *        I860 subtypes
+ */
+cpu_I860_subtype_t enum uint32_t (
+  I860_ALL=0,
+  I860_860=1
+)
+
+cpu_PowerPC_subtype_t enum uint32_t (
+  POWERPC_ALL=0,
+  POWERPC_601=1,
+  POWERPC_602=2,
+  POWERPC_603=3,
+  POWERPC_603e=4,
+  POWERPC_603ev=5,
+  POWERPC_604=6,
+  POWERPC_604e=7,
+  POWERPC_620=8,
+  POWERPC_750=9,
+  POWERPC_7400=10,
+  POWERPC_7450=11,
+  POWERPC_970=100
+ )
+
+cpu_subtype_t(T) case @:T of
+ cpu_type_machine_t.ANY: cpu_ANY_subtype_t
+ cpu_type_machine_t.VAX: cpu_VAX_subtype_t
+ cpu_type_machine_t.MC680x0: cpu_MC680x0_subtype_t
+ cpu_type_machine_t.X86: cpu_X86_subtype_t
+ cpu_type_machine_t.MIPS: cpu_MIPS_subtype_t
+ cpu_type_machine_t.MC98000: cpu_MC98000_subtype_t
+ cpu_type_machine_t.HPPA: cpu_HPPA_subtype_t
+// cpu_type_machine_t.ARM: cpu_ARM_subtype_t
+ cpu_type_machine_t.MC88000: cpu_MC88000_subtype_t
+ cpu_type_machine_t.SPARC: cpu_SPARC_subtype_t
+ cpu_type_machine_t.I860: cpu_I860_subtype_t
+// cpu_type_machine_t.ALPHA: cpu_ALPHA_subtype_t
+ cpu_type_machine_t.POWERPC: cpu_PowerPC_subtype_t
+else uint32_t
+endc
+
+//End from mach/machine.h
+
+uuid_t array[16]of uint8_t
+
+/* Constants for the filetype field of the mach_header */
+filetype_t enum uint32_t(
+  MH_OBJECT = 0x1,  /* relocatable object file */
+  MH_EXECUTE = 0x2, /* demand paged executable file */
+  MH_FVMLIB = 0x3, /* fixed VM shared library file */
+  MH_CORE = 0x4, /* core file */
+  MH_PRELOAD = 0x5, /* preloaded executable file */
+  MH_DYLIB = 0x6, /* dynamically bound shared library */
+  MH_DYLINKER = 0x7, /* dynamic link editor */
+  MH_BUNDLE = 0x8, /* dynamically bound bundle file */
+  MH_DYLIB_STUB = 0x9, /* shared library stub for static */
+                       /*  linking only, no section contents */
+  MH_DSYM = 0xa, /* companion file with only debug sections */
+  MH_KEXT_BUNDLE = 0xb /* x86_64 kexts */
+)
+
+/* Constants for the flags field of the mach_header */
+fileflags_t set 32 of (
+  MH_NOUNDEFS ^ 0x1, /* the object file has no undefined references */
+  MH_INCRLINK ^ 0x2, /* the object file is the output of an
+                      incremental link against a base file
+                      and can't be link edited again */
+  MH_DYLDLINK ^ 0x4, /* the object file is input for the
+                      dynamic linker and can't be staticly
+                      link edited again */
+  MH_BINDATLOAD ^ 0x8, /* the object file's undefined
+                         references are bound by the dynamic
+                         linker when loaded. */
+  MH_PREBOUND ^ 0x10, /* the file has its dynamic undefined
+                         references prebound. */
+  MH_SPLIT_SEGS ^ 0x20, /* the file has its read-only and
+                         read-write segments split */
+  MH_LAZY_INIT ^ 0x40, /* the shared library init routine is
+                         to be run lazily via catching memory
+                         faults to its writeable segments
+                        (obsolete) */
+  MH_TWOLEVEL ^ 0x80, /* the image is using two-level name space bindings */
+  MH_FORCE_FLAT ^ 0x100, /* the executable is forcing all images
+                          to use flat name space bindings */
+  MH_NOMULTIDEFS ^ 0x200, /* this umbrella guarantees no multiple
+                           defintions of symbols in its
+                           sub-images so the two-level namespace
+                           hints can always be used. */
+  MH_NOFIXPREBINDING ^ 0x400, /* do not have dyld notify the
+                             prebinding agent about this executable */
+  MH_PREBINDABLE ^ 0x800, /* the binary is not prebound but can
+                            have its prebinding redone. only used
+                            when MH_PREBOUND is not set. */
+  MH_ALLMODSBOUND ^ 0x1000, /* indicates that this binary binds to
+                            all two-level namespace modules of
+                            its dependent libraries. only used
+                            when MH_PREBINDABLE and MH_TWOLEVEL
+                            are both set. */
+  MH_SUBSECTIONS_VIA_SYMBOLS ^ 0x2000, /* safe to divide up the sections into
+                                         sub-sections via symbols for dead
+                                         code stripping */
+  MH_CANONICAL ^ 0x4000, /* the binary has been canonicalized
+                           via the unprebind operation */
+  MH_WEAK_DEFINES ^ 0x8000, /* the final linked image contains
+                             external weak symbols */
+  MH_BINDS_TO_WEAK ^ 0x10000, /* the final linked image uses weak symbols */
+  MH_ALLOW_STACK_EXECUTION ^ 0x20000, /* When this bit is set, all stacks
+                               in the task will be given stack
+                               execution privilege.  Only used in
+                               MH_EXECUTE filetypes. */
+  MH_ROOT_SAFE ^ 0x40000, /* When this bit is set, the binary
+                           declares it is safe for use in
+                           processes with uid zero */
+  MH_SETUID_SAFE ^ 0x80000, /* When this bit is set, the binary
+                            declares it is safe for use in
+                            processes when issetugid() is true */
+
+  MH_NO_REEXPORTED_DYLIBS ^ 0x100000, /* When this bit is set on a dylib,
+                                      the static linker does not need to
+                                      examine dependent dylibs to see
+                                      if any are re-exported */
+  MH_PIE ^ 0x200000, /* When this bit is set, the OS will
+                     load the main executable at a
+                     random address. Only used in MH_EXECUTE filetypes. */
+  MH_DEAD_STRIPPABLE_DYLIB ^ 0x400000, /* Only for use on dylibs.  When
+                          linking against a dylib that has this bit set, the static linker
+                          will automatically not create a LC_LOAD_DYLIB load command to the
+                          dylib if no symbols are being referenced from the dylib. */
+  MH_HAS_TLV_DESCRIPTORS ^ 0x800000, /* Contains a section of type
+                          S_THREAD_LOCAL_VARIABLES */
+
+  MH_NO_HEAP_EXECUTION ^ 0x1000000 /* When this bit is set, the OS will
+                                 run the main executable with
+                                 a non-executable heap even on
+                                 platforms (e.g. i386) that don't
+                                 require it. Only used in MH_EXECUTE filetypes. */
+)
+
+
+const
+  LC_REQ_DYLD = 0x80000000;
+
+type
+/* Constants for the cmd field of all load commands, the type */
+load_cmd_t enum uint32_t (
+  LC_SEGMENT = 0x1, /* segment of this file to be mapped */
+  LC_SYMTAB = 0x2, /* link-edit stab symbol table info */
+  LC_SYMSEG = 0x3, /* link-edit gdb symbol table info (obsolete) */
+  LC_THREAD = 0x4, /* thread */
+  LC_UNIXTHREAD = 0x5, /* unix thread (includes a stack) */
+  LC_LOADFVMLIB = 0x6, /* load a specified fixed VM shared library */
+  LC_IDFVMLIB = 0x7, /* fixed VM shared library identification */
+  LC_IDENT = 0x8, /* object identification info (obsolete) */
+  LC_FVMFILE = 0x9, /* fixed VM file inclusion (internal use) */
+  LC_PREPAGE = 0xa, /* prepage command (internal use) */
+  LC_DYSYMTAB = 0xb, /* dynamic link-edit symbol table info */
+  LC_LOAD_DYLIB = 0xc, /* load a dynamically linked shared library */
+  LC_ID_DYLIB = 0xd, /* dynamically linked shared lib ident */
+  LC_LOAD_DYLINKER = 0xe, /* load a dynamic linker */
+  LC_ID_DYLINKER = 0xf, /* dynamic linker identification */
+  LC_PREBOUND_DYLIB = 0x10, /* modules prebound for a dynamically */
+  /*  linked shared library */
+  LC_ROUTINES = 0x11, /* image routines */
+  LC_SUB_FRAMEWORK = 0x12, /* sub framework */
+  LC_SUB_UMBRELLA = 0x13, /* sub umbrella */
+  LC_SUB_CLIENT = 0x14, /* sub client */
+  LC_SUB_LIBRARY = 0x15, /* sub library */
+  LC_TWOLEVEL_HINTS = 0x16, /* two-level namespace lookup hints */
+  LC_PREBIND_CKSUM = 0x17, /* prebind checksum */
+
+/*
+ * load a dynamically linked shared library that is allowed to be missing
+ * (all symbols are weak imported).
+ */
+  LC_LOAD_WEAK_DYLIB = (0x18 or LC_REQ_DYLD),
+
+  LC_SEGMENT_64 = 0x19, /* 64-bit segment of this file to be
+                                   mapped */
+  LC_ROUTINES_64 = 0x1a, /* 64-bit image routines */
+  LC_UUID = 0x1b, /* the uuid */
+  LC_RPATH = (0x1c or LC_REQ_DYLD), /* runpath additions */
+  LC_CODE_SIGNATURE = 0x1d, /* local of code signature */
+  LC_SEGMENT_SPLIT_INFO = 0x1e, /* local of info to split segments */
+  LC_REEXPORT_DYLIB = (0x1f or LC_REQ_DYLD), /* load and re-export dylib */
+  LC_LAZY_LOAD_DYLIB = 0x20, /* delay load of dylib until first use */
+  LC_ENCRYPTION_INFO = 0x21, /* encrypted segment information */
+  LC_DYLD_INFO = 0x22, /* compressed dyld information */
+  LC_DYLD_INFO_ONLY = (0x22 or LC_REQ_DYLD), /* compressed dyld information only */
+  LC_LOAD_UPWARD_DYLIB = (0x23 or LC_REQ_DYLD), /* load upward dylib */
+  LC_VERSION_MIN_MACOSX = 0x24, /* build for MacOSX min OS version */
+  LC_VERSION_MIN_IPHONEOS = 0x25, /* build for iPhoneOS min OS version */
+  LC_FUNCTION_STARTS = 0x26 /* compressed table of function start addresses */
+)
+
+segname_t array[16]of char,<0;
+
+size_t uint32_t
+vm_prot_t uint32_t
+
+/* Constants for the flags field of the segment_command */
+segcmd_flags_t set 32 of (
+  SG_HIGHVM ^ 0x1, /* the file contents for this segment is for
+                    the high part of the VM space, the low part
+                    is zero filled (for stacks in core files) */
+  SG_FVMLIB ^ 0x2, /* this segment is the VM that is allocated by
+                    a fixed VM library, for overlap checking in
+                    the link editor */
+  SG_NORELOC ^ 0x4, /* this segment has nothing that was relocated
+                    in it and nothing relocated to it, that is
+                    it maybe safely replaced without relocation*/
+  SG_PROTECTED_VERSION_1 ^ 0x8 /* This segment is protected.  If the
+                    segment starts at file offset 0, the
+                    first page of the segment is not
+                    protected.  All other pages of the
+                    segment are protected. */
+)
+
+
+type bit
+
+relocation_flags struc
+ %$IF revbytes;
+  bit4 r_type
+  bit1 r_extern
+  bit2 r_length //0 => 1 byte, 1 => 2-byte address, 2 => 4-byte address, 3 => 4 bytes (PPC_RELOC_BR14 r_type).
+  bit1 r_pcrel //PC relative address
+ %$ELSE
+  bit1 r_pcrel //PC relative address
+  bit2 r_length //0 => 1 byte, 1 => 2-byte address, 2 => 4-byte address, 3 => 4 bytes (PPC_RELOC_BR14 r_type).
+  bit1 r_extern
+  bit4 r_type
+ %$END
+ends       
+
+scattered_relocation_flags struc
+ %$IF revbytes;
+  bit1 r_scattered //==1
+  bit1 r_pcrel //PC relative address
+  bit2 r_length //0 => 1 byte, 1 => 2-byte address, 2 => 4-byte address, 3 => 4 bytes (PPC_RELOC_BR14 r_type).
+  bit4 r_type
+ %$ELSE
+  bit4 r_type
+  bit2 r_length //0 => 1 byte, 1 => 2-byte address, 2 => 4-byte address, 3 => 4 bytes (PPC_RELOC_BR14 r_type).
+  bit1 r_pcrel //PC relative address
+  bit1 r_scattered //==1
+ %$END
+ends
+
+type
+
+scattered_relocation_info struc
+ %$IF revbytes;
+  scattered_relocation_flags f
+  uint24_t r_address
+ %$ELSE
+  uint24_t r_address
+  scattered_relocation_flags f
+ %$END
+  uint32_t/*int32_t*/ r_value
+ends:assert[@.f.r_scattered]
+
+simple_relocation_info struc
+  uint32_t/*int32_t*/ r_address
+  uint24_t r_symbolnum
+  relocation_flags f
+ends
+
+relocation_info try
+  scattered: scattered_relocation_info
+  simple: simple_relocation_info
+endt
+
+relocation_data(N) array[@:N]of relocation_info
+prelocation_data(N) ^relocation_data(@:N) near=uint32_t
+
+/* Constants for the type of a section */
+
+section_type enum uint8_t (
+  S_REGULAR = 0x0, /* regular section */
+  S_ZEROFILL = 0x1, /* zero fill on demand section */
+  S_CSTRING_LITERALS = 0x2, /* section with only literal C strings*/
+  S_4BYTE_LITERALS = 0x3, /* section with only 4 byte literals */
+  S_8BYTE_LITERALS = 0x4, /* section with only 8 byte literals */
+  S_LITERAL_POINTERS = 0x5, /* section with only pointers to */
+                            /*  literals */
+/*
+ * For the two types of symbol pointers sections and the symbol stubs section
+ * they have indirect symbol table entries.  For each of the entries in the
+ * section the indirect symbol table entries, in corresponding order in the
+ * indirect symbol table, start at the index stored in the reserved1 field
+ * of the section structure.  Since the indirect symbol table entries
+ * correspond to the entries in the section the number of indirect symbol table
+ * entries is inferred from the size of the section divided by the size of the
+ * entries in the section.  For symbol pointers sections the size of the entries
+ * in the section is 4 bytes and for symbol stubs sections the byte size of the
+ * stubs is stored in the reserved2 field of the section structure.
+ */
+  S_NON_LAZY_SYMBOL_POINTERS = 0x6, /* section with only non-lazy
+                                                   symbol pointers */
+  S_LAZY_SYMBOL_POINTERS = 0x7, /* section with only lazy symbol
+                                                   pointers */
+  S_SYMBOL_STUBS = 0x8, /* section with only symbol
+                                                   stubs, byte size of stub in
+                                                   the reserved2 field */
+  S_MOD_INIT_FUNC_POINTERS = 0x9, /* section with only function
+                                                   pointers for initialization*/
+  S_MOD_TERM_FUNC_POINTERS = 0xa, /* section with only function
+                                                   pointers for termination */
+  S_COALESCED = 0xb, /* section contains symbols that
+                                                   are to be coalesced */
+  S_GB_ZEROFILL = 0xc, /* zero fill on demand section
+                                                   (that can be larger than 4
+                                                   gigabytes) */
+  S_INTERPOSING = 0xd, /* section with only pairs of
+                                                   function pointers for
+                                                   interposing */
+  S_16BYTE_LITERALS = 0xe, /* section with only 16 byte
+                                                   literals */
+  S_DTRACE_DOF = 0xf, /* section contains
+                                                   DTrace Object Format */
+  S_LAZY_DYLIB_SYMBOL_POINTERS = 0x10, /* section with only lazy
+                                                   symbol pointers to lazy
+                                                   loaded dylibs */
+/*
+ * Section types to support thread local variables
+ */
+  S_THREAD_LOCAL_REGULAR = 0x11, /* template of initial
+                                                          values for TLVs */
+  S_THREAD_LOCAL_ZEROFILL = 0x12, /* template of initial
+                                                          values for TLVs */
+  S_THREAD_LOCAL_VARIABLES = 0x13, /* TLV descriptors */
+  S_THREAD_LOCAL_VARIABLE_POINTERS = 0x14, /* pointers to TLV
+                                                          descriptors */
+  S_THREAD_LOCAL_INIT_FUNCTION_POINTERS = 0x15 /* functions to call
+                                                          to initialize TLV
+                                                          values */
+)
+
+
+/*
+ * Constants for the section attributes part of the flags field of a section
+ * structure.
+ */
+
+section_usr_attr set 8 of ( /* User setable attributes */
+  S_ATTR_PURE_INSTRUCTIONS ^ 0x80, /* section contains only true
+                                   machine instructions */
+  S_ATTR_NO_TOC ^ 0x40, /* section contains coalesced
+                        symbols that are not to be
+                        in a ranlib table of contents */
+  S_ATTR_STRIP_STATIC_SYMS ^ 0x20, /* ok to strip static symbols
+                        in this section in files with the MH_DYLDLINK flag */
+  S_ATTR_NO_DEAD_STRIP ^ 0x10, /* no dead stripping */
+  S_ATTR_LIVE_SUPPORT ^ 0x08, /* blocks are live if they reference live blocks */
+  S_ATTR_SELF_MODIFYING_CODE ^ 0x04, /* Used with i386 code stubs
+                         written on by dyld */
+/*
+ * If a segment contains any sections marked with S_ATTR_DEBUG then all
+ * sections in that segment must have this attribute.  No section other than
+ * a section marked with this attribute may reference the contents of this
+ * section.  A section with this attribute may contain no symbols and must have
+ * a section type S_REGULAR.  The static linker will not copy section contents
+ * from sections with this attribute into its output file.  These sections
+ * generally contain DWARF debugging info.
+ */
+  S_ATTR_DEBUG ^ 0x02 /* a debug section */
+) 
+
+section_sys_attr set 16 of ( /* system setable attributes */
+  S_ATTR_SOME_INSTRUCTIONS ^ 0x0004, /* section contains some machine instructions */
+  S_ATTR_EXT_RELOC ^ 0x0002, /* section has external relocation entries */
+  S_ATTR_LOC_RELOC ^ 0x0001  /* section has local relocation entries */
+)
+
+section_flags struc
+ %$IF revbytes;
+  section_usr_attr usr_attr
+  section_sys_attr sys_attr
+  section_type t
+ %$ELSE
+  section_type t
+  section_sys_attr sys_attr
+  section_usr_attr usr_attr
+ %$END
+ends       
+
+section_data(Sz,Addr) raw[@:Sz] at @:Addr;:displ=('[',Hex(@:Addr),']',@)
+psection_data(Sz,Addr) ^section_data(@:Sz,@:Addr) near=uint32_t
+
+section struc /* for 32-bit architectures */
+  segname_t sectname /* name of this section */
+  segname_t segname /* segment this section goes in */
+  size_t addr /* memory address of this section */
+  size_t size /* size in bytes of this section */
+  psection_data offset /* file offset of this section */
+  uint32_t align /* section alignment (power of 2) */
+  prelocation_data reloff /* file offset of relocation entries */
+  uint32_t nreloc /* number of relocation entries */
+  section_flags flags /* flags (section type and attributes)*/
+  uint32_t reserved1 /* reserved (for offset or index) */
+  uint32_t reserved2 /* reserved (for count or sizeof) */
+ %$IF mode64;
+  uint32_t reserved3 /* reserved */
+ %$END
+ends:[@.reloff:N=@.nreloc,@.offset:Sz=@.size,@.offset:Addr=@.offset-@.addr]:autoname=(@.segname,'.',@.sectname)
+
+
+segment_command struc /* for 32-bit architectures */
+  segname_t segname /* segment name */
+  size_t        vmaddr /* memory address of this segment */
+  size_t        vmsize /* memory size of this segment */
+  size_t        fileoff /* file offset of this segment */
+  size_t        filesize /* amount to map from the file */
+  vm_prot_t        maxprot /* maximum VM protection */
+  vm_prot_t        initprot /* initial VM protection */
+  uint32_t        nsects /* number of sections in segment */
+  segcmd_flags_t flags /* flags */
+  array[@.nsects] of section sects
+ends
+
+dylib struc
+    uint32_t name_ofs /* library's path name */
+    uint32_t timestamp /* library's build time stamp */
+    uint32_t current_version /* library's current version number */
+    uint32_t compatibility_version /* library's compatibility vers number*/
+    raw[@.name_ofs-0x18] rest
+    pchar lc_str
+ends
+
+cmd_str struc
+    uint32_t name_ofs /* library's path name */
+    raw[@.name_ofs-0xC] rest
+    pchar lc_str
+ends  
+
+type bit
+n_type_tb enum bit3 (
+  N_UNDF=0x0, //The symbol is undefined. Undefined symbols are symbols referenced in this module
+              //but defined in a different module. The n_sect field is set to NO_SECT.
+  N_ABS=0x1,  //The symbol is absolute. The linker does not change the value of an absolute symbol.
+              //The n_sect field is set to NO_SECT.
+  N_SECT=0x7, //The symbol is defined in the section number given in n_sect.
+  N_PBUD=0x6, //The symbol is undefined and the image is using a prebound value for the symbol.
+              //The n_sect field is set to NO_SECT.
+  N_INDR=0x5  //The symbol is defined to be the same as another symbol. The n_value field is an
+              //index into the string table specifying the name of the other symbol.
+)
+
+n_type_bt0 struc
+ %$IF revbytes;
+  bit3 stab
+  bit1 N_PEXT
+  n_type_tb T
+  bit1 N_EXT
+ %$ELSE
+  bit1 N_EXT
+  n_type_tb T
+  bit1 N_PEXT
+  bit3 stab
+ %$END
+ends
+
+n_desc_ref_kind_t enum bit4 (
+  UNDEFINED_NON_LAZY=0x0, //This symbol is a reference to an external non-lazy (data) symbol.
+  UNDEFINED_LAZY=0x1, //This symbol is a reference to an external lazy symbol.that is, to a function call.
+  DEFINED=0x2, //This symbol is defined in this module.
+  PRIVATE_DEFINED=0x3, //This symbol is defined in this module and is visible only to modules within this shared library.
+  PRIVATE_UNDEFINED_NON_LAZY=0x4, //This symbol is defined in another module in this file,
+        //is a non-lazy (data) symbol, and is visible only to modules within this shared library.
+  PRIVATE_UNDEFINED_LAZY=0x5  //This symbol is defined in another module in this file,
+        //is a lazy (function) symbol, and is visible only to modules within this shared library.
+)
+
+n_desc_ref_flags_t set 4 of (
+  REFERENCED_DYNAMICALLY ^ 0x1,//Must be set for any defined symbol that is referenced by
+         //dynamic-loader APIs (such as dlsym and NSLookupSymbolInImage)
+  N_NO_DEAD_STRIP ^ 0x2, //When set in a relocatable object file (file type MH_OBJECT) on a defined
+         //symbol, indicates to the static linker to never dead-strip the symbol.
+  N_WEAK_REF ^ 0x4, //Indicates that this undefined symbol is a weak reference. If the dynamic linker
+         //cannot find a definition for this symbol, it sets the address of this symbol to 0.
+  N_WEAK_DEF ^ 0x8 //Indicates that this symbol is a weak definition. If the static linker or the
+         //dynamic linker finds another (non-weak) definition for this symbol, the weak definition is ignored.
+)
+
+n_desc_t struc
+ %$IF revbytes;
+  bit8 nLib //for MH_TWOLEVEL in mach_header
+  n_desc_ref_flags_t ref_f
+  n_desc_ref_kind_t ref_kind
+ %$ELSE
+  n_desc_ref_kind_t ref_kind
+  n_desc_ref_flags_t ref_f
+  bit8 nLib //for MH_TWOLEVEL in mach_header
+ %$END
+ends
+
+const
+  LLVMDemangle = 1; //For Delphi XE4+ .o files
+
+%$IF LLVMDemangle;
+include LLVMDemangle.rfi
+type
+  TSymbolName TLLVMMangledOrNotName
+%$ELSE
+type
+  TSymbolName PChar
+%$END
+
+type
+
+//n_type_t0 n_type_bt0()
+
+stab_t byte():assert[@ and 0xe0<>0]
+
+//n_type_t n_type_t0
+n_type_t try
+ stab: stab_t
+ t: n_type_bt0
+endt
+
+p_strx_t(base) ^TSymbolName nil=0 near=uint32_t REF=@:base+@; :displ=(@^,'{',@,'}')
+
+nlist(stroff) struc
+  p_strx_t(@:stroff)/*int32_t*/ n_strx
+  n_type_t n_type
+  uint8_t n_sect
+  n_desc_t/*int16_t*/ n_desc
+  native_uint_t n_value
+ends
+
+nlist_tbl(N,stroff) array[@:N]of nlist(@:stroff)
+p_nlist_tbl(N,stroff) ^nlist_tbl(@:N,@:stroff) near=uint32_t
+
+str_tbl_t void//show the strings instead raw[@:Sz]//at 0;
+p_str_tbl_t(Sz) ^str_tbl_t near=uint32_t
+
+symtab_command struc
+  p_nlist_tbl symoff
+  uint32_t nsyms
+  p_str_tbl_t stroff
+  uint32_t strsize
+ends:[@.symoff:N=@.nsyms, @.symoff:stroff=@.stroff, @.stroff:Sz=@.strsize]
+
+dysymtab_command struc
+  uint32_t ilocalsym
+  uint32_t nlocalsym
+  uint32_t iextdefsym
+  uint32_t nextdefsym
+  uint32_t iundefsym
+  uint32_t nundefsym
+  uint32_t tocoff
+  uint32_t ntoc
+  uint32_t modtaboff
+  uint32_t nmodtab
+  uint32_t extrefsymoff
+  uint32_t nextrefsyms
+  uint32_t indirectsymoff
+  uint32_t nindirectsyms
+  uint32_t extreloff
+  uint32_t nextrel
+  uint32_t locreloff
+  uint32_t nlocrel
+ends
+
+
+load_command struc
+  load_cmd_t cmd     /* type of load command */
+  uint32_t cmdsize /* total size of command in bytes */
+  case @.cmd of
+   LC_UUID: uuid_t
+   LC_SEGMENT: segment_command
+   LC_LOAD_DYLIB: dylib
+   LC_LOAD_DYLINKER: cmd_str
+   LC_SUB_UMBRELLA,LC_SUB_CLIENT: cmd_str
+   LC_SYMTAB: symtab_command
+   LC_DYSYMTAB: dysymtab_command
+  endc Data
+  raw[] rest
+ends:[@:Size=@.cmdsize]
+
+
+mach_header struc
+  cpu_type_t        cputype /* cpu specifier */
+  cpu_subtype_t(@.cputype)   cpusubtype /* machine specifier */
+  filetype_t        filetype /* type of file */
+  uint32_t        ncmds /* number of load commands */
+  uint32_t        sizeofcmds /* the size of all the load commands */
+  fileflags_t        flags /* flags */
+ %$IF mode64;
+  uint32_t        reserved; /* reserved */
+ %$END
+  array[@.ncmds]of load_command cmds
+ends:assert[@.cmds:Size=@.sizeofcmds]
+
+
+data
+0x4 mach_header hdr
+
+assert hdr:assert;
+

@@ -1,0 +1,269 @@
+% Windows Metafile data structures(MetaFile.rfi):Class: Graphics and Sounds, Status: Complete, Last change: 13.01.2022 21:07:58
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+SHORT int
+DWORD ulong
+
+TWMF_FileType enum WORD (
+  InMem=0, //Metafile is in memory.
+  InFile=1 //Metafile is in a file.
+)
+
+TWindowsMetaHeader struc
+  TWMF_FileType FileType; /* Type of metafile (0=memory, 1=disk) */
+  WORD  HeaderSize;     /* Size of header in WORDS (always 9) */
+  WORD  Version;        /* Version of Microsoft Windows used */
+  DWORD FileSize;       /* Total size of the metafile in WORDs */
+  WORD  NumOfObjects;   /* Number of objects in the file */
+  DWORD MaxRecordSize;  /* The size of largest record in WORDs */
+  WORD  NumOfParams;    /* Not Used (always 0) */
+ends:assert[@:Size=@.HeaderSize*2,FileSize>=@.FileSize*2+&@]
+
+TPlaceableMetaHeader struc
+  DWORD Key;           /* Magic number (always 9AC6CDD7h) */
+  WORD  Handle;        /* Metafile HANDLE number (always 0) */
+  SHORT Left;          /* Left coordinate in metafile units */
+  SHORT Top;           /* Top coordinate in metafile units */
+  SHORT Right;         /* Right coordinate in metafile units */
+  SHORT Bottom;        /* Bottom coordinate in metafile units */
+  WORD  Inch;          /* Number of metafile units per inch */
+  DWORD Reserved;      /* Reserved (always 0) */
+  WORD  Checksum;      /* Checksum value for previous 10 WORDs */
+ends:assert[@.Key=0x9AC6CDD7]
+
+TClipboardWMFMappingMode enum SHORT (
+  Text         = 1, // One pixel
+  Low_Metric   = 2, // 0.1 millimeter
+  High_Metric  = 3, // 0.01 millimeter
+  Low_English  = 4, // 0.01 inch
+  High_English = 5, // 0.001 inch
+  Twips        = 6, // 1/1440th of an inch
+  Isotropic    = 7, // Application specific (aspect ratio preserved)
+  Anisotropic  = 8  // Application specific (aspect ratio not preserved)
+)
+
+TClipboard16MetaHeader struc
+  TClipboardWMFMappingMode MappingMode; /* Units used to playback metafile */
+  SHORT Width;       /* Width of the metafile */
+  SHORT Height;      /* Height of the metafile */
+  WORD  Handle;      /* Handle to the metafile in memory */
+ends
+
+TClipboardWMFMappingMode32 enum LONG (
+  Text         = 1, // One pixel
+  Low_Metric   = 2, // 0.1 millimeter
+  High_Metric  = 3, // 0.01 millimeter
+  Low_English  = 4, // 0.01 inch
+  High_English = 5, // 0.001 inch
+  Twips        = 6, // 1/1440th of an inch
+  Isotropic    = 7, // Application specific (aspect ratio preserved)
+  Anisotropic  = 8  // Application specific (aspect ratio not preserved)
+)
+
+TClipboard32MetaHeader struc
+  TClipboardWMFMappingMode32 MappingMode; /* Units used to playback metafile */
+  LONG  Width;       /* Width of the metafile */
+  LONG  Height;      /* Height of the metafile */
+  DWORD Handle;      /* Handle to the metafile in memory */
+ends
+
+TWMFFuncCode enum WORD (
+  SetBKColor           = 0x0201,
+  SetBKMode            = 0x0102,
+  SetMapMode           = 0x0103,
+  SetROP2              = 0x0104,
+  SetRelAbs            = 0x0105,
+  SetPolyFillMode      = 0x0106,
+  SetStretchBltMode    = 0x0107,
+  SetTextCharExtra     = 0x0108,
+  SetTextColor         = 0x0209,
+  SetTextJustification = 0x020A,
+  SetWindowOrg         = 0x020B,
+  SetWindowExt         = 0x020C,
+  SetViewportOrg       = 0x020D,
+  SetViewportExt       = 0x020E,
+  OffsetWindowOrg      = 0x020F,
+  ScaleWindowExt       = 0x0400,
+  OffsetViewportOrg    = 0x0211,
+  ScaleViewportExt     = 0x0412,
+  LineTo               = 0x0213,
+  MoveTo               = 0x0214,
+  ExcludeClipRect      = 0x0415,
+  IntersectClipRect    = 0x0416,
+  Arc                  = 0x0817,
+  Ellipse              = 0x0418,
+  FloodFill            = 0x0419,
+  Pie                  = 0x081A,
+  Rectangle            = 0x041B,
+  RoundRect            = 0x061C,
+  PatBlt               = 0x061D,
+  SaveDC               = 0x001E,
+  SetPixel             = 0x041F,
+  OffsetClipRgn        = 0x0220,
+  TextOut              = 0x0521,
+  BitBlt               = 0x0922,
+  StretchBlt           = 0x0B23,
+  Polygon              = 0x0324,
+  PolyLine             = 0x0325,
+  Escape               = 0x0626,
+  RestoreDC            = 0x0127,
+  FillRegion           = 0x0228,
+  FrameRegion          = 0x0429,
+  InvertRegion         = 0x012A,
+  PaintRegion          = 0x012B,
+  SelectClipRegion     = 0x012C,
+  SelectObject         = 0x012D,
+  SetTextAlign         = 0x012E,
+  DrawText             = 0x062F,
+
+  Chord                = 0x0830,
+  SetMapperFlags       = 0x0231,
+  ExtTextOut           = 0x0a32,
+  SetDIBToDev          = 0x0d33,
+  SelectPalette        = 0x0234,
+  RealizePalette       = 0x0035,
+  AnimatePalette       = 0x0436,
+  SetPalEntries        = 0x0037,
+  PolyPolygon          = 0x0538,
+  ResizePalette        = 0x0139,
+
+  DIBBitBlt             = 0x0940,
+  DIBStretchBlt         = 0x0b41,
+  DIBCreatePatternBrush = 0x0142,
+
+  DeleteObject = 0x01f0,
+
+  CreatePalette        = 0x00f7,
+  CreateBrush          = 0x00F8,
+  CreatePatternBrush   = 0x01F9,
+  CreatePenIndirect    = 0x02FA,
+  CreateFontIndirect   = 0x02FB,
+  CreateBrushIndirect  = 0x02FC,
+  CreateBitmapIndirect = 0x02FD,
+  CreateBitmap         = 0x06FE,
+  CreateRegion         = 0x06FF,
+
+  AbortDoc             = 0x0052,
+  EndDoc               = 0x005E,
+  EndPage              = 0x0050,
+  ExtFloodFill         = 0x0548,
+  ResetDc              = 0x014C,
+  StartDoc             = 0x014D,
+  StartPage            = 0x004F
+)
+
+TWMFEscCode enum WORD (
+  NEWFRAME = 1,
+  _ABORTDOC = 2, //Renamed
+  NEXTBAND = 3,
+  SETCOLORTABLE = 4,
+  GETCOLORTABLE = 5,
+  FLUSHOUTPUT = 6,
+  DRAFTMODE = 7,
+  QUERYESCSUPPORT = 8,
+  _SETABORTPROC = 9, //Renamed
+  _STARTDOC = 10, //Renamed
+  _ENDDOC = 11, //Renamed
+  GETPHYSPAGESIZE = 12,
+  GETPRINTINGOFFSET = 13,
+  GETSCALINGFACTOR = 14,
+  MFCOMMENT = 15,
+  GETPENWIDTH = 0x10,
+  SETCOPYCOUNT = 17,
+  SELECTPAPERSOURCE = 18,
+  DEVICEDATA = 19,
+ //PASSTHROUGH = 19,
+ //GETTECHNOLGY = 20,
+  GETTECHNOLOGY = 20,
+  SETLINECAP = 21,
+  SETLINEJOIN = 22,
+  _SETMITERLIMIT = 23, //Renamed
+  BANDINFO = 24,
+  DRAWPATTERNRECT = 25,
+  GETVECTORPENSIZE = 26,
+  GETVECTORBRUSHSIZE = 27,
+  ENABLEDUPLEX = 28,
+  GETSETPAPERBINS = 29,
+  GETSETPRINTORIENT = 30,
+  ENUMPAPERBINS = 31,
+  SETDIBSCALING = 0x20,
+  EPSPRINTING = 33,
+  ENUMPAPERMETRICS = 34,
+  GETSETPAPERMETRICS = 35,
+  POSTSCRIPT_DATA = 37,
+  POSTSCRIPT_IGNORE = 38,
+  MOUSETRAILS = 39,
+  GETDEVICEUNITS = 42,
+
+  GETEXTENDEDTEXTMETRICS = 256,
+  GETEXTENTTABLE = 257,
+  GETPAIRKERNTABLE = 258,
+  GETTRACKKERNTABLE = 259,
+  _EXTTEXTOUT = 0x200, //Renamed
+  GETFACENAME = 513,
+  DOWNLOADFACE = 514,
+  ENABLERELATIVEWIDTHS = 768,
+  ENABLEPAIRKERNING = 769,
+  SETKERNTRACK = 770,
+  SETALLJUSTVALUES = 771,
+  SETCHARSET = 772,
+
+  _STRETCHBLT = 0x800, //Renamed
+  GETSETSCREENPARAMS = 3072,
+  QUERYDIBSUPPORT = 3073,
+  BEGIN_PATH = 0x1000,
+  CLIP_TO_PATH = 4097,
+  END_PATH = 4098,
+  EXT_DEVICE_CAPS = 4099,
+  RESTORE_CTM = 4100,
+  SAVE_CTM = 4101,
+  SET_ARC_DIRECTION = 4102,
+  SET_BACKGROUND_COLOR = 4103,
+  SET_POLY_MODE = 4104,
+  SET_SCREEN_ANGLE = 4105,
+  SET_SPREAD = 4106,
+  TRANSFORM_CTM = 4107,
+  SET_CLIP_BOX = 4108,
+  SET_BOUNDS = 4109,
+ //SET_MIRROR_MODE = 4110,
+  OPENCHANNEL = 4110,
+  DOWNLOADHEADER = 4111,
+  CLOSECHANNEL = 4112,
+  POSTSCRIPT_PASSTHROUGH = 4115,
+  ENCAPSULATED_POSTSCRIPT = 4116
+)
+
+TStandardMetaRecord struc
+  DWORD Size            /* Total size of the record in WORDs */
+  TWMFFuncCode Function /* Function number (defined in WINDOWS.H) */
+  case @.Function of
+    AbortDoc, Arc, Chord, DeleteObject, Ellipse,
+    EndDoc, EndPage, ExcludeClipRect, ExtFloodFill,
+    FillRegion, FloodFill, FrameRegion, IntersectClipRect,
+    InvertRegion, LineTo, MoveTo, OffsetClipRgn, OffsetViewportOrg,
+    OffsetWindowOrg, PaintRegion, PatBlt, Pie, RealizePalette, Rectangle,
+    ResetDc, ResizePalette, RestoreDC, RoundRect, SaveDC,
+    ScaleViewportExt, ScaleWindowExt, SelectClipRegion, SelectObject,
+    SelectPalette, SetBkColor, SetBkMode, SetDibToDev,
+    SetMapMode, SetMapperFlags, SetPalEntries, SetPixel, SetPolyFillMode,
+    SetRelabs, SetROP2, SetStretchBltMode, SetTextAlign, SetTextCharExtra,
+    SetTextColor, SetTextJustification, SetViewportExt, SetViewportOrg,
+    SetWindowExt, SetWindowOrg, StartDoc,
+    StartPage: array[@@.Function shr 8]of WORD
+       /* Parameter values passed to function */
+    Escape: struc
+      TWMFEscCode nEscape
+    ends
+  endc Parameters
+  raw[] rest
+ends:[@:Size=@.Size*2]
+
+TMetaRecords array of TStandardMetaRecord ?(@.Function=0)and(@.Size=3);
+
+TStandardMetafile struc
+  TWindowsMetaHeader Hdr
+  TMetaRecords Commands
+ends
+

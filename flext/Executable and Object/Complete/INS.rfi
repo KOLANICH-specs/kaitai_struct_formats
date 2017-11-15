@@ -1,0 +1,147 @@
+% InstallShield script file (NOTE: not of IS Express for Delphi)(INS.rfi):Class: Executable and Object, Status: Complete, Last change: 26.09.2000 22:45:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+0x0000 ulong Magic
+
+assert Magic=0x000cc9b8;
+
+data
+0x0004 ulong VerMagic
+
+descr ('InstallShield script file.')
+
+%$IF VerMagic=0x1234001c;
+const
+  Ver=2;
+descr ('Version 2.20.905.')
+%$ELSIF VerMagic=0x12340016;
+const
+  Ver=3;
+descr ('Version 3.00.065.')
+%$ELSIF VerMagic=0x00010050;
+const
+  Ver=5;
+descr ('Version 5.00.000.')
+%$ELSE
+assert 0; //fail
+%$END
+
+descr (NL,
+  'Info Src: isDcc v1.22 Sources, (c) 1998 Andrew de Quincey',NL,
+  '          http://www.tardis.ed.ac.uk/~adq, adq@tardis.ed.ac.uk',NL)
+
+type
+
+TName struc
+  word L
+  array[@.L]of char Txt
+ends:displ=(@.Txt)
+
+TVarInfo struc
+  word N
+  TName Name
+ends
+
+TVarInfoTbl(Cnt) array[@:Cnt]of TVarInfo
+
+TTypeCode enum word (
+  TYPE_STRING=0,
+  TYPE_NUMBER=4,
+  TYPE_BOOL=6,
+  TYPE_CHAR=1,
+  TYPE_HWND=7,
+  TYPE_INT=3,
+  TYPE_LIST=5,
+  TYPE_LONG=2
+):assert[@<8]
+
+TDTEntry struc
+  TTypeCode code
+  word size
+  TName Name
+ends:assert[@.code:assert]
+
+TDTEntryTbl(Cnt) array[@:Cnt]of TDTEntry
+
+TDTInfo struc
+  word N
+  TName Name
+  word entriesCount
+  TDTEntryTbl(@.entriesCount) entries
+ends
+
+TDTTbl(Cnt) array[@:Cnt]of TDTInfo
+
+TFuncCode enum word (
+  FUNCTION_USER=2,
+  FUNCTION_DLL=1
+)
+
+TParamFlags set 16 of (
+  ByRef ^ 0x2
+)
+
+TParamInfo struc
+  TTypeCode code
+  TParamFlags F
+ends:assert[@.code:assert]
+
+TFuncProtoInfo struc
+  TFuncCode code
+  case @.code of
+    FUNCTION_DLL: struc
+     TTypeCode returnType
+     TName DLL
+     TName Func
+    ends
+  else array[3]of word
+  endc D
+  word paramsCount
+  array[@.paramsCount]of TParamInfo paramTypes
+ends:assert[(@.code=1)or(@.code=2)]
+
+TFuncProtoInfoTbl(Cnt) array[@:Cnt] of TFuncProtoInfo
+
+TInsHeader struc
+  ulong crc
+  str Info
+  word labelsCount
+  word strInitCnt
+  array[@.strInitCnt]of word strInit //0x0200 - System Strings, 0xFFFF - user strings
+  word stringSysVarsCount
+  TVarInfoTbl(@.stringSysVarsCount) stringSysVars
+//stringUserVarsCount=strInitCnt-stringSysVarsCount - ((5 when (Ver=2))exc 0)
+  word numberUserVarsCount
+  word numberSysVarsCount
+  TVarInfoTbl(@.numberSysVarsCount) numberSysVars
+//numberUserVarsCount = numberUserVarsCount - ((0xb when(Ver=2))exc numberSysVarsCount)}
+  word dataTypesCount
+  TDTTbl(@.dataTypesCount) dataTypes
+  word functionPrototypesCount
+  TFuncProtoInfoTbl(@.functionPrototypesCount) functionPrototypes
+//  word X //Unknown purpose
+ends
+
+data
+0x0008 TInsHeader Hdr
+
+data
+FileSize-1; Byte VerSignStrLen
+
+const
+EOData=FileSize-1-VerSignStrLen;
+
+data
+EOData; array[VerSignStrLen]of Char VerSignStr
+
+include INS_OP.RFI
+
+type
+
+TOpSeq array of TOp ?not @:assert!TOpCode;
+
+data
+
+0x0008+Hdr:size; TOpSeq Ops
+

@@ -1,0 +1,82 @@
+% Windows 2000/XP[/NT - may be too] printer spool file.(spl.rfh):Class: OS Specific, Status: Complete, Last change: 07.07.2005 8:52:16
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+0 ulong Ver
+
+assert Ver=0x00010000;
+
+descr ('Windows printer spool file.')
+descr (NL,
+  'Info Src: MetaFile Extraction by Vipin Aravind',NL,
+  '          (http://www.microsoft.com/india/msdn/articles/130.aspx)',NL,
+  'Info Src: Fixed by AX - tagged file structure was discovered',NL
+)
+
+
+type
+
+PWChar array of WChar?@=0!void;
+
+LPCTSTR ^PWChar near=ulong
+
+TDOCINFO struc
+  ulong cbSize
+  LPCTSTR lpszDocName; 
+  LPCTSTR lpszOutput; 
+//  LPCTSTR lpszDatatype;
+//  DWORD   fwType;         // Windows 95 only; ignored on Windows NT 
+ends
+
+TEMFData struc
+  Ulong Sz
+  raw[@.Sz] D
+  Ulong X
+  ULong cbExtra
+  raw[@.cbExtra] Extra
+ends
+
+TSpoolRecTag enum ulong (
+  PRNInf=0x03, //Printer information
+  EMF=0x0C, //Metafile data
+  BackRef=0x0D, //Start of the prev. page offset from the current record
+  BackRefF=0x0E //Start of the prev. page offset from the current record,
+   //last record in the file?
+  //BackRefs are, perhaps, used for printing in backward order
+)
+
+include EMF.rfi
+
+TEMFImg(Sz) struc
+  TEnhancedMetaHeader Hdr
+  array[@.Hdr.NumOfRecords-1] of TEnhancedMetaRecord RecTbl
+ends:assert[@.Hdr.RecordType=1,@.Hdr.Signature=0x464D4520,
+  @.Hdr.Version=0x00010000,@.Hdr.Size=@:Sz]:[@:Size=@:Sz]
+
+TPageData(Sz) try
+  EMF: TEMFImg(@:Sz)
+  other: raw[@:Sz]
+endt
+
+
+
+TSpoolRec struc
+  TSpoolRecTag tag 
+  Ulong Sz
+  case @.tag of
+   EMF: TPageData(@@.Sz)
+  else
+    raw[@@.Sz]
+  endc D
+ends
+
+TSpoolRecs array of TSpoolRec ?@.Sz=0;
+ //Some small EMF data were observed on XP after the last EMF(=0x0C)
+ //record, but I believe that it's a harmless this time MS bug
+
+data
+0x0004 TDOCINFO DocInf
+
+//0x0004+DocInf.cbSize; TEMFData EMF1
+DocInf.cbSize; TSpoolRecs Spool
+

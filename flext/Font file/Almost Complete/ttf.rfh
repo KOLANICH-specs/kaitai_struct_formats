@@ -1,0 +1,680 @@
+% True Type fonts(ttf.rfh):Class: Font file, Status: Almost Complete, Last change: 08.03.2008 18:03:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder rev
+
+type
+
+ushort num+(2)
+short num-(2):displ=(@,'s')
+/*
+fixed struc //32-bit signed fixed-point number (16.16)
+  int V
+  word frac
+ends
+*/
+fixed num+(4)
+DWORD num+(4)
+
+FUnit num-(2)
+FWORD short //in FUnits
+UFWORD ushort //in FUnits
+F2DOT14 short //16-bit signed fixed number with the low 14 bits of fraction (2.14).
+
+include op_ttf.rfi
+
+type
+
+TDirTag array[4] of char
+
+TTTFtable(hDir,Len) forward
+
+PTTFtable(hDir,Len) ^TTTFTable(@:hDir,@:Len) near=DWORD //can't pass address yet
+  //and symbolic names are more convenient here
+
+TTblDirEntry struc
+  TDirTag tag   //4 -byte identifier.
+  DWORD checkSum//      CheckSum for this table.
+  PTTFtable(hDir=@:#) data      //Offset from beginning of TrueType font file.
+  DWORD length  //Length of this table.
+ends:[@.data:Len=@.length]
+
+TTblDirectory(Cnt) array[@:Cnt] of TTblDirEntry
+
+autoname
+  TTblDirEntry .tag de_
+
+type
+THdr struc
+  Fixed         sfnt_version    //0x00010000 for version 1.0.
+  USHORT        numTables       //Number of tables.
+  USHORT        searchRange     //(Maximum power of 2 г numTables) x 16.
+  USHORT        entrySelector   //Log2(maximum power of 2 г numTables).
+  USHORT        rangeShift      //NumTables x 16-searchRange.
+  TTblDirectory(@.numTables) Dir
+ends
+
+data
+0 THdr Hdr
+
+type
+//cmap - sintacter To Glyph Index Mapping Table
+TPlatformId enum USHORT (
+ //ID   Platform        Specific encoding
+  pltf_Apple=0, //Apple Unicode none
+  pltf_Mac=1,   //Macintosh     Script manager code
+  pltf_ISO=2,     //ISO encoding
+  pltf_Win=3    //Microsoft     Microsoft encoding
+)
+
+TWinEncodingId enum USHORT (
+  Symbol=0,
+  Unicode=1,
+  ShiftJIS=2,
+  Big5=3,
+  PRC=4,
+  Wansung=5,
+  Johab=6
+)
+
+TUShortTbl(Sz) array of ushort:[@:Size=@:Sz]
+
+TCToGFmt4Dat(Sz) struc
+  USHORT segCountX2 //2 x segCount.
+  USHORT searchRange //2 x (2**floor(log2(segCount)))
+  USHORT entrySelector //log2(searchRange/2)
+  USHORT rangeShift //2 x segCount - searchRange
+  TUShortTbl(@.segCountX2) endCount //End characterCode for each segment,last =0xFFFF.
+  USHORT reservedPad //Set to 0.
+  TUShortTbl(@.segCountX2) startCount //Start character code for each segment.
+  TUShortTbl(@.segCountX2) idDelta //Delta for all character codes in segment.
+  TUShortTbl(@.segCountX2) idRangeOffset //Offsets into glyphIdArray or 0
+  TUShortTbl glyphIdArray //Glyph index array (arbitrary length)
+ends:[@:Size=@:Sz]
+
+PCToGSubTable(Base) ^TCToGSubTable near=DWORD,ref=@:Base+@;
+TCToGSubTable struc
+  USHORT format
+  USHORT length //length in bytes of the subtable.
+  USHORT version //Version number (starts at 0).
+  case @.format of
+    0: array[256] of Byte //an array that maps character codes
+      //to glyph index values. (Apple)
+   //2: Chinese format - skipped
+    4: TCToGFmt4Dat(@@.Length-6) //Segment mapping to delta values (Microsoft)
+  endc FmtDat
+  raw[] rest
+ends:[@:Size=@.length]
+
+TCToGTblRec(Base) struc
+  TPlatformId Platf //Platform ID.
+  TWinEncodingId Encod //Platform-specific encoding ID.
+  PCToGSubTable(@:Base) Data //Byte offset from beginning of table
+    //to the subtable for this encoding.
+    //can't describe the table itself 'cause data blocks are not implemented
+ends
+
+TCToGTbl(n,Base) array[@:n] of TCToGTblRec(@:Base)
+
+//Dirty trick to overcome absence of Block data type
+TSecEnd(Pos) ^void near=void,ref=@:Pos;
+
+TCToGMap(Len) struc
+  USHORT ver //Table version number (0).
+  USHORT n //Number of encoding tables, n.
+  TCToGTbl(@.n,&@) Tbl
+  TSecEnd(&@+@:Len) End
+  //raw[] rest
+ends//:[@:Size=@:Len]
+
+//cvt - List of n values referenceable by instructions.
+TCvt(Sz) array of FWORD:[@:Size=@:Sz]
+
+//EBDT - Embedded Bitmap Data Table
+TEmbedBitmapDataTbl(Len) struc
+  FIXED ver //Initially defined as 0x00020000
+  raw[] rest
+ends:[@:Size=@:Len]
+
+//EBLC - Embedded Bitmap Location Table
+TsbitLineMetrics struc
+  sint  ascender
+  sint  descender
+  BYTE  widthMax
+  sint  caretSlopeNumerator
+  sint  caretSlopeDenominator
+  sint  caretOffset
+  sint  minOriginSB
+  sint  minAdvanceSB
+  sint  maxBeforeBL
+  sint  minAfterBL
+  sint  pad1
+  sint  pad2
+ends
+
+TBitmapSizeTable struc
+  DWORD indexSubTableArrayOffset //offset to index subtable from beginning of EBLC.
+  DWORD indexTablesSize //number of bytes in corresponding index subtables and array
+  DWORD numberOfIndexSubTables //an index subtable for each range or format change
+  DWORD colorRef        //not used; set to 0.
+  TsbitLineMetrics      hori    //line metrics for text rendered horizontally
+  TsbitLineMetrics      vert    //line metrics for text rendered vertically
+  USHORT        startGlyphIndex //lowest glyph index for this size
+  USHORT        endGlyphIndex   //highest glyph index for this size
+  BYTE  ppemX   //horizontal pixels per Em
+  BYTE  ppemY   //vertical pixels per Em
+  BYTE  bitDepth //       set to 1 for now
+  byte  flags //vertical or horizontal (see bitmapFlags)
+ends
+
+TBitmapSizeTableArray(n) array[@:n] of TBitmapSizeTable
+
+TEmbedBitmapLoc(Len) struc
+  FIXED ver //initially defined as 0x00020000
+  DWORD numSizes //Number of bitmapSizeTables
+  TBitmapSizeTableArray(@.numSizes) SzTbl
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** head - Font Header ***/
+
+longDateTime array[8] of Byte
+
+TFontHeader(Len) struc
+  FIXED ver //Table version number      0x00010000 for version 1.0.
+  FIXED fontRevision //Set by font manufacturer.
+  DWORD checkSumAdjustment //To compute:  set it to 0,
+    //sum the entire font as DWORD, then store 0xB1B0AFBA - sum.
+  DWORD magicNumber //Set to 0x5F0F3CF5.
+  USHORT flags  //Bit 0 - baseline for font at y=0;
+       //Bit 1 - left sidebearing at x=0;
+       //Bit 2 - instructions may depend on point size;
+       //Bit 3 - force ppem to integer values for all internal scaler
+         //math; may use fractional ppem sizes if this bit is clear;
+       //Bit 4 - instructions may alter advance width (the advance
+         //widths might not scale linearly);Note: All other bits must be zero.
+  USHORT unitsPerEm //Valid range is from 16 to 16384
+  longDateTime created  //International date (8-byte field).
+  longDateTime modified //International date (8-byte field).
+  FWORD xMin //For all glyph bounding boxes.
+  FWORD yMin //For all glyph bounding boxes.
+  FWORD xMax //For all glyph bounding boxes.
+  FWORD yMax //For all glyph bounding boxes.
+  USHORT macStyle //Bit 0 bold (if set to 1);
+     //Bit 1 italic (if set to 1) ; Bits 2-15 reserved (set to 0).
+  USHORT lowestRecPPEM //Smallest readable size in pixels.
+  SHORT fontDirectionHint //0   Fully mixed directional glyphs;
+      //1   Only strongly left to right;
+      //2   Like 1 but also contains neutrals ;
+      //-1   Only strongly right to left;
+      //-2   Like -1 but also contains neutrals.
+  SHORT indexToLocFormat //0 for short offsets, 1 for long.
+  SHORT glyphDataFormat //0 for current format.
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** hhea - Horizontal Header ***/
+THorHeader(Len) struc
+  FIXED ver //0x00010000 for version 1.0.
+  FWORD Ascender //Typographic ascent.
+  FWORD Descender //Typographic descent.
+  FWORD LineGap //Typographic line gap. Negative LineGap values are
+     //treated as zero in Windows 3.1, System 6, and System 7.
+  UFWORD advanceWidthMax //Maximum advance width value in СhmtxТ table.
+  FWORD minLeftSideBearing //Minimum left sidebearing value in СhmtxТ table.
+  FWORD minRightSideBearing //Minimum right sidebearing value;
+      //calculated as Min(aw - lsb - (xMax - xMin)).
+  FWORD xMaxExtent //Max(lsb + (xMax - xMin)).
+  SHORT caretSlopeRise //Used to calculate the slope of the cursor
+           //(rise/run); 1 for vertical.
+  SHORT caretSlopeRun //0 for vertical.
+  array[5] of SHORT reserved //set to 0
+  SHORT metricDataFormat //0 for current format.
+  USHORT numberOfHMetrics //Number of hMetric entries in
+         //СhmtxТ table; may be smaller than the total number of
+         //glyphs in the font.
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** OS/2 - OS/2 and Windows Metrics ***/
+
+include TTFPANOSE.rfi
+
+TPANOSE struc
+  TPANOSEFamilyKind bFamilyType
+  TPANOSESerifStyle bSerifStyle
+  TPANOSEWeight bWeight
+  TPANOSEProportion bProportion
+  TPANOSEContrast bContrast
+  TPANOSEStrokeVariation bStrokeVariation
+  TPANOSEArmStyle bArmStyle
+  TPANOSELetterform bLetterform
+  TPANOSEMidline bMidline
+  TPANOSEXHeight bXHeight
+ends
+
+TOS2Metrics(Len) struc
+  USHORT        version
+  SHORT         xAvgCharWidth
+  USHORT        usWeightClass
+  USHORT        usWidthClass
+  SHORT         fsType
+  SHORT         ySubscriptXSize
+  SHORT         ySubscriptYSize
+  SHORT         ySubscriptXOffset
+  SHORT         ySubscriptYOffset
+  SHORT         ySuperscriptXSize
+  SHORT         ySuperscriptYSize
+  SHORT         ySuperscriptXOffset
+  SHORT         ySuperscriptYOffset
+  SHORT         yStrikeoutSize
+  SHORT         yStrikeoutPosition
+  SHORT         sFamilyClass
+  TPANOSE       panose
+  DWORD         ulUnicodeRange1
+  DWORD         ulUnicodeRange2
+  DWORD         ulUnicodeRange3
+  DWORD         ulUnicodeRange4
+  array[4] of CHAR      achVendID
+  USHORT        fsSelection
+  USHORT        usFirstCharIndex
+  USHORT        usLastCharIndex
+  USHORT        sTypoAscender
+  USHORT        sTypoDescender
+  USHORT        sTypoLineGap
+  USHORT        usWinAscent
+  USHORT        usWinDescent
+  DWORD ulCodePageRange1
+  DWORD ulCodePageRange2
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** PCLT - PCL 5 Table ***/
+
+TPCL5Table(Len) struc
+  FIXED Version
+  DWORD FontNumber
+  USHORT        Pitch
+  USHORT        xHeight
+  USHORT        Style
+  USHORT        TypeFamily
+  USHORT        CapHeight
+  USHORT        SymbolSet
+  array[16]of CHAR,0;   Typeface
+  array[8]of Byte       CharacterComplement
+  array[6]of CHAR       FileName
+  sint  StrokeWeight
+  sint  WidthType
+  BYTE  SerifStyle
+  BYTE  Reserved //(pad)
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** hdmx - Horizontal Device Metrics ***/
+
+THorDevMetrix(Len) forward
+
+/*** maxp - Maximum Profile ***/
+
+TMaximumProfile(Len) struc
+  Fixed Ver //Table version number      0x00010000 for version 1.0.
+  USHORT numGlyphs //The number of glyphs in the font.
+  USHORT maxPoints //Maximum points in a non-composite glyph.
+  USHORT maxContours //Maximum contours in a non-composite glyph.
+  USHORT maxCompositePoints //Maximum points in a composite glyph.
+  USHORT maxCompositeContours //Maximum contours in a composite glyph.
+  USHORT maxZones //1 if instructions do not use the twilight zone (Z0), or 2 if instructions do use Z0; should be set to 2 in most cases.
+  USHORT maxTwilightPoints //Maximum points used in Z0.
+  USHORT maxStorage //Number of Storage Area locations.
+  USHORT maxFunctionDefs //Number of FDEFs.
+  USHORT maxInstructionDefs //Number of IDEFs.
+  USHORT maxStackElements //Maximum stack depth .
+  USHORT maxSizeOfInstructions //Maximum byte count for glyph instructions.
+  USHORT maxComponentElements //Maximum number of components referenced at "top level" for any composite glyph.
+  USHORT maxComponentDepth //Maximum levels of recursion; 1 for simple components.
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** name - Naming Table ***/
+
+TNameID enum USHORT (
+  Copyright=0,
+  FontFamily=1,
+  FontSubfamily=2,
+  font_id=3,
+  FullFontName=4,
+  Version=5, //In n.nn format.
+  PostscriptName=6,
+  Trademark=7
+)
+
+TNaming(Len,PlatformId) case @:PlatformId of
+  TPlatformId.pltf_Win,TPlatformId.pltf_Apple: array of wcharr
+else array of char
+endc:[@:Size=@:Len]
+
+PNaming(Len,PlatformId,Base) ^TNaming(@:Len,@:PlatformId) HIDEREF NIL- near=USHORT,
+  REF=@+@:Base;:displ=(@^,'{',@,'}')
+
+TNameRec(Base) struc
+  TPlatformId PlatformId
+  TWinEncodingId Encod //Platform-specific encoding ID.
+  USHORT        LanguageID
+  TNameID NameID
+  USHORT        Len //String length (in bytes).
+  PNaming(@.Len,@.PlatformId,@:Base) Ofs //String offset from start of storage area (in bytes).
+ends
+
+
+TNamingTable (Len) struc
+  USHORT Fmt    //Format selector (=0).
+  USHORT Cnt    //Number of NameRecords that follow n.
+  USHORT Ofs    //Offset to start of string storage (from start of table).
+  array[@.Cnt]of TNameRec(&@@+@@.Ofs) NameTbl
+  raw[] rest
+ends:[@:Size=@:Len]
+
+
+/*** post - PostScript ***/
+
+TPostScriptInf(Len) forward
+
+/*** hmtx - Horizontal Metrics ***/
+
+TLongHorMetric struc
+        uFWord av       //advanceWidth
+        FWord   lsb //left side bearing
+ends
+
+THorMetrics(Len) forward
+
+/*** VDMX - Vertical Device Metrics ***/
+
+TVertRatio struc
+        BYTE    bCharSet        /* Character set */
+        BYTE    xRatio  /* Value to use for x-Ratio */
+        BYTE    yStartRatio     /* Starting y-Ratio value */
+        BYTE    yEndRatio       /* Ending y-ratio value */
+ends
+
+TVdmxEntry struc
+        USHORT  yPelHeight      /* yPelHeight to which values apply */
+        SHORT   yMax            /* yMax (in pels) for this yPelHeight */
+        SHORT   yMin            /* yMin (in pels) for this yPelHeight */
+ends
+
+PVdmxGroup(base) ^TVdmxGroup near=USHORT, REF=@:base+@;
+
+TVdmxGroup struc
+  USHORT        recs //Number of height records in this group
+  BYTE  startsz //Starting yPelHeight
+  BYTE  endsz   //Ending yPelHeight
+  array[@.recs]of TVdmxEntry    entry //        The VDMX records
+ends
+
+TVertMetrix(Len) struc
+  USHORT ver //Version number (starts at 0).
+  USHORT numRecs //Number of VDMX groups present
+  USHORT numRatios //Number of aspect ratio groupings
+  array[@.numRatios]of TVertRatio ratRange //Ratio ranges (see below for more info)
+  array[@.numRatios]of PVdmxGroup(&@@) offset //Offset from start of this table to the VDMX group for this ratio range.
+//Vdmx  groups  The actual VDMX groupings (documented below)
+//raw[] rest
+ends//:[@:Size=@:Len]
+
+/*** loca - Index to Location ***/
+TLocationTbl(Len) forward
+
+/*** gasp - Grid-fitting And Scan-conversion Procedure ***/
+
+TGaspBehavior set 16 of (
+  GASP_GRIDFIT ^ 0x0001,        //medium sizes, typically 9<=ppem<=16
+  GASP_DOGRAY ^ 0x0002   //small sizes, typically ppem<9
+)
+
+TGASPRANGE struc
+  USHORT MaxPPEM        //Upper limit of range, in PPEM
+  TGaspBehavior F //Flags describing desired rasterizer behavior.
+ends
+
+TGASPTable(Len) struc
+  USHORT ver    //Version number (set to 0)
+  USHORT numRanges //Number of records to follow
+        array[@.numRanges]of TGASPRANGE gaspRange //Sorted by ppem
+  raw[] rest
+ends:[@:Size=@:Len]
+
+//********************************//
+TTTFTable(hDir,Len) case Hdr.Dir[@:hDir].Tag of
+  'cmap': TCToGMap(@:Len) //character to glyph mapping
+  'cvt ': TCvt(@:Len) //Control Value Table
+  'EBDT': TEmbedBitmapDataTbl(@:Len) //Embedded bitmap data
+  'EBLC': TEmbedBitmapLoc(@:Len) //Embedded bitmap location data
+  'head': TFontHeader(@:Len) //font header
+  'hhea': THorHeader(@:Len) //horizontal header
+  'hdmx': THorDevMetrix(@:Len) //Horizontal Device Metrics
+  'VDMX': TVertMetrix(@:Len) //Vertical Device Metrics
+  'OS/2': TOS2Metrics(@:Len) //OS/2 and Windows Metrics
+  'PCLT': TPCL5Table(@:Len) //PCL 5 Table
+  'maxp': TMaximumProfile(@:Len) //Maximum Profile
+  'name': TNamingTable(@:Len) //Naming Table
+  'post': TPostScriptInf(@:Len) //PostScript
+  'hmtx': THorMetrics(@:Len) //Horizontal Metrics
+  'glyf': void //Glyph data start
+  'loca': TLocationTbl(@:Len) //Index to Location
+  'gasp': TGASPTable(@:Len) //Grid-fitting And Scan-conversion Procedure
+  'fpgm': TTTFInstructions(@:Len)
+  'prep': TTTFInstructions(@:Len)
+  else raw[@:Len]
+endc
+
+/*** hmtx - Horizontal Metrics ***/
+
+THorMetrics(Len) struc
+  array[Hdr.Dir[?@.tag='hhea'].data^.'hhea'.numberOfHMetrics exc 0]of TLongHorMetric hMetrics
+  array[(Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs-
+     Hdr.Dir[?@.tag='hhea'].data^.'hhea'.numberOfHMetrics)exc 0]of FWord leftSideBearing
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** loca - Index to Location ***/
+
+TGlyphCoordF set 8 of (
+/*  OnCurve=0,
+  xShort=1,
+  yShort=2,
+  Repeat=3,
+  ThisXIsSame=4,
+  ThisYIsSame=5 */
+  OnCrv=0,
+  xSh=1,
+  ySh=2,
+  Rpt=3,
+  XSame=4,
+  YSame=5
+)
+
+TGlyphCoordFlag struc
+  TGlyphCoordF F
+  case @.F and TGlyphCoordF.Rpt of
+    0: void
+  else Byte
+  endc Rep
+ends
+
+TGlyphCoordFlags(Cnt) array[@:Cnt] of TGlyphCoordFlag TAKES (@.Rep.1 exc 0)+1;
+
+TGlyphXCoords(Cnt) forward
+TGlyphYCoords(Cnt) forward
+
+TSimpleGlyph(numberOfContours) struc
+  array[@:numberOfContours] of USHORT   endPtsOfContours
+  USHORT instructionLength
+  TTTFInstructions(@.instructionLength) instructions
+  TGlyphCoordFlags(@.endPtsOfContours[@:numberOfContours-1]+1) Flags
+  TGlyphXCoords(@.endPtsOfContours[@:numberOfContours-1]+1) xCoords
+  TGlyphYCoords(@.endPtsOfContours[@:numberOfContours-1]+1) yCoords
+ends
+
+TV1P num+(1): displ=(INT(@),'n')
+TV1N num+(1): displ=('-',INT(@),'p')
+
+TGlyphXCoord case ((@:@ as TGlyphXCoords):@ as TSimpleGlyph).Flags[@:#].F and
+  (TGlyphCoordF.xSh or TGlyphCoordF.XSame) of
+  TGlyphCoordF.xSh: TV1N
+  TGlyphCoordF.xSh or TGlyphCoordF.XSame: TV1P
+  TGlyphCoordF.XSame:  void
+  0: SHORT
+endc
+
+TGlyphXCoords(Cnt) array[@:Cnt] of TGlyphXCoord
+
+TGlyphYCoord case ((@:@ as TGlyphYCoords):@ as TSimpleGlyph).Flags[@:#].F and
+  (TGlyphCoordF.ySh or TGlyphCoordF.YSame) of
+  TGlyphCoordF.ySh: TV1N
+  TGlyphCoordF.ySh or TGlyphCoordF.YSame: TV1P
+  TGlyphCoordF.ySame:  void
+  0: SHORT
+endc
+
+TGlyphYCoords(Cnt) array[@:Cnt] of TGlyphYCoord
+
+TCompositeGlyphFlags set 16 of (
+  ARG_1_AND_2_ARE_WORDS=0,
+  ARGS_ARE_XY_VALUES=1,
+  ROUND_XY_TO_GRID=2,
+  WE_HAVE_A_SCALE=3,
+  RESERVED=4,
+  MORE_COMPONENTS=5,
+  WE_HAVE_AN_X_AND_Y_SCALE=6,
+  WE_HAVE_A_TWO_BY_TWO=7,
+  WE_HAVE_INSTRUCTIONS=8,
+  USE_MY_METRICS=9
+)
+
+TCompositeGlyph struc
+  TCompositeGlyphFlags flags
+  USHORT glyphIndex
+  case @.flags and TCompositeGlyphFlags.ARG_1_AND_2_ARE_WORDS of
+    0: array[2]of Byte
+  else array[2]of Short
+  endc args
+  case @.flags and TCompositeGlyphFlags.WE_HAVE_A_SCALE of
+   0: case @@.flags and TCompositeGlyphFlags.WE_HAVE_AN_X_AND_Y_SCALE of
+     0: case @@@.flags and TCompositeGlyphFlags.WE_HAVE_A_TWO_BY_TWO of
+       0: void
+      else struc
+         F2Dot14 x
+         F2Dot14 s01
+         F2Dot14 s10
+         F2Dot14 y
+        ends
+      endc
+     else struc
+        F2Dot14 x
+        F2Dot14 y
+      ends
+     endc
+  else F2DOT14
+  endc Scale
+ends
+
+
+TCompositeGlyphTbl array of TCompositeGlyph ?@.flags and TCompositeGlyphFlags.MORE_COMPONENTS=0;
+
+TCompositeGlyphRec struc
+  TCompositeGlyphTbl Tbl
+  case (&(@.Tbl[?(@.flags and TCompositeGlyphFlags.WE_HAVE_INSTRUCTIONS<>0)]))exc 0 of
+   0: void
+  else struc
+    USHORT numInstr
+    TTTFInstructions(@.numInstr) instr
+   ends
+  endc Instr
+ends
+
+TGlyphData(Sz) struc
+  SHORT numberOfContours
+  FWORD xMin
+  FWORD yMin
+  FWORD xMax
+  FWORD yMax
+  case @.numberOfContours of
+   -1: TCompositeGlyphRec
+  else TSimpleGlyph(@@.numberOfContours)
+  endc D
+  raw[] rest
+ends:[@:Size=@:Sz]
+
+PSGlyphData forward
+PLGlyphData forward
+
+TSGlyphTbl array[(Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs+1)exc 0]of PSGlyphData
+TLGlyphTbl array[(Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs+1)exc 0]of PLGlyphData
+
+PSGlyphData ^TGlyphData(2*((@:@ as TSGlyphTbl)[@:#+1]-@)exc 0) NIL:(((@:@ as TSGlyphTbl)[@:#+1]-@)exc 0)=0 near=USHORT, REF=Hdr.Dir[?@.tag='glyf'].data+2*@;
+PLGlyphData ^TGlyphData(((@:@ as TLGlyphTbl)[@:#+1]-@)exc 0) NIL:(((@:@ as TLGlyphTbl)[@:#+1]-@)exc 0)=0 near=DWORD, REF=Hdr.Dir[?@.tag='glyf'].data+@;
+
+TLocationTbl(Len) struc
+  case Hdr.Dir[?@.tag='head'].data^.'head'.indexToLocFormat exc -1 of
+//    0: array[(Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs+1)exc 0]of PSGlyphData
+//    1: array[(Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs+1)exc 0]of PLGlyphData
+    0: TSGlyphTbl
+    1: TLGlyphTbl
+  endc offsets
+  raw[] rest
+ends:[@:Size=@:Len]
+
+
+/*** hdmx - Horizontal Device Metrics ***/
+
+TDeviceMetrixRecord(Sz) struc
+  BYTE pixSz //Pixel size for following widths (as ppem).
+  BYTE MaxW //Maximum width.
+  array[Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs] of BYTE Widths
+ends:[@:Size=@:Sz]
+
+THorDevMetrix(Len) struc
+  USHORT Ver //Table version number (starts at 0)
+  SHORT Cnt //Number of device records.
+  DWORD RecSz //Size of a device record, long aligned.
+  array[@.Cnt]of TDeviceMetrixRecord(@@.RecSz) Recs //Records[number of device records].
+  raw[] rest
+ends:[@:Size=@:Len]
+
+/*** post - PostScript ***/
+
+include ttf_glfn.rfi
+
+type
+
+TGlyphID TMacGlyphID()
+
+TGlyphIDTbl(Cnt) array[@:Cnt]of TGlyphID
+
+TPostScriptInfWin(Len) struc
+  USHORT Num
+  TGlyphIDTbl(@.Num) glyphNameIndex
+  array of str GlyphNames
+ends:[@:Size=@:Len]
+
+TGlyphID enum TGlyphID = ((@:@ as TGlyphIDTbl):@ as TPostScriptInfWin).
+  GlyphNames[@-0x102];
+
+TPostScriptInf(Len) struc
+  FIXED Format
+  FIXED italicAngle
+  FWORD underlinePosition
+  FWORD underlineThickness
+  ULONG isFixedPitch
+  ULONG minMemType42
+  ULONG maxMemType42
+  ULONG minMemType1
+  ULONG maxMemType1
+  case @.Format of
+    0x20000: TPostScriptInfWin(@@:Len-0x20)
+    0x20005: array[Hdr.Dir[?@.tag='maxp'].data^.'maxp'.numGlyphs]of Byte
+  endc Dat
+  raw[] rest
+ends:[@:Size=@:Len]
+

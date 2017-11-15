@@ -1,0 +1,102 @@
+% ArcInfo Shape files` data structures(SHP.rfi):Class: GIS files, Status: Complete, Last change: 05.11.2009 10:19:32
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+/* Information source:
+==================================================
+ArcView(R) Version 2 Shapefile Technical Description
+
+An ESRI White Paper
+==================================================
+*/
+
+set byteorder rev
+type
+
+longrev num-(4)
+ulongrev num+(4)
+
+set byteorder norm
+type
+
+//In fact - double
+/*
+xlong struc
+  ulong L
+  long H
+ends: displ=(HEX(@.H),HEX(@.L))
+*/
+
+/*
+type bit
+  TBit1 num+(1)
+  TBit11 num+(11)
+  TBit20 num+(20)
+  TDoubleHi struc
+    TBit20 M
+    TBit11 P
+    TBit1 S //Sign 1->Neg
+  ends
+
+type
+  TDouble struc
+    ulong Lo
+    TDoubleHi Hi
+  ends: displ=(@.Hi.S,' 1.',@.Hi.M,@.Lo,'*2^',INT(@.Hi.P-0x3FF));
+*/
+
+include Float.rfi
+
+type
+
+TShapeType enum long (
+  Null=0,
+  Point=1,
+  PolyLine=3,
+  Polygon=5,
+  MultiPoint=8,
+  PointZ=11,
+  PolyLineZ=13,
+  PolygonZ=15,
+  MultiPointZ=18,
+  PointM=21,
+  PolyLineM=23,
+  PolygonM=25,
+  MultiPointM=28,
+  MultiPatch=31
+)
+
+TBBox struc
+  TDouble Xmin
+  TDouble Ymin
+  TDouble Xmax
+  TDouble Ymax
+ends
+
+TXPoint struc
+  TDouble X
+  TDouble Y
+ends
+
+TShpHeader struc
+  longrev Magic
+  longrev Rsrv0
+  longrev Rsrv1
+  longrev Rsrv2
+  longrev Rsrv3
+  longrev Rsrv4
+  longrev FileLength
+  long Ver
+  TShapeType ShapeType
+  TBBox BBox
+  TDouble Zmin
+  TDouble Zmax
+  TDouble Mmin
+  TDouble Mmax
+ends:assert[@.Magic=9994,@.FileLength*2=FileSize,@.Ver=1000]
+
+data
+0 TShpHeader Hdr
+
+assert Hdr:assert;
+
+

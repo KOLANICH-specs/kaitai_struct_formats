@@ -1,0 +1,14 @@
+% Windows Enhanced Metafile(EMF.rfh):Class: Graphics and Sounds, Status: Headers only, Last change: 27.06.2007 5:07:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include EMF.rfi
+
+data
+0 TEnhancedMetaHeader Hdr
+
+assert (Hdr.RecordType=1)and(Hdr.Signature=0x464D4520)
+  and(Hdr.Version=0x00010000)/*and(Hdr.Size=FileSize)*/;
+
+data
+Hdr.RecordSize; array[Hdr.NumOfRecords-1/*Hdr-1st rec*/] of TEnhancedMetaRecord RecTbl
+

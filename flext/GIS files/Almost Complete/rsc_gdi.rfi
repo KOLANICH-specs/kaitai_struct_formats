@@ -1,0 +1,895 @@
+% data structures of graphics in classifiers of GIS Panorama ver. 7.2.(rsc_gdi.rfi):Class: GIS files, Status: Almost Complete, Last change: 16.02.2017 16:34:02
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+/****** MAPGDI.H *************** Kruzhkov A.E.   ****** 18/05/04 ***
+******* MAPGDI.H *************** Belenkov O.V.   ****** 14/05/04 ***
+******* MAPGDI.H *************** Panteleeva N.A. ****** 02/09/03 ***
+******* MAPGDI.H *************** Dishlenko S.G.  ****** 23/04/01 ***
+*                                                                  *
+*              Copyright (c) PANORAMA Group 1991-2004              *
+*                      All Rights Reserved                         *
+*                                                                  *
+********************************************************************
+*                                                                  *
+*      +¦LTL=L+ ¦L¦L¦+T¦+T LL=¦гLг TL¦LLTL¦LгLL ¦¦+L¦T+T-=--       *
+*             +¦LLL++T¦L- ++'+¦T+T ¦T+¦T¦+==+г ¦L¦T-               *
+*                                                                  *
+*******************************************************************/
+
+//Conversion into FlexT by AX
+
+type
+
+TImgFnInfo forward
+
+TImgFn enum u1 (
+  IMG_EMPTY=127,  // ¦єёЄр  ЇєэъЎш  - эхЄ ярЁрьхЄЁют
+
+  IMG_LINE=128,
+  IMG_DOT=129,
+
+  IMG_SQUARE=135,
+
+  IMG_CIRCLE=140,
+
+  IMG_TEXT=142,
+
+  IMG_MULTIMARK=143,
+  IMG_MULTISQUAREMARK=144,
+
+  IMG_DRAW=147,
+
+  IMG_DOTSHIFT=148,
+
+  IMG_VECTOREX=149,
+
+  IMG_TEMPLATE=150,
+
+  IMG_TRUETYPE=151,
+
+  IMG_TRUETEXT=152,
+
+  IMG_HATCHSQUARE=153,
+
+  IMG_SQUAREGLASS=154,
+
+  IMG_SQUAREVECTOR=155,
+  IMG_VECTOREXTURN=156,
+
+  IMG_DECORATE=157,
+  IMG_DASH=158,
+  IMG_LINESHIFT=159,
+  IMG_VECTORTEXT=160,
+  IMG_VECTORNODE=161,       // TхъЄюЁэvх т єчырї (IMGVECTOREX)
+  IMG_THICKENLINE=162,       // LЄюы•р¦•р ё  ышэш 
+  IMG_MIDDLETHICKENLINE=163,       // LЄюы•р¦•р ё  ышэш  ъ ёхЁхфшэх юЄ ъюэЎют
+
+  IMG_VECTORGRADIENT=199,       // Tыєцхсэр  ЇєэъЎш 
+
+  IMG_PERCENT=249,       // TЄЁєъЄєЁр Єшяр IMG_LONG
+  IMG_LIBRARY=250,
+
+  IMG_SEMANTIC=251,       // TЄЁєъЄєЁр Єшяр IMG_LONG
+  IMG_COLOR=252,       // TЄЁєъЄєЁр Єшяр IMG_LONG
+  IMG_DOUBLE=253,
+  IMG_LONG=254,
+
+  IMG_OBJECT=255,
+
+// LTTL¦+T+L+ TT¦L¦TL¦- ¦L¦L¦+T¦+T TL¦LLTL¦LгLL (чрьхэхэv эр IMGDRAW...)
+  IMG_LINEDOT=130,
+  IMG_DOUBLELINE=131,
+  IMG_DOTDLINE=132,
+  IMG_DOUBLEDOT=133,
+  IMG_SHIFTLINEDOT=134,
+  IMG_SQUARECROSS=136,
+  IMG_MARK=137,
+  IMG_SQUAREMARK=138,
+  IMG_LEFTLINEDOT=145,
+  IMG_DECORATELINE=146
+
+)
+
+/*
+
+// ¦ЁючЁрўэvщ ЎтхЄ (фы  IMG_SQUAREMARK, IMG_MULTISQUAREMARK,
+//                      IMG_SQUARECROSS, IMG_FONT)
+#define IMGC_TRANSPARENT  0x0FFFFFFFFL
+#define IMGC_NOMARK       0x0FFFFFFFFL  // =х тvфхы Є№ (фы  IMG_OBJECT)
+
+// Lыруш фы  юяЁхфхыхэш  ЇюЁьрЄр ЎтхЄр (шэфхъё|IMGC_INDEX, RGB)
+#define IMGC_INDEX        0x0F0000000L  // Lыру ЎтхЄр шч ярышЄЁv ърЁЄv
+#define IMGC_SYSTEM       0x0F1000000L  // Lыру ЎтхЄр шч ёшёЄхьэющ ярышЄЁv (LINUX)  // 16/10/03
+#define IMGC_CLEARINDEX   0x0FF000000L  // -ы  юўшёЄъш Їырур ЎтхЄр (& IMGC_CLEARINDEX)
+#define IMGC_CLEARCOLOR   0x000FFFFFFL  // Lыру юўшёЄъш ЎтхЄр      (& IMGC_CLEARCOLOR)
+
+// LёЄрэютшЄ№ ЇюЁьрЄ ЎтхЄр
+#define SETCOLORINDEX(color)   (((long int)(color))|IMGC_INDEX)
+#define SETCOLORSYSTEM(color)  (((long int)(color))|IMGC_SYSTEM)
+
+// +яЁхфхышЄ№ ЇюЁьрЄ ЎтхЄр (тючтЁр•рхЄ: 0 - RGB, 1 - шэфхъё шч ярышЄЁv)
+#define TESTCOLORINDEX(color)  ((((long int)(color))&IMGC_CLEARINDEX)==IMGC_INDEX)
+
+// +яЁхфхышЄ№ ЇюЁьрЄ ЎтхЄр (тючтЁр•рхЄ: 0 - RGB, 1 - шэфхъё шч ёшёЄхьэющ ярышЄЁv)
+#define TESTCOLORSYSTEM(color) ((((long int)(color))&IMGC_CLEARINDEX)==IMGC_SYSTEM)  // 16/10/03
+
+// Tшя ёхЄъш чряюыэхэш  4x4 (16 сшЄ) (фы  IMG_SQUAREMARK, IMG_MULTISQUAREMARK)
+//  1 - чряюыэ хьvх ¤ыхьхэЄv ёхЄъш
+//  0 - эхчряюыэ хьvх
+// +ёэютэvх Єшяюv ёхЄюъ:
+//  0000(0)  1111(F)  1010(A)  0101(5)
+//  0000(0)  1111(F)  0101(5)  1010(A)
+//  0000(0)  1111(F)  1010(A)  0101(5)
+//  0000(0)  1111(F)  0101(5)  1010(A)
+#define IMGK_REGULAR0     0x00000000L  // ¦хуєы Ёэр  (чряюыэшЄ№ тёх)
+#define IMGK_REGULAR      0x0000FFFFL  // ¦хуєы Ёэр  (чряюыэшЄ№ тёх)
+#define IMGK_ONECHESS     0x0000A5A5L  // +рїьрЄэр 
+#define IMGK_TWOCHESS     0x00005A5AL  // +рїьрЄэр  ёьх•хээр 
+
+// TюърышчрЎш  юс·хъЄр (фы  IMG_OBJECT)
+#define IMGL_LINE      0  // Tшэхщэvщ
+#define IMGL_SQUARE    1  // ¦ыю•рфэющ
+#define IMGL_POINT     2  // Tюўхўэvщ
+#define IMGL_TITLE     3  // ¦юфяшё№
+#define IMGL_VECTOR    4  // TхъЄюЁэvщ
+#define IMGL_MIXED     5  // Tыюцэр  яюфяшё№ (°рсыюэ)
+
+// Tшя °Єpшїютъш (фы  IMG_SQUARECROSS)
+#define SC_HORIZONTAL  1  // +юpшчюэЄры№эvьш ышэш ьш
+#define SC_VERTICAL    2  // TхpЄшъaы№эvьш ышэш ьш
+#define SC_QUADRATIC   3  // ¦єсшъaьш
+#define SC_CROSS45     4  // ¦юф єуыюь 45 уЁрфєёют
+#define SC_CROSS135    5  // ¦юф єуыюь 135 уЁрфєёют
+*/
+
+TVType enum u1 (
+// Tшяv тхъЄюЁэvї Ўхяюўхъ (фы  SCR_VECTOR)
+  VT_THICK2=2, // Tшэш  Єюы•шэv 2
+  VT_THICK3=3, // Tшэш  Єюы•шэv 3
+  VT_THICK4=4, // Tшэш  Єюы•шэv 4
+  VT_THICK5=5, // Tшэш  Єюы•шэv 5
+  VT_CIRCLE2=8, // +ъЁєцэюёЄ№ Єюы•шэv 2
+  VT_CIRCLE3=9, // +ъЁєцэюёЄ№ Єюы•шэv 3
+  VT_CIRCLE4=10, // +ъЁєцэюёЄ№ Єюы•шэv 4
+  VT_CIRCLE5=11, // +ъЁєцэюёЄ№ Єюы•шэv 5
+
+// Tшяv тхъЄюЁэvї Ўхяюўхъ (IMG_VECTOREX)
+  VT_SQUARE=0, // ¦ыю•рф№
+  VT_LINE=1, // Tшэш 
+  VT_ROUND=6, // ¦Ёєу (яыю•рф№)
+  VT_CIRCLE=7, // +ъЁєцэюёЄ№
+  VT_FREE=12, // гхяюўър эх юяЁхфхыхэр
+
+// Tшяv тхъЄюЁэvї Ўхяюўхъ (IMG_VECTOREX)
+  VT_ELLIPSE=64, // ¦ыышяё
+  VT_OVAL=65, // ¦ыышяё (яыю•рф№)
+  VT_ARC=66, // гхяюўър Єшяр фєур
+  VT_PIE=67, // TхъЄюЁ (яыю•рф№)
+  VT_TEXT=68, // гхяюўър Єшяр ЄхъёЄ (яюёЄю ээvщ)
+  VT_STEXT=69, // гхяюўър Єшяр ЄхъёЄ (шч ёхьрэЄшъш)
+  VT_ARC_REVERT=70, // гхяюўър Єшяр фєур
+
+// Tшяv ёыєцхсэvї Ўхяюўхъ фы  юяшёрэш  ёЄЁєъЄєЁv сыюър
+  VT_OBJECT=101, // =рўрыю сыюър
+  VT_SUBJECT=102, // =рўрыю яюфюс·хъЄр
+  VT_END=103 // ¦юэхЎ сыюър
+)
+
+/*
+// +яхЁрЎшш яхЁхёўхЄр яшъёхыют т ьшъЁюэv ш юсЁрЄэю
+#define MKMINPIX     250  //  1000 * 25.4 / 96 = 264.583333
+#define PIX2MKM(pixel)  (((long int)(pixel))  * MKMINPIX)
+#define MKM2PIX(metric) (((long int)(metric)) / MKMINPIX)
+
+//------------------------------------------------------------------
+// -ы  IMG_FONT
+//------------------------------------------------------------------
+
+// ¦ЁючЁрўэvщ ЎтхЄ (Їюэр шыш Єхэш)
+#define UNIC_TRANSPARENT  255
+
+// +ЄэюёшЄхы№эр  °шЁшэр ёшьтюыр
+#define UNIW_NORMAL       0  // =юЁьры№эvщ
+#define UNIW_NARROW       1  // Tєцхэvщ
+#define UNIW_WIDE         2  // +шЁюъшщ
+
+// TvЁртэштрэшх яю тхЁЄшърыш
+#define UNIA_BASELINE     0  // ¦ю срчютющ ышэшш
+#define UNIA_TOP          1  // ¦ю тхЁїє
+#define UNIA_BOTTOM       2  // ¦ю эшчє
+
+// TvЁртэштрэшх яю уюЁшчюэЄрыш
+#define UNIA_LEFT         0  // ¦ю ыхтюьє ъЁр¦
+#define UNIA_CENTER       1  // ¦ю ЎхэЄЁє
+#define UNIA_RIGHT        2  // ¦ю яЁртюьє ъЁр¦
+
+// ¦шэшьры№эю фюяєёЄшьр  тvёюЄр ёшьтюыр т яшъёхырї
+#define CharMin  5  // ¦юфяшёш тvёюЄющ < CharMin, эх юЄюсЁрцр¦Єё 
+                    // 5 - 25/10/99
+
+// +ЄэюёшЄхы№эр  °шЁшэр ёшьтюыр (mapgds.h)
+//  UNIW_NORMAL     - =юЁьры№эvщ
+//  UNIW_NARROW     - Tєцхэvщ
+//  UNIW_WIDE       - +шЁюъшщ
+
+// Tхё °ЁшЇЄр, Єюы•шэр ъюэЄєЁр (Windows-ъюэёЄрэЄv)
+//  FW_THIN         - Tюэъшщ
+//  FW_ULTRALIGTH   - +хЄъшщ
+//  FW_NORMAL       - TЁхфэшщ
+//  FW_MEDIUM       - LЄюы•хээvщ
+//  FW_BOLD         - TюыёЄvщ
+#define FW_DONTCARE         0
+#define FW_THIN             100
+#define FW_EXTRALIGHT       200
+#define FW_LIGHT            300
+#define FW_NORMAL           400
+#define FW_MEDIUM           500
+#define FW_SEMIBOLD         600
+#define FW_BOLD             700
+#define FW_EXTRABOLD        800
+#define FW_HEAVY            900
+
+#define FW_ULTRALIGHT       FW_EXTRALIGHT
+#define FW_REGULAR          FW_NORMAL
+#define FW_DEMIBOLD         FW_SEMIBOLD
+#define FW_ULTRABOLD        FW_EXTRABOLD
+#define FW_BLACK            FW_HEAVY
+
+
+// TvЁртэштрэшх яю уюЁшчюэЄрыш (Windows-ъюэёЄрэЄv)
+#define FA_LEFT      0     // Tыхтр = TA_LEFT       // 14/09/00
+#define FA_RIGHT     2     // TяЁртр = TA_RIGHT     // 14/09/00
+#define FA_CENTER    6     // ¦ю ЎхэЄЁє = TA_CENTER // 14/09/00
+
+// TvЁртэштрэшх яю тхЁЄшърыш (Windows-ъюэёЄрэЄv)
+#define FA_TOP       0     // TтхЁїє = TA_TOP       // 14/09/00
+#define FA_BOTTOM    8     // Tэшчє = TA_BOTTOM     // 14/09/00
+#define FA_BASELINE  24    // ¦ю срчютющ ышэшш = TA_BASELINE  // 14/09/00
+#define FA_MIDDLE    4120  // ¦ю ёЁхфэхщ ышэшш = (TA_BASELINE|0x01000) // 14/09/00
+
+// ¦рёър тvсюЁъш тvЁртэштрэш 
+#define FA_MASK     (FA_CENTER | FA_MIDDLE)         // 23/04/03
+
+// ¦юфютр  ёЄЁрэшЎр (Windows-ъюэёЄрэЄv)
+//  RUSSIAN_CHARSET - фы  ¦юёёшш (ANSI/WINDOWS)
+//  OEM_CHARSET     - фы  ¦юёёшш (OEM/866/DOS)
+//------------------------------------------------------------------
+
+*/
+
+//******************************************************************
+//               TT¦L¦TL¦- ¦L¦L¦+T¦+T TL¦LLTL¦LгLL                 *
+//******************************************************************
+//      TT+ ¦L¦¦+¦- (T+T-L=L, -TL=L, ¦LTTT+-=L+ ...) T ¦L¦¦+=L-    *
+//                 (T T-T-+=-- -+T-- ¦LTTL¦+T¦L)                   *
+//******************************************************************
+// ¦Ёшьхўрэш :                                                     *
+//  1. гтхЄ т ЇюЁьрЄх COLORREF (0x00BBGGRR) шыш эюьхЁ шэфхъёр      *
+//     ярышЄЁv ърЁЄv т ьырф°хь срщЄх, хёыш ёЄрЁ°шщ срщЄ Ёртхэ 0x0F *
+//  2. -ы  юяшёрэш  ЁрчьхЁют т Єюўърї ¤ъЁрэр (яшъёхырї)            *
+//     шёяюы№чютрЄ№ юяхЁрЎш¦ PIX2MKM(ўшёыю яшъёхыют):              *
+//     Parm->Thick = PIX2MKM(2);  (Єюы•шэр 2 яшъёхыр)              *
+//******************************************************************
+
+
+
+type
+
+TColor ulong
+
+TIMGLINE struc           // (128) TL=L-
+                                //      (size = 8)
+  TColor Color;           // гтхЄ ышэшш (COLORREF)
+  ulong Thick;           // Tюы•шэр ышэшш
+ends
+
+
+TIMGTHICKENLINE struc    // (162,163) LT+T-L¦-L-T- TL=L-
+                                //      (size = 12)
+  TColor Color;           // гтхЄ ышэшш (COLORREF)
+  ulong Thick;           // Tюы•шэр ьшэшьры№эр 
+  ulong Thick2;          // Tюы•шэр ьръёшьры№эр  (єЄюы•хэш )
+ends
+
+
+TIMGDOT struc            // (129) ¦L=¦TL¦=L- TL=L-
+                                //      (size = 16)
+  TColor Color;           // гтхЄ ышэшш
+  ulong Thick;           // Tюы•шэa °Єpшїр
+  ulong Dash ;           // -ышэр °Єpшїр
+  ulong Blank;           // -ышэр яpюсхыр
+ends
+
+
+TIMGSQUARE struc         // (135) ¦T+-L-=+г ++'+¦T
+                                //      (size = 4)
+  TColor Color;           // гтхЄ яыю•рфш
+ends
+
+
+
+
+TIMGCIRCLE struc         // (140) +¦¦L¦=+TT-
+                                //      (size = 12)
+  TColor Color ;          // гтхЄ юъЁєцэюёЄш
+  ulong Thick ;          // Tюы•шэр ышэшш
+  ulong Radius;          // ¦рфшєё юъЁєцэюёЄш
+ends
+
+
+
+TIMGTEXT struc           // (142) +¦LLT                   // 30/01/01
+                                //      (size = 32)
+  TColor Color       ;   // гтхЄ ЄхъёЄр
+  ulong  BkgndColor  ;   // гтхЄ Їюэр (IMGC_TRANSPARENT - яЁючЁрўэvщ)
+  ulong  ShadowColor ;   // гтхЄ Єхэш (IMGC_TRANSPARENT - яЁючЁрўэvщ)
+  long  Height      ;   // TvёюЄр (¦Ёш ЁрёЄ уштрэшш яю ьхЄЁшъх
+                                 // яю єьюыўрэш¦ 1800 ьъь)
+  long  Weight      ;   // Tхё °ЁшЇЄр, Єюы•шэр ъюэЄєЁр (FW_THIN, ...)
+  word Align       ;   // TvЁртэштрэшх (FA_LEFT|FA_BASELINE, ...)
+  word Service     ;   // ¦ртэю 0
+  byte  Wide        ;   // +ЄэюёшЄхы№эр  °шЁшэр ёшьтюыр (UNIW_NORMAL, ...)
+  byte  Horizontal  ;   // ¦Ёшчэръ уюЁшчюэЄры№эюую Ёрёяюыюцхэш  (0/1)
+  byte  Italic      ;   // ¦Ёшчэръ эръыюэр ёшьтюыют (0/1)
+  byte  Underline   ;   // ¦Ёшчэръ яюфўхЁъштрэш     (0/1)
+  byte  StrikeOut   ;   // ¦Ёшчэръ яхЁхўхЁъштрэш    (0/1)
+  u1  Type        ;   // Tшя °ЁшЇЄр (эюьхЁ т ЄрсышЎх: 0,1,2,3,4)
+  byte  CharSet     ;   // ¦юфютр  ёЄЁрэшЎр (RUSSIAN_CHARSET, ...)
+  byte  Flag        ;   // Lыруш фы  ЄхъёЄр :
+                                 // 1 - ¦Ёшчэръ ЁрёЄ уштрэш  яю ьхЄЁшъх
+ends
+
+const
+  IMGTEXT_SCALE=1;
+
+set byteorder rev
+type bit
+
+TImgBit num+(1):displ=(CHR(' ' when (@=0) exc '*'))
+TBitLine array[32]of TImgBit:displ=(ShowArray(@,(@)))
+
+set byteorder norm
+
+type
+
+TBitMtr array[32]of TBitLine:displ=(ShowArray(@,(NL,'|',@,'|')))
+
+type
+
+TIMGFONT TIMGTEXT
+
+
+TIMGMARKCHAIN struc      // T++++=-г ¦LTT¦+T-г ++'+¦T г+¦++¦L
+                                //      (size = 4 + 128 = 132)
+  TColor Color    ;       // гтхЄ чэрър
+  TBitMtr Bits;       // ¦рёЄЁютюх шчюсЁрцхэшх 32x32 ё тхЁїэхую єуыр
+ends
+
+
+
+TIMGMULTIMARK struc      // (143) ¦=+++гT+T=-г T++++=-г
+                                //      (size = 20 + 132*Count)
+  ulong Length;          // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+  ulong Count ;          // +шёыю ЎтхЄют т чэръх
+  ulong Size  ;          // ¦рчьхЁ т ьшъЁюэрї (фы  яхўрЄш)
+  ulong PosV  ;          // Tюўър яЁшт чъш чэрър PosV,PosH  <  Size
+  ulong PosH  ;          //  (фы  IMGMULTISQUAREMARK - °ру ёхЄъш >= Size)
+  array[@.Count]of TIMGMARKCHAIN Mrk // чрЄхь: Count ёЄЁєъЄєЁ Єшяр IMGMARKCHAIN
+ends
+
+
+
+TIMGMULTISQUAREMARK struc// (144) ¦T+-L-=+г + ¦=+++гT+T=-г T++++=-г
+                                //      (size = 4 + 20+132*Count )
+  word Kind    ;       // Tшя ёхЄъш чряюыэхэш  4x4 (16 сшЄ)
+                                 //  (IMGK_REGULAR, ...)
+  byte  FullMark;       // Lыру чряюыэхэш 
+                                 //  0 - яю тёхщ яыю•рфш
+                                 //  1 - Єюы№ъю яюыэvьш чэрърьш
+  byte  Weight  ;       // Tхё чэрър, Єюы•шэр ъюэЄєЁр   // 27/04/00
+                                 //  0 - Єюэъшщ
+                                 //  1 - эюЁьры№эvщ
+  TIMGMULTIMARK   Mark    ;       // (143) ¦=+++гT+T=-г T++++=-г
+                                 // чрЄхь: Count ёЄЁєъЄєЁ Єшяр IMGMARKCHAIN
+ends
+
+
+
+TIMGDECOR struc          // ¦L++T+T+¦ +LTTL ¦L¦L¦+T¦+T
+
+  word Length;         // -ышэр ярЁрьхЄЁют >= 4
+                                 // (тъы¦ўр  sizeof(IMGDECOR))
+  //word Number;         // =юьхЁ ЇєэъЎшш
+  TImgFnInfo F
+  raw[] Rest
+ends:[@:Size=@.Length]
+
+
+const
+// Lыруш фы  эрсюЁр яЁшьшЄштют   // 28/07/00
+   IMGD_SPLINE=0x0001; // Lыру Ёшёютрэш  яю ёуырцхээющ ьхЄЁшъх
+
+type
+
+TIMGDRAW struc           // (147) =L++¦ ¦¦L¦LTLT+T
+
+  ulong Ident   ;        // LфхэЄшЇшърЄюЁ чряшёш 0x7FFF7FFFE
+  ulong Length  ;        // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+  word Count  ;        // ¦юышўхёЄтю яЁшьшЄштют
+  word Flags  ;        // -юыцхэ сvЄ№ 0
+  array[@.Count]of TIMGDECOR Image
+ends:assert[@.Ident=0x7FFF7FFE]
+
+TIMGDOTSHIFT struc       // (148) ¦L=¦TL¦ T¦+-+==-г
+                                //
+  TIMGDOT    Dot   ;              // ¦єэъЄшЁ
+  long      Shift ;              // =ряЁртыхэшх ш тхышўшэр ёфтшур
+                                 // 0 - яєэъЄшЁ ыхцшЄ ёяЁртр тяыюЄэє¦ ъ юёш
+                                 // > 0 ёфтшурхьё  тяЁртю юЄ юёш,шэрўх тыхтю
+                                 // яЁш ёфтшух = - °шЁшэр яєэъЄшЁ ыхцшЄ ёыхтр
+                                 // тяыюЄэє¦ ъ  юёш
+ends
+
+
+TIMGVECTPOINT struc      // -ы  (149) юяшёрэшх Єюўъш юс·хъЄр
+                                //      (size = 8)
+  long Hor;                      // ¦ююЁфшэрЄv юЄ Єюўъш яЁшт чъш
+  long Ver;                      // тяЁртю ш тэшч т ёююЄтхЄёЄтшш
+                                 // ё Єшяюь Ўхяюўъш:
+                                 //  гхэЄЁ  ¦рфшєёv  Tюўъш эрўрыр ш юъюэўрэш 
+                                 // Circle, Round  (h,v)  (dh,dh)
+                                 // Ellipse, Oval  (h,v)  (dh,dv)
+                                 // Arc,      Pie  (h,v)  (dh,dv) (h1,v1)(h2,v2)
+ends
+
+
+TIMGSHIFTLINEDOT forward
+TIMGLEFTLINEDOT forward
+TIMGVECTORTEXT forward
+
+TIMGPOLYDESC struc       // -ы  (149) юяшёрэшх Ўхяюўъш
+                                //      (size = 12 + 8*Count + Length)
+  TVType Type    ;       // Tшя Ўхяюўъш (VT_SQUARE, ...)
+                                 // фы  тvфхыхэш  сыюър VT_OBJECT,
+                                 // VT_SUBJECT, VT_END)
+  TImgFn  Image   ;       // Tшя ярЁрьхЄЁют
+                                 // (IMG_SQUARE, IMG_LINE, IMG_DOT,
+                                 // IMG_SHIFTLINEDOT, IMG_LEFTLINEDOT;
+  word Length  ;       // -ышэр ярЁрьхЄЁют (>= 4)
+  struc
+    case @@.Image of
+     IMG_SQUARE: TIMGSQUARE
+     IMG_LINE: TIMGLINE
+     IMG_DOT: TIMGDOT
+     IMG_SHIFTLINEDOT: TIMGSHIFTLINEDOT
+     IMG_LEFTLINEDOT: TIMGLEFTLINEDOT
+     IMG_VECTORTEXT: TIMGVECTORTEXT
+    endc Inf
+    raw[] rest
+  ends:[@:Size=@@.Length]  Parm    ;       // ¦рЁрьхЄЁv Ўхяюўъш яю хх Єшяє
+  ulong  Count   ;       // +шёыю Єюўхъ т Ўхяюўъх
+  array[@.Count]of TIMGVECTPOINT Point;       // ¦ююЁфшэрЄv фю 512 Єюўхъ
+ends
+
+
+TIMGVECTOREX struc       // (149,156) ¦L¦L¦+T¦- T+¦T+¦=+++ ++'+¦TL
+                                //      (size = 20 + ...)
+  long Length      ;             // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+  long PosV        ;             // Tюўър яЁшт чъш чэрър яю тхЁЄшърыш
+  long PosH        ;             //  ш уюЁшчюэЄрыш (яюыюцхэшх яхЁтющ Єюўъш)
+  long Base        ;             // -ышэр срчютющ юёхтющ ышэшш чэрър
+  long VLine1      ;             // =рўрыю юЄьхЄъш яю тхЁЄшърыш  (0)
+  long VLine2      ;             // ¦юэхЎ  юЄьхЄъш яю тхЁЄшърыш  (VSize)
+  long VSize       ;             // TЁхсєхьvщ ЁрчьхЁ юЄьхЄъш яю тхЁЄшърыш
+  long HLine1      ;             // =рўрыю юЄьхЄъш яю уюЁшчюэЄрыш (0)
+  long HLine2      ;             // ¦юэхЎ юЄьхЄъш яю уюЁшчюэЄрыш  (HSize)
+  long HSize       ;             // TЁхсєхьvщ ЁрчьхЁ юЄьхЄъш яю уюЁшчюэЄрыш
+  u1 Static      ;             // 1 - уюЁшчюэЄры№эюх Ёрёяюыюцхэшх
+                                 // 0 - яю ьхЄЁшъх
+  u1 Mirror      ;             // Lыру чхЁъры№эюую юЄюсЁрцхэш  чэрър
+                                 // т эряЁртыхэшш тЄюЁющ Єюўъш ьхЄЁшъш
+  u1 NoPress     ;             // ¦Ёшчэръ чряЁхЄр ёцрЄш  чэрър
+  u1 Scale       ;             // ¦Ёшчэръ ЁрёЄ уштрэш  яю ьхЄЁшъх
+  u1 Centre      ;             // ¦Ёшчэръ ЎхэЄЁшЁютрэш  яю ьхЄЁшъх
+  array[3]of byte Reserve  ;             // ¦хчхЁт
+  long Border      ;             // +рсрЁшЄv чэрър юЄ юЄёўхЄр т ьъь шыш 0
+  long Count       ;             // +шёыю ЇЁруьхэЄют,юяшёvтр¦•шї чэръ
+  array[@.Count]of TIMGPOLYDESC  Desc;             // +яшёрэшх ЇЁруьхэЄр
+ends
+                   // Єю цх фы  IMG_VECTOREXTURN (156)
+
+TTemplateCell enum long (
+  tcEmpty = 0,
+  tcLine = -1,
+  tcSign = -2
+)
+
+TTABLETEMPLATE struc     // ¦юёЄю ээр  ўрёЄ№ тхъЄюЁэюую °рсыюэр
+
+  long Length  ;                 // фышэр ёЄЁєъЄєЁv
+  array[12]of TTemplateCell Order;                 // ¦ыхЄъш ё ёхьрэЄшъющ
+                                 // 0-яєёЄр  ъыхЄър
+                                 // -1 ышэш   -2 чэръ
+                                 // >0  эюьхЁ ёхьрэЄшъш яюфяшёш  (ЄхъёЄ)
+  long Origin  ;                 // =юьхЁ ъыхЄъш яЁшт чъш
+  long Static  ;                 // 1 - уюЁшчюэЄры№эюх Ёрёяюыюцхэшх
+                                 // 0 - яю ьхЄЁшъх
+ends
+
+
+TIMGTEMPLATE struc       // (150) ¦L¦L¦+T¦- T+¦T+¦=+++ +L+T+=L
+                                //      (size = 20 + ...)
+  long Length               ;    // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+  TTABLETEMPLATE Table       ;    // ¦юёЄю ээр  ўрёЄ№ тхъЄюЁэюую °рсыюэр
+  long          Count       ;    // ¦юышўхёЄтю яЁшьшЄштют
+  TIMGDECOR      Text        ;    // ¦руюыютюъ ЄхъёЄр
+//  array[1]of ulong Parmtext ;    // ¦рЁрьхЄЁv ЄхъёЄр
+  TIMGDECOR      Line        ;    // ¦руюыютюъ ышэшш
+//  array[1]of ulong Parmline ;    // ¦рЁрьхЄЁv ышэшш
+  TIMGDECOR      Mark        ;    // ¦руюыютюъ чэрър
+//  array[1]of ulong Parmmark ;    // ¦рЁрьхЄЁv чэрър
+ends
+
+
+TIMGTRUETYPE struc       // (151) ¦L¦L¦+T¦- ¦=L¦L шч TRUETYPE +¦LLTL
+
+  TIMGTEXT Text     ;             // ¦рЁрьхЄЁv °ЁшЇЄр
+  array[32]of char FontName;             // Lёыютэюх эрчтрэшх °ЁшЇЄр
+  long Number      ;             // =юьхЁ чэрър т °ЁшЇЄх
+  long MinV        ;             // +рсрЁшЄv чэрър
+  long MinH        ;             //  юЄэюёшЄхы№эю Єюўъш яЁшт чъш
+  long MaxV        ;             // (0,0)
+  long MaxH        ;             // (H,H/2) - эрўры№эvх чэрўхэш 
+  long PosV        ;             // Tюўър яЁшт чъш чэрър яю тхЁЄшърыш
+  long PosH        ;             // ш уюЁшчюэЄрыш (0,0)
+ends
+
+
+TIMGTRUETEXT struc       // (152) +¦LLT
+                                //      (size = 64)
+  TIMGTEXT Text     ;             // ¦рЁрьхЄЁv °ЁшЇЄр (¦юых Type - яЁюшчтюы№эю)
+  array[32]of char FontName;             // Lёыютэюх эрчтрэшх °ЁшЇЄр
+ends
+
+
+
+TIMGHATCHSQUARE struc    // (153) +T¦L-+TL==-г ¦T+-L-=+г
+
+  long Length;               // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр,
+                                 // тъы¦ўр  ярЁрьхЄЁv °ЄЁшїютющ ышэшш
+  long Angle ;               // Lуюы эръыюэр °ЄЁшїютъш т уЁрфєёрї (0 - 180)
+                                 // яЁюЄшт ўрёютющ ёЄЁхыъш юЄ уюЁшчюэЄрыш
+  long Step  ;               // ¦рёёЄю эшх ьхцфє юё ьш °ЄЁшїютvї ышэшщ
+  long Number;               // =юьхЁ ЇєэъЎшш °ЄЁшїютющ ышэшш (IMGLINE шыш IMGDOT)
+                                 // чрЄхь: ярЁрьхЄЁv фы  °ЄЁшїютющ ышэшш
+ends
+
+
+TIMGSQUAREGLASS struc    // (154) ¦T+-L-=+г ++'+¦T - TT+¦T+
+                                //      (size = 8)
+  long Bright;            // ¦ЁюЎхэЄ шчьхэхэш   ЁъюёЄш (+/- 100)
+  long Contrast;          // ¦ЁюЎхэЄ шчьхэхэш  ъюэЄЁрёЄр (+/- 100)
+ends
+
+
+TIMGSQUAREVECTOR struc   // (155) ¦T+-L-=+г + T+¦T+¦=-г
+                                //
+  long           Length  ;       // -ышэр ёЄЁєъЄєЁv
+  word Kind    ;       // Tшя ёхЄъш чряюыэхэш  4x4 (16 сшЄ)
+                                 //  (IMGK_REGULAR, ...)
+  byte  FullMark;       // Lыру чряюыэхэш 
+                                 //  0 - яю тёхщ яыю•рфш
+                                 //  1 - Єюы№ъю яюыэvьш чэрърьш
+  byte  Reserv  ;       // -юыцхэ сvЄ№ 0
+  long           StepHor ;       // ¦рёёЄю эшх ьхцфє чэрърьш яю уюЁшчюэЄрыш
+  long           StepVer ;       // ¦рёёЄю эшх ьхцфє чэрърьш яю тхЁЄшърыш
+  long           Angle   ;       // Lуюы яютюЁюЄр чэрър юЄ тхЁЄшърыш яю ўрёютющ
+  TIMGVECTOREX    Mark    ;       // +яшёрэшх чэрър
+ends
+
+/*
+DO_BASE=1,           // срчютvщ юс·хъЄ (ышэш  ышсю яыю•рф№)
+                                 // юс·хъЄv чряюыэ ¦•шх ьхЄЁшъє
+DO_FIRST=2,           // эр яхЁтющ Єюўъх
+DO_END=3,           // эр яюёыхфэхщ Єюўъх
+DO_LEFT=4,           // ёыхтр эр ърцфющ Єюўъх
+DO_RIGHT=5,           // ёяЁртр эр ърцфющ Єюўъх
+DO_MIDDLE1=6,           // тфюы№ ышэшш (1 - юЇюЁьы ¦•шщ)
+DO_MIDDLE2=7,           // тфюы№ ышэшш (2 - чряюыэ ¦•шщ)
+*/
+
+TIMGDECORHEAD struc      // ¦L++T+T+¦ +L+¦¦T+==+++ TL=+г=+++
+
+  ulong Length      ;    // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+           long Begin       ;    // -ышэр эрўрыр ышэшш
+           long End         ;    // -ышэр ъюэЎр ышэшш
+           long Left        ;    // -ышэр эрўрыр юЄЁхчър
+           long Right       ;    // -ышэр ъюэЎр юЄЁхчър
+           long First       ;    // -ышэр яхЁтюую чряюыэ ¦•хую чэрър
+           long Second      ;    // -ышэр тЄюЁюую чряюыэ ¦•хую чэрър
+           char Equidistant ;    // ¦ртэюьхЁэю Ёрчьх•рЄ№ яю тёхщ ышэшш
+           array[3]of char Reserv   ;    // ¦хчхЁт - Ёртхэ 0
+ends
+
+
+TIMGDECORATE struc        // (157) +L+¦¦T+==-г TL=+г=-г
+
+  TIMGDECORHEAD   Head         ;   // ¦руюыютюъ
+  TIMGDECOR       Base         ;   // ¦руюыютюъ срчютющ ЇєэъЎшш
+//  array[1]of ulong BaseParm  ;   // ¦рЁрьхЄЁv срчютющ яю Єшяє
+  TIMGDECOR       Begin        ;   // ¦руюыютюъ эрўры№эюую чэрър ышэшш
+//  array[1]of ulong BeginParm ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       End          ;   // ¦руюыютюъ яюёыхфэхую чэрър ышэшш
+//  array[1]of ulong EndParm   ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Left         ;   // ¦руюыютюъ эрўры№эюую чэрър юЄЁхчър
+//  array[1]of ulong LeftParm  ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Rigth        ;   // ¦руюыютюъ яюёыхфэхую чэрър юЄЁхчър
+//  array[1]of ulong RigthParm ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       First        ;   // ¦руюыютюъ яхЁтюую чэрър тфюы№ юЄЁхчър
+//  array[1]of ulong FirstParm ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Second       ;   // ¦руюыютюъ тЄюЁюую чэрър тфюы№ юЄЁхчър
+//  array[1]of ulong SecondParm;   // ¦рЁрьхЄЁv яю Єшяє
+ends
+
+
+TIMGSECTION struc     // +яшёрэшх юЄфхы№эющ ёхъЎшш фы  (158)
+
+  ulong Length;       // -ышэр ярЁрьхЄЁют (тъы¦ўр  IMGSECTION)
+  ulong Number;       // =юьхЁ ЇєэъЎшш(IMG_EMPTY, IMG_LINE, IMG_VECTOREX,
+                              //               IMG_TRUETYPE)
+  ulong Base;         // -ышэр юЄЁхчър, чрэшьрхьр  ёхъЎшхщ
+  array[1]of ulong Parm;      // ¦рЁрьхЄЁv
+ends
+
+
+TIMGDASH struc           // (158) =L++¦=L- +T¦L-+TL- TL=L-
+
+  long    Length;            // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр,
+  long    Count;             // +шёыю юЄфхы№эvї ёхъЎшщ (°ЄЁшїют, яЁюсхыют, чэръют)
+  long    Last;              // ¦юЁ фъютvщ эюьхЁ ёхъЎшш (юЄ 0 фю Count-1),
+                                 // ¦ртхЁ°р¦•хщ ъюэЄєЁ юс·хъЄр
+  long    Border;            // ¦ръёшьры№эр  Єюы•шэр ёхъЎшщ
+  long    Reserve;           // ¦хчхЁт
+  array[1]of TIMGSECTION Section;        // +яшёрэшх юЄфхы№эющ ёхъЎшш
+ends
+
+
+TIMGLINESHIFT struc      // (159) C¦+-+==L- TL=L-
+
+  long    Length;            // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр,
+  long    Shift;             // =ряЁртыхэшх ш тхышўшэр ёфтшур
+                                 // = 0 - ЎхэЄЁ ышэшш тфюы№ юёш ьхЄЁшъш
+                                 // > 0 - ёфтшу тяЁртю юЄ юёш, шэрўх тыхтю
+  TIMGDECOR    Head;              // ¦руюыютюъ ышэшш
+ // array[1]of long Parm;           // ¦рЁрьхЄЁv ышэшш яю хх Єшяє
+ends
+
+
+TIMGVECTORTEXT struc     // (160) ¦L¦L¦+T¦- г+¦++¦L T+¦T+¦=+++ (VT_TEXT)
+                                // (size = 68)
+  TIMGTEXT  Text     ;            // ¦рЁрьхЄЁv °ЁшЇЄр
+  long Code     ;            // ¦юф ёхьрэЄшъш юс·хъЄр, фы  тvсюЁр яхЁхьхээюую
+                                 // ЄхъёЄр шыш 0 фы  яюёЄю ээюую ЄхъёЄр
+  array[32]of char Title;            // ¦юёЄю ээvщ ЄхъёЄ
+ends
+
+
+
+TIMGLIBRARY struc        // (250) ¦L¦L¦+T¦- ++'+¦TL(¦LTL+T ¦+T-¦+TLT+T-)
+
+  long Length  ;             // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+  long Code    ;             // ¦юф DLL (IML)
+  long Index   ;             // Lэфхъё DLL т ёяшёъх сшсышюЄхъ
+  long Function;             // ¦юф ЇєэъЎшш
+  TIMGDRAW  Draw    ;             // ¦рЁрьхЄЁv
+ends
+
+
+TIMGDOUBLE struc         // (253) TT+++-=-+ ¦L¦L¦+T¦- TL¦L DOUBLE
+  TDouble Value;
+ends
+
+
+TIMGLONG struc           // (254) TT+++-=-+ ¦L¦L¦+T¦- TL¦L LONG
+
+  long Value;
+ends
+
+
+TIMGOBJECT struc         // (255) +T++¦L¦LT-/T--+TLT- ++'+¦T
+                                //  T LTT+T=-- ¦=L¦L- ¦TLTTLLL¦LT+¦L
+                                 //      (size = 16)
+  TColor Color ;          // гтхЄ тvфхыхэш  юс·хъЄр эр ърЁЄх
+                                 //  (IMGC_NOMARK - эх тvфхы Є№)
+  ulong Incode;          // TэєЄЁхээшщ ъюф юс·хъЄр
+                                 //  (0 - єёЄрэртыштрхЄё  яю Excode ш Local)
+  ulong Excode;          // Tэх°эшщ ъюф юс·хъЄр
+  ulong Local ;          // TюърышчрЎш  юс·хъЄр (IMGL_LINE, ...)
+
+  // -ы  ЇєэъЎшщ Єшяр PaintMapObject(...) Incode єёЄрэртыштрхЄё 
+  // ртЄюьрЄшўхёъш. +ёыш тvфхыхэшх ЎтхЄюь эх эєцэю, Єю тьхёЄю
+  // рфЁхёр ёЄЁєъЄєЁv ьюцэю єърчvтрЄ№ эюы№.
+ends
+
+
+
+
+TIMGVECTORGRADIENT struc    // TT¦+¦++LT+T-=L- TT¦L¦TL¦L
+
+  TColor Color;        // гтхЄ уЁрфшхэЄэющ чрыштъш (COLORREF)
+  ulong Left;         // ¦ЁюЎхэЄ чряюыэхэш  урсрЁшЄют ёыхтр
+  ulong Right;        // ¦ЁюЎхэЄ чряюыэхэш  урсрЁшЄют ёяЁртр
+  ulong Bright;       // ¦ЁюЎхэЄ шчьхэхэш   ЁъюёЄш чрыштъш
+ends
+
+
+
+//**********************************************************************
+// LTTL¦+T+L+ TT¦L¦TL¦- ¦L¦L¦+T¦+T TL¦LLTL¦LгLL (чрьхэхэv эр IMGDRAW...)
+//**********************************************************************
+
+type
+
+TIMGLINEDOT struc        // (130) ¦L=¦TL¦ ¦+ TL=LL
+                                //      (size = 24)
+  TIMGLINE Line;                  // =шцэ   ышэш 
+  TIMGDOT  Dot ;                  // TхЁїэ   ышэш 
+ends
+
+
+
+TIMGDOUBLELINE struc     // (131) TL=L- ¦+ TL=LL
+                                //      (size = 16)
+  TIMGLINE OneLine;               // =шцэ   ышэш 
+  TIMGLINE TwoLine;               // TхЁїэ   ышэш 
+ends
+
+
+
+TIMGDOTDLINE struc       // (132) -T+г=L- TL=L- ¦+ ¦L=¦TL¦L
+                                //      (size = 32)
+  TIMGDOT        Dot   ;          // =шцэ   ышэш 
+  TIMGDOUBLELINE Double;          // TхЁїэ   ышэш 
+ends
+
+
+
+TIMGDOUBLEDOT struc      // (133) -T+г=+г ¦L=¦TL¦
+                                //      (size = 32)
+  TIMGDOT OneDot;                 // =шцэ   ышэш 
+  TIMGDOT TwoDot;                 // TхЁїэ   ышэш 
+ends
+
+
+
+TIMGSHIFTLINEDOT struc   // (134) ¦L=¦TL¦, T¦+-+==-г T¦¦LT+, ¦+ TL=LL
+                                //      (size = 24)
+  TIMGLINE Line;                  // =шцэ   ышэш 
+  TIMGDOT  Dot ;                  // TхЁїэ   ышэш -яєэъЄшЁ
+ends
+
+
+
+TIMGSQUARECROSS struc    // (136) +T¦L-+TL==L- ¦T+-L--
+                                //      (size = 16)
+  TColor Color;           // гтхЄ °Єpшїютъш (IMGC_TRANSPARENT - яЁючЁрўэvщ)
+  ulong Kind ;           // Tшя °Єpшїютъш (SC_HORIZONTAL, ...)
+  ulong Thick;           // Tюы•шэa °Єpшїa
+  ulong Blank;           // Tюы•шэa яpюсхыa
+ends
+
+
+TIMGMARK struc           // (137) T++++=-г ¦LTT¦+T-г ++'+¦T
+                                //      (size = 16 + 128 = 144)
+  TColor Color    ;       // гтхЄ чэрър
+  ulong Size     ;       // ¦рчьхЁ т ьшъЁюэрї (фы  яхўрЄш)
+  ulong PosV     ;       // Tюўър яЁшт чъш чэрър PosV,PosH < Size
+  ulong PosH     ;       //  (фы  IMGSQUAREMARK - °ру ёхЄъш >= Size
+  array[128]of byte Bits;       // ¦рёЄЁютюх шчюсЁрцхэшх 32x32 ё тхЁїэхую єуыр
+ends
+
+
+TIMGSQUAREMARK struc     // (138) ¦T+-L-=+г + T++++=-г
+                                //      (size = 8 + 144 = 152)
+  TColor Color   ;       // гтхЄ Їюэр (IMGC_TRANSPARENT - яЁючЁрўэvщ)
+  word Kind    ;       // Tшя ёхЄъш чряюыэхэш  4x4 (16 сшЄ)
+                                 //  (IMGK_REGULAR, ...)
+  byte  FullMark;       // Lыру чряюыэхэш 
+                                 //  0 - яю тёхщ яыю•рфш
+                                 //  1 - Єюы№ъю яюыэvьш чэрърьш
+  byte  Weight  ;       // Tхё чэрър, Єюы•шэр ъюэЄєЁр   // 27/04/00
+                                 //  0 - Єюэъшщ
+                                 //  1 - эюЁьры№эvщ
+  TIMGMARK        Mark    ;       // +яшёрэшх чэрър
+ends
+
+
+
+
+TIMGLEFTLINEDOT struc    // (145) ¦L=¦TL¦, T¦+-+==-г TT+T+, ¦+ TL=LL
+                                //      (size = 24)
+  TIMGLINE Line;                  // эшцэ   ышэш 
+  TIMGDOT  Dot ;                  // тхЁїэ   ышэш -яєэъЄшЁ
+ends
+
+
+
+TIMGDECHEAD struc        // ¦L++T+T+¦ +L+¦¦T+==+++ TL=+г=+++
+
+  ulong Length   ;       // ¦юыэр  фышэр чряшёш юяшёрэш  юс·хъЄр
+  long Distance ;       // ¦рёёЄю эшх ьхцфє чряюыэ ¦•шьш тхъЄюЁэ.
+ends
+
+                                 // ЁрсюЄр ёю ёЄЁєъЄєЁющ т ъырёёх
+                                 //
+TIMGDECORATELINE struc   // (146) +L+¦¦T+==-г TL=+г=-г
+
+  TIMGDECHEAD     Head        ;   // ¦руюыютюъ
+  TIMGDECOR       Base        ;   // ¦руюыютюъ срчютющ ЇєэъЎшш
+//  array[1]of ulong BaseParm ;   // ¦рЁрьхЄЁv срчютющ яю Єшяє
+  TIMGDECOR       First       ;   // ¦руюыютюъ эрўры№эюую
+//  array[1]of ulong FirstParm;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       End         ;   // ¦руюыютюъ ъюэхўэюую
+//  array[1]of ulong EndParm  ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Left        ;   // ¦руюыютюъ ыхтюую
+//  array[1]of ulong LeftParm ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Rigth       ;   // ¦руюыютюъ яЁртюую
+//  array[1]of ulong RigthParm;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Middle1     ;   // ¦руюыютюъ яхЁтюую юЇюЁьы ¦•хую
+//  array[1]of ulong Mid1Parm ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       Middle2     ;   // ¦руюыютюъ тЄюЁюую юЇюЁьы ¦•хую
+//  array[1]of ulong Mid2Parm ;   // ¦рЁрьхЄЁv яю Єшяє
+  TIMGDECOR       X   // Tръцх эрсы¦фрхЄё  - AX
+ends
+
+
+TImgFnInfo struc
+  TImgFn hFn
+  u1 b3
+  case @.hFn of
+   IMG_EMPTY: void
+   IMG_LINE: TIMGLINE
+   IMG_DOT: TIMGDOT
+   IMG_SQUARE: TIMGSQUARE
+   IMG_CIRCLE: TIMGCIRCLE
+   IMG_TEXT: TIMGTEXT
+   IMG_MULTIMARK: TIMGMULTIMARK
+   IMG_MULTISQUAREMARK: TIMGMULTISQUAREMARK
+   IMG_DRAW: TIMGDRAW
+   IMG_DOTSHIFT: TIMGDOTSHIFT
+   IMG_VECTOREX,IMG_VECTOREXTURN: TIMGVECTOREX
+   IMG_TEMPLATE: TIMGTEMPLATE
+   IMG_TRUETYPE: TIMGTRUETYPE
+   IMG_TRUETEXT: TIMGTRUETEXT
+   IMG_HATCHSQUARE: TIMGHATCHSQUARE
+   IMG_SQUAREGLASS: TIMGSQUAREGLASS
+   IMG_SQUAREVECTOR: TIMGSQUAREVECTOR
+   IMG_DECORATE: TIMGDECORATE
+   IMG_DASH: TIMGDASH
+   IMG_LINESHIFT: TIMGLINESHIFT
+   IMG_VECTORTEXT: TIMGVECTORTEXT
+   IMG_VECTORNODE: TIMGVECTOREX
+   IMG_THICKENLINE: TIMGTHICKENLINE
+   IMG_MIDDLETHICKENLINE: TIMGTHICKENLINE
+   IMG_VECTORGRADIENT: TIMGVECTORGRADIENT
+   IMG_PERCENT: TIMGLONG
+   IMG_LIBRARY: TIMGLIBRARY
+   IMG_SEMANTIC: TIMGLONG
+   IMG_DOUBLE: TIMGDOUBLE
+   IMG_LONG: TIMGLONG
+   IMG_OBJECT: TIMGOBJECT
+
+// LTTL¦+T+L+ TT¦L¦TL¦- ¦L¦L¦+T¦+T TL¦LLTL¦LгLL (чрьхэхэv эр IMGDRAW...)
+   IMG_LINEDOT: TIMGLINEDOT
+   IMG_DOUBLELINE: TIMGDOUBLELINE
+   IMG_DOTDLINE: TIMGDOTDLINE
+   IMG_DOUBLEDOT: TIMGDOUBLEDOT
+   IMG_SHIFTLINEDOT: TIMGSHIFTLINEDOT
+   IMG_SQUARECROSS: TIMGSQUARECROSS
+   IMG_MARK: TIMGMARK
+   IMG_SQUAREMARK: TIMGSQUAREMARK
+   IMG_LEFTLINEDOT: TIMGLEFTLINEDOT
+   IMG_DECORATELINE: TIMGDECORATELINE
+  endc D
+ends
+

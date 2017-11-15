@@ -1,0 +1,139 @@
+% Opcodes of ARM 32bit as data type(OP_ARM.rfi):Class: Machine OpCodes representation, Status: Complete, Last change: 29.11.2016 16:16:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type bit
+
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+TBit4 num+(4)
+TBit5 num+(5)
+TBit8 num+(8)
+TBit12 num+(12)
+TBit24 num+(24)
+TsBit24 num-(24)
+TBit32 num+(32)
+TRN enum TBit4 (R0,R1,R2,R3, R4,R5,R6,R7, R8,R9,R10,R11, R12,SP,LR,PC)
+TRNSet set 16 of (R0,R1,R2,R3, R4,R5,R6,R7, R8,R9,R10,R11, R12,SP,LR,PC)
+TCond enum TBit4 (EQ,NE,CS,CC, MI,PL,VS,VC, HI,LS,GE,LT, GT,LE,AL,UC)
+TArOp enum TBit4 (AND,EOR,SUB,RSB, ADD,ADC,SBC,RSC, 
+   TST,TEQ,CMP,CMN, ORR,MOV,BIC,MVN)
+TShiftOp enum TBit2 (SHL,SHR,ASR,ROR)
+
+TBrOfs24 ^TOpARMSeq NIL- =TsBit24 REF=(&(@:@)+4+@*4);
+
+//Coprocessor support
+TCRN enum TBit4 (c0,c1,c2,c3, c4,c5,c6,c7, c8,c9,c10,c11, c12,c13,c14,c15) //registers
+TCPNum enum TBit4 (p0,p1,p2,p3, p4,p5,p6,p7, p8,p9,p10,p11, p12,p13,p14,p15) //coprocessors
+
+type
+
+TARMOpCode enum TBit32 fields (
+  Cond: TCond @28.4, //Operation execution condition
+  Rn: TRN @16.4, //Source register
+  Rd: TRN @12.4, //Destination register
+  Rs: TRN @8.4,
+  Rm: TRN @0.4,
+  Shift: TShiftOp @5.2,
+  ShiftAmt: TBit5 @7.5,
+  Rotate: TBit4 @8.4,
+  ArOp: TArOp @21.4,
+  Immed8: TBit8 @0.8,
+  Immed12: TBit12 @0.12,
+  S: TBit @20.1, //Instruction updates condition codes
+  R: TBit @22.1, //in Move immediate to status register
+  Mask: TBit4 @16.4, //in Move immediate to status register
+  BL: TBit @24.1, //in Branch
+  BrOfs: TBrOfs24/*TsBit24*/ @0.24, //in Branch
+  SWIOfs: TBit24 @0.24, //in Software interrupts
+  Pls: TBit @24.1, //Pre(1)/post(0) index in Load/Store
+  Uls: TBit @23.1, //base Update mode (add(1)/sub(1)) in Load/Store
+  Bls: TBit @22.1, //Byte(1)/word(1) access in Load/Store
+  Wls: TBit @21.1, //Write back(1)/not update(0) address(P=1)/
+                   //Unpriviledged(1)/priviledged(0) (P=0) in Load/Store
+  Lls: TBit @20.1, //Load(1)/store(1) access in Load/Store
+  RegSet: TRNSet @0.16, //Register set in Load/Store multiple
+  RdHi: TRN @16.4, //Hi part of result register in multiplication
+  RdLo: TRN @12.4, //Lo part of result register in multiplication
+  UnM: TBit @22.1, //Unsigned mode in multiplication
+  AM: TBit @21.1, //Accumulate mode in multiplication
+  SM: TBit @20.1, //Status register update mode in multiplication
+
+  CRn: TCRN @16.4, //Source coprocessor register
+  CRd: TCRN @12.4, //Destination coprocessor register
+  cp_num: TCPNum @8.4, //Coprocessor number
+  CRm: TCRN @0.4,
+  Nls: TBit @22.1 //Long load
+) of (
+ //Data processing rotate right with extend
+  _DPRRX(cond,ArOp,S,Rn,Rd,Rm) =
+    0b____000_I________I____0000I0110____,
+ //Move status register to register
+  MSR(cond,R,Rd) =
+    0b____0001I0_001111I____0000I00000000,
+ //Move register to status register
+  MRS(cond,R,Mask,Rm) =
+    0b____0001I0_10____I11110000I0000____,
+ //Branch/exchange instruction set Thumb
+  BX(cond,Rm) =
+    0b____0001I00101111I11111111I0001____,
+ //Branch/exchange instruction set Java
+  BXJ(cond,Rm) =
+    0b____0001I00101111I11111111I0010____,
+ //Count leading zeros
+  CLZ(cond,Rd,Rm) =
+    0b____0001I01101111I____1111I0001____,
+ //Branch and link/exchange instruction set Thumb
+  BLX(cond,Rm) =
+    0b____0001I00101111I11111111I0011____,
+ //Data processing immediate shift
+  _DPImmedSh(cond,ArOp,S,Rn,Rd,ShiftAmt,Shift,Rm) =
+    0b____000_I________I________I___0____,
+ //Multiply (acc)
+  MulA(cond,Am,Sm,Rn,Rd,Rs,Rm) =
+    0b____0000I00______I________I1001____,
+ //Unsigned multiply acc acc long
+  UMAAL(cond,RdHi,RdLo,Rs,Rm) =
+    0b____0000I0100____I________I1001____,
+ //Multiply (acc) long
+  MulL(cond,UnM,Am,Sm,RdHi,RdLo,Rs,Rm) =
+    0b____0000I1_______I________I1001____,
+ //Data processing register shift
+  _DPRegSh(cond,ArOp,S,Rn,Rd,Rs,Shift,Rm) =
+    0b____000_I________I________I0__1____,
+ //Move immediate to status register
+  MovImmSt(cond,R,Mask,Rotate,immed8) =
+    0b____0011I0_10____I1111____I________,
+ //Undefined instruction
+  Undefined(cond,_) =
+    0b____0011I0_00____I________I________,
+ //Data processing register shift
+  _DPImmed(cond,ArOp,S,Rn,Rd,Rotate,immed8) =
+    0b____001_I________I________I________,
+ //Load/store immediate offset
+  _LSImmed(cond,Pls,Uls,Bls,Wls,Lls,Rn,Rd,immed12) =
+    0b____010_I________I________I________,
+ //Load/store register offset
+  _LSReg(cond,Pls,Uls,Bls,Wls,Lls,Rn,Rd,ShiftAmt,Shift,Rm) =
+    0b____011_I________I________I___0____,
+ //Load/store multiple
+  _LSM(cond,Pls,Uls,Bls,Wls,Lls,Rn,RegSet) =
+    0b____100_I________I________I________,
+ //Branch and Branch with link
+  Branch(cond,BL,BrOfs) =
+    0b____101_I________I________I________,
+ // Coprocessor load/store and double register transfers
+  _CoLS(cond,Pls,Uls,Nls,Wls,Lls,Rn,CRd,cp_num,immed8) =
+    0b____110_I________I________I________,
+ //Software interrupts
+  SWI(cond,SWIOfs) =
+    0b____1111I________I________I________
+):let IsStop=(((@.BL=0)and(@.cond>=TCond.AL)) exc 0
+/*=хЄ Єръющ ъюэёЄЁєъЎшш яюър case @ of
+  Branch: (@.BL<>0)and(@.cond>=TCond.AL);
+else 0
+endc*/);:let isCall=((@.BL=1) exc 0);
+
+TOpARMSeq codes of TARMOpCode ?@:isStop;: displ=('(',
+    ShowArray(@,(NL,HEX(&@ /*-&@:@*/ ,4),': ',@)),NL,')')
+

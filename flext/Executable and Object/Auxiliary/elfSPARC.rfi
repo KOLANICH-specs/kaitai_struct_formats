@@ -1,0 +1,119 @@
+% ELF SPARC specific(elfSPARC.rfi):Class: Executable and Object, Status: Auxiliary, Last change: 03.01.2018 21:53:18
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+descr ('ELF SPARC extension',NL,
+  'Info Source: sys/elf_SPARC.h in SunOS.',NL)
+type
+/*
+#define EF_SPARC_32PLUS_MASK    0xffff00        /* bits indicating V8+ type */
+#define EF_SPARC_32PLUS         0x000100        /* generic V8+ features */
+#define EF_SPARC_EXT_MASK       0xffff00        /* bits for vendor extensions */
+#define EF_SPARC_SUN_US1        0x000200        /* Sun UltraSPARC1 extensions */
+#define EF_SPARC_HAL_R1         0x000400        /* HAL R1 extensions */
+
+#define EF_SPARCV9_MM           0x3             /* mask for memory model */
+#define EF_SPARCV9_TSO          0x0             /* total store ordering */
+#define EF_SPARCV9_PSO          0x1             /* partial store ordering */
+#define EF_SPARCV9_RMO          0x2             /* relaxed memory ordering */
+*/
+
+type bit
+TSAPRCBit2 num+(2)
+
+/* mask for memory model */
+TE_Machine_Mem_Model enum TSAPRCBit2 (
+  EF_SPARCV9_TSO = 0, /* total store ordering */
+  EF_SPARCV9_PSO = 1, /* partial store ordering */
+  EF_SPARCV9_RMO = 2  /* relaxed memory ordering */
+)
+TE_Machine_Mem_Model_Byte struc
+  num+(6) rest
+  TE_Machine_Mem_Model MemModel
+ends
+
+type
+TE_Machine_VPlus set 16 of (
+  EF_SPARC_32PLUS=0, /* generic V8+ features */
+  EF_SPARC_SUN_US1=1,/* Sun UltraSPARC1 extensions */
+  EF_SPARC_HAL_R1=2  /* HAL R1 extensions */
+)
+
+TE_Machine_Flags struc
+  byte Rest
+  TE_Machine_VPlus V8Plus
+  TE_Machine_Mem_Model_Byte MMB
+ends
+
+/* relocation type */
+type
+TE_R_TYPE enum ER_TYPE (
+  R_SPARC_NONE     = 0,
+  R_SPARC_8        = 1,
+  R_SPARC_16       = 2,
+  R_SPARC_32       = 3,
+  R_SPARC_DISP8    = 4,
+  R_SPARC_DISP16   = 5,
+  R_SPARC_DISP32   = 6,
+  R_SPARC_WDISP30  = 7,
+  R_SPARC_WDISP22  = 8,
+  R_SPARC_HI22     = 9,
+  R_SPARC_22       = 10,
+  R_SPARC_13       = 11,
+  R_SPARC_LO10     = 12,
+  R_SPARC_GOT10    = 13,
+  R_SPARC_GOT13    = 14,
+  R_SPARC_GOT22    = 15,
+  R_SPARC_PC10     = 16,
+  R_SPARC_PC22     = 17,
+  R_SPARC_WPLT30   = 18,
+  R_SPARC_COPY     = 19,
+  R_SPARC_GLOB_DAT = 20,
+  R_SPARC_JMP_SLOT = 21,
+  R_SPARC_RELATIVE = 22,
+  R_SPARC_UA32     = 23,
+  R_SPARC_PLT32    = 24,
+  R_SPARC_HIPLT22  = 25,
+  R_SPARC_LOPLT10  = 26,
+  R_SPARC_PCPLT32  = 27,
+  R_SPARC_PCPLT22  = 28,
+  R_SPARC_PCPLT10  = 29,
+  R_SPARC_10       = 30,
+  R_SPARC_11       = 31,
+  R_SPARC_64       = 32,
+  R_SPARC_OLO10    = 33,
+  R_SPARC_HH22     = 34,
+  R_SPARC_HM10     = 35,
+  R_SPARC_LM22     = 36,
+  R_SPARC_PC_HH22  = 37,
+  R_SPARC_PC_HM10  = 38,
+  R_SPARC_PC_LM22  = 39,
+  R_SPARC_WDISP16  = 40,
+  R_SPARC_WDISP19  = 41,
+  R_SPARC_GLOB_JMP = 42,
+  R_SPARC_7        = 43,
+  R_SPARC_5        = 44,
+  R_SPARC_6        = 45,
+  R_SPARC_DISP64   = 46,
+  R_SPARC_PLT64    = 47,
+  R_SPARC_HIX22    = 48,
+  R_SPARC_LOX10    = 49,
+  R_SPARC_H44      = 50,
+  R_SPARC_M44      = 51,
+  R_SPARC_L44      = 52,
+  R_SPARC_REGISTER = 53,
+  R_SPARC_UA64     = 54,
+  R_SPARC_UA16     = 55,
+  R_SPARC_NUM      = 56   /* must be >last */
+)
+
+/*
+#define ELF_SPARC_MAXPGSZ       0x10000 /* maximum page size */
+#define ELF_SPARCV9_MAXPGSZ     0x100000
+
+#define SHF_ORDERED     0x40000000
+#define SHF_EXCLUDE     0x80000000
+
+#define SHN_BEFORE      0xff00
+#define SHN_AFTER       0xff01
+*/
+

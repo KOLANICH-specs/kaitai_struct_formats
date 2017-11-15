@@ -1,0 +1,195 @@
+% COFF Relocation information for different platforms(COFF_rel.rfi):Class: Executable and Object, Status: Auxiliary, Last change: 16.06.1999 17:00:44
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+%$IF COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.I386;
+//
+// I386 relocation types.
+//
+TIMAGE_REL_TYPE enum WORD (
+  I386_ABSOLUTE = 0x0000, // Reference is absolute, no relocation is necessary
+  I386_DIR16    = 0x0001, // Direct 16-bit reference to the symbols virtual address
+  I386_REL16    = 0x0002, // PC-relative 16-bit reference to the symbols virtual address
+  I386_DIR32    = 0x0006, // Direct 32-bit reference to the symbols virtual address
+  I386_DIR32NB  = 0x0007, // Direct 32-bit reference to the symbols virtual address, base not included
+  I386_SEG12    = 0x0009, // Direct 16-bit reference to the segment-selector bits of a 32-bit virtual address
+  I386_SECTION  = 0x000A,
+  I386_SECREL   = 0x000B,
+  I386_REL32    = 0x0014  // PC-relative 32-bit reference to the symbols virtual address
+)
+
+%$ELSIF (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.MIPS16)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.R3000)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.R4000)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.R10000)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.WCEMIPSV2)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.MIPSFPU)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.MIPSFPU16);
+//
+// MIPS relocation types.
+//
+TIMAGE_REL_TYPE enum WORD (
+  MIPS_ABSOLUTE  = 0x0000, // Reference is absolute, no relocation is necessary
+  MIPS_REFHALF   = 0x0001,
+  MIPS_REFWORD   = 0x0002,
+  MIPS_JMPADDR   = 0x0003,
+  MIPS_REFHI     = 0x0004,
+  MIPS_REFLO     = 0x0005,
+  MIPS_GPREL     = 0x0006,
+  MIPS_LITERAL   = 0x0007,
+  MIPS_SECTION   = 0x000A,
+  MIPS_SECREL    = 0x000B,
+  MIPS_SECRELLO  = 0x000C, // Low 16-bit section relative referemce (used for >32k TLS)
+  MIPS_SECRELHI  = 0x000D, // High 16-bit section relative reference (used for >32k TLS)
+  MIPS_JMPADDR16 = 0x0010,
+  MIPS_REFWORDNB = 0x0022,
+  MIPS_PAIR      = 0x0025
+)
+
+%$ELSIF (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.ALPHA)or
+   (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.ALPHA64);
+//
+// Alpha Relocation types.
+//
+TIMAGE_REL_TYPE enum WORD (
+  ALPHA_ABSOLUTE       = 0x0000,
+  ALPHA_REFLONG        = 0x0001,
+  ALPHA_REFQUAD        = 0x0002,
+  ALPHA_GPREL32        = 0x0003,
+  ALPHA_LITERAL        = 0x0004,
+  ALPHA_LITUSE         = 0x0005,
+  ALPHA_GPDISP         = 0x0006,
+  ALPHA_BRADDR         = 0x0007,
+  ALPHA_HINT           = 0x0008,
+  ALPHA_INLINE_REFLONG = 0x0009,
+  ALPHA_REFHI          = 0x000A,
+  ALPHA_REFLO          = 0x000B,
+  ALPHA_PAIR           = 0x000C,
+  ALPHA_MATCH          = 0x000D,
+  ALPHA_SECTION        = 0x000E,
+  ALPHA_SECREL         = 0x000F,
+  ALPHA_REFLONGNB      = 0x0010,
+  ALPHA_SECRELLO       = 0x0011, // Low 16-bit section relative reference
+  ALPHA_SECRELHI       = 0x0012, // High 16-bit section relative reference
+  ALPHA_REFQ3          = 0x0013, // High 16 bits of 48 bit reference
+  ALPHA_REFQ2          = 0x0014, // Middle 16 bits of 48 bit reference
+  ALPHA_REFQ1          = 0x0015, // Low 16 bits of 48 bit reference
+  ALPHA_GPRELLO        = 0x0016, // Low 16-bit GP relative reference
+  ALPHA_GPRELHI        = 0x0017  // High 16-bit GP relative reference
+)
+
+%$ELSIF COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.POWERPC;
+//
+// IBM PowerPC relocation types.
+//
+TIMAGE_REL_TYPE_B enum WORD (
+  PPC_ABSOLUTE = 0x0000, // NOP
+  PPC_ADDR64   = 0x0001, // 64-bit address
+  PPC_ADDR32   = 0x0002, // 32-bit address
+  PPC_ADDR24   = 0x0003, // 26-bit address, shifted left 2 (branch absolute)
+  PPC_ADDR16   = 0x0004, // 16-bit address
+  PPC_ADDR14   = 0x0005, // 16-bit address, shifted left 2 (load doubleword)
+  PPC_REL24    = 0x0006, // 26-bit PC-relative offset, shifted left 2 (branch relative)
+  PPC_REL14    = 0x0007, // 16-bit PC-relative offset, shifted left 2 (br cond relative)
+  PPC_TOCREL16 = 0x0008, // 16-bit offset from TOC base
+  PPC_TOCREL14 = 0x0009, // 16-bit offset from TOC base, shifted left 2 (load doubleword)
+
+  PPC_ADDR32NB = 0x000A, // 32-bit addr w/o image base
+  PPC_SECREL   = 0x000B, // va of containing section (as in an image sectionhdr)
+  PPC_SECTION  = 0x000C, // sectionheader number
+  PPC_IFGLUE   = 0x000D, // substitute TOC restore instruction iff symbol is glue code
+  PPC_IMGLUE   = 0x000E, // symbol is glue code; virtual address is TOC restore instruction
+  PPC_SECREL16 = 0x000F, // va of containing section (limited to 16 bits)
+  PPC_REFHI    = 0x0010,
+  PPC_REFLO    = 0x0011,
+  PPC_PAIR     = 0x0012,
+  PPC_SECRELLO = 0x0013, // Low 16-bit section relative reference (used for >32k TLS)
+  PPC_SECRELHI = 0x0014, // High 16-bit section relative reference (used for >32k TLS)
+  PPC_GPREL    = 0x0015
+)
+
+// Flag bits in IMAGE_RELOCATION.TYPE
+TIMAGE_REL_TYPE_F set 8 of (
+  PPC_NEG      ^ 0x01, // subtract reloc value rather than adding it
+  PPC_BRTAKEN  ^ 0x02, // fix branch prediction bit to predict branch taken
+  PPC_BRNTAKEN ^ 0x04, // fix branch prediction bit to predict branch not taken
+  PPC_TOCDEFN  ^ 0x08  // toc slot defined in file (or, data in toc)
+)
+
+TIMAGE_REL_TYPE struc
+  TIMAGE_REL_TYPE_F F
+  TIMAGE_REL_TYPE_B B
+ends
+
+%$ELSIF (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.SH3)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.SH3E)or
+  (COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.SH4);
+//
+// Hitachi SH3 relocation types.
+//
+TIMAGE_REL_TYPE enum WORD (
+  SH3_ABSOLUTE        = 0x0000, // No relocation
+  SH3_DIRECT16        = 0x0001, // 16 bit direct
+  SH3_DIRECT32        = 0x0002, // 32 bit direct
+  SH3_DIRECT8         = 0x0003, // 8 bit direct, -128..255
+  SH3_DIRECT8_WORD    = 0x0004, // 8 bit direct .W (0 ext.)
+  SH3_DIRECT8_LONG    = 0x0005, // 8 bit direct .L (0 ext.)
+  SH3_DIRECT4         = 0x0006, // 4 bit direct (0 ext.)
+  SH3_DIRECT4_WORD    = 0x0007, // 4 bit direct .W (0 ext.)
+  SH3_DIRECT4_LONG    = 0x0008, // 4 bit direct .L (0 ext.)
+  SH3_PCREL8_WORD     = 0x0009, // 8 bit PC relative .W
+  SH3_PCREL8_LONG     = 0x000A, // 8 bit PC relative .L
+  SH3_PCREL12_WORD    = 0x000B, // 12 LSB PC relative .W
+  SH3_STARTOF_SECTION = 0x000C, // Start of EXE section
+  SH3_SIZEOF_SECTION  = 0x000D, // Size of EXE section
+  SH3_SECTION         = 0x000E, // Section table index
+  SH3_SECREL          = 0x000F, // Offset within section
+  SH3_DIRECT32_NB     = 0x0010  // 32 bit direct not based
+)
+
+%$ELSIF COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.ARM;
+TIMAGE_REL_TYPE enum WORD (
+  ARM_ABSOLUTE = 0x0000, // No relocation required
+  ARM_ADDR32   = 0x0001, // 32 bit address
+  ARM_ADDR32NB = 0x0002, // 32 bit address w/o image base
+  ARM_BRANCH24 = 0x0003, // 24 bit offset << 2 & sign ext.
+  ARM_BRANCH11 = 0x0004, // Thumb: 2 11 bit offsets
+  ARM_SECTION  = 0x000E, // Section table index
+  ARM_SECREL   = 0x000F  // Offset within section
+)
+
+%$ELSIF COFFHdr.FileHeader.Machine=TIMAGE_FILE_MACHINE.IA64;
+//
+// IA64 relocation types.
+//
+TIMAGE_REL_TYPE enum WORD (
+  IA64_ABSOLUTE    = 0x0000,
+  IA64_IMM14       = 0x0001,
+  IA64_IMM22       = 0x0002,
+  IA64_IMM64       = 0x0003,
+  IA64_DIR32       = 0x0004,
+  IA64_DIR64       = 0x0005,
+  IA64_PCREL21B    = 0x0006,
+  IA64_PCREL21M    = 0x0007,
+  IA64_PCREL21F    = 0x0008,
+  IA64_GPREL22     = 0x0009,
+  IA64_LTOFF22     = 0x000A,
+  IA64_SECTION     = 0x000B,
+  IA64_SECREL22    = 0x000C,
+  IA64_SECREL64I   = 0x000D,
+  IA64_SECREL32    = 0x000E,
+  IA64_LTOFF64     = 0x000F,
+  IA64_DIR32NB     = 0x0010,
+  IA64_RESERVED_11 = 0x0011,
+  IA64_RESERVED_12 = 0x0012,
+  IA64_RESERVED_13 = 0x0013,
+  IA64_RESERVED_14 = 0x0014,
+  IA64_RESERVED_15 = 0x0015,
+  IA64_RESERVED_16 = 0x0016,
+  IA64_ADDEND      = 0x001F
+)
+%$ELSE
+TIMAGE_REL_TYPE WORD
+%$END
+
+

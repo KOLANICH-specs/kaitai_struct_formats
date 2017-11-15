@@ -1,0 +1,610 @@
+% OBJ and LIB files` data structures(OBJ.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 08.03.2008 14:49:46
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TObjRecKind enum byte (
+  okTHEADR = 0x80,
+  okLHEADR = 0x82,
+  okCOMENT = 0x88,
+  okMODEND = 0x8A,
+  okMODEND1= 0x8B,
+  okEXTDEF = 0x8C,
+  okTYPDEF = 0x8E,
+  okPUBDEF = 0x90,
+  okPUBDEF1= 0x91,
+  okLINNUM = 0x94,
+  okLINNUM1= 0x95,
+  okLNAMES = 0x96,
+  okSEGDEF = 0x98,
+  okSEGDEF1= 0x99,
+  okGRPDEF = 0x9A,
+  okFIXUPP = 0x9C,
+  okFIXUPP1= 0x9D,
+  okLEDATA = 0xA0,
+  okLEDATA1= 0xA1,
+  okLIDATA = 0xA2,
+  okLIDATA1= 0xA3,
+  okCOMDEF = 0xB0,
+  okBAKPAT= 0xB2,
+  okBAKPAT1= 0xB3,
+  okLEXTDEF= 0xB4,
+  okLEXTDEF1= 0xB5,
+  okLPUBDEF= 0xB6,
+  okLPUBDEF1= 0xB7,
+  okLCOMDEF= 0xB8,
+  okCEXTDEF= 0xBC,
+  okCOMDAT = 0xC2,
+  okCOMDAT1= 0xC3,
+  okLINSYM = 0xC4,
+  okLINSYM1= 0xC5,
+  okALIAS  = 0xC6,
+  okNBKPAT = 0xC8,
+  okNBKPAT1= 0xC9,
+  okLLNAMES= 0xCA,
+  okLIBHDR = 0xF0,
+  okLIBEnd = 0xF1
+)
+%88H IMPDEF--Import Definition Record (Comment Class A0, Subtype 01)  2
+%88H EXPDEF--Export Definition Record (Comment Class A0, Subtype 02)  2
+%88H INCDEF--Incremental Compilation Record (Cmnt Class A0, Sub 03)   2
+%88H LNKDIR--C++ Directives Record (Comment Class A0, Subtype 05)     2
+%88H LIBMOD--Library Module Name Record (Comment Class A3)            2
+%88H EXESTR--Executable String Record (Comment Class A4)              2
+%88H INCERR--Incremental Compilation Error (Comment Class A6)         2
+%88H NOPAD--No Segment Padding (Comment Class A7)                     2
+%88H WKEXT--Weak Extern Record (Comment Class A8)                     2
+%88H LZEXT--Lazy Extern Record (Comment Class A9)                     3
+%88H PharLap Format Record (Comment Class AA)                         3
+
+
+
+TXData raw[]
+
+TCommentClass enum byte (
+  ccTranslator = 0x00,
+  ccIntelCopyRight = 0x01,
+  ccOldLibSpec = 0x81, % ignored, replaced by 9F
+  ccOldMsDosVer = 0x9C, % ignored
+  ccMemModel = 0x9D, % ignored
+  ccDOSSEG = 0x9E,
+  ccDeftLibSearchName = 0x9F,
+  ccOMFExt = 0xA0,
+  ccNewOMFExt = 0xA1, %almost not used
+  ccLinkPass = 0xA2,
+  ccLIBMOD = 0xA3,
+  ccEXESTR = 0xA4,
+  ccINCERR = 0xA6,
+  ccNOPAD = 0xA7,
+  ccWKEXT = 0xA8,
+  ccLZEXT = 0xA9,
+  ccPharLapFmt = 0xAA, %may be obsolete
+  ccInitIbmFmt = 0xB0, %obsolete
+  ccRecOrder = 0xB1, %obsolete
+  ccComment = 0xDA,
+  ccCompiler = 0xDB, %pragma, ver N
+  ccDate = 0xDC,
+  ccTimestamp = 0xDD,
+  ccUser = 0xDF, % may be copyright
+  ccDependency = 0xE9, % Borland, include file ref
+  ccCmdLine = 0xFF % obsolete
+)
+
+TCharComment array of Char
+
+TIndex struc
+  Byte B
+  case @.B and 0x80 of
+    0x80: Byte
+  endc B0
+ends:displ=('#', INT(((@.B0.0x80)or((@.B and 0x7F)shl 8))exc @.B))
+
+TOfs word % ulong for 32-bit mode (if bit 0 of TObjRecKind is set)
+
+TIndices array of TIndex
+
+TOMFExtSubCl enum byte (
+  omfIMPDEF=1,
+  omfEXPDEF=2,
+  omfINCDEF=3,
+  omfLNKDIR=5
+)
+
+TOMFImpRec struc
+  Byte IsOrd
+  str InternalName
+  str ModuleName
+  case @.IsOrd of
+   0: str
+  else word
+  endc Id
+ends
+
+TOMFExpRec struc
+  Byte Flags
+  str ExportName
+  str InternalName
+  case @.Flags and 0x80 of
+   0: word
+  endc Id
+ends
+
+TOMFIncRec struc
+  int dExtDef
+  int dLinNum
+  TXData Padding
+ends
+
+TOMFLnkDirRec struc
+  Byte Flags
+  Byte PseudoCodeVer
+  Byte CodeViewVer
+ends
+
+TOMFRec struc
+  TOMFExtSubCl SubCl
+  case @.SubCl of
+   omfIMPDEF: TOMFImpRec
+   omfEXPDEF: TOMFExpRec
+   omfINCDEF: TOMFIncRec
+   omfLNKDIR: TOMFLnkDirRec
+  else TXData
+  endc Dat
+ends
+
+TNameAssoc struc
+  TIndex hName
+  TIndex hAssoc
+ends
+
+TNameAssocs array of TNameAssoc
+
+TNameNdxRec struc
+  str Name
+  TIndex NDX
+ends
+
+TNameNdxRecs array of TNameNdxRec
+
+TCommentRec struc
+  Byte Flags
+  TCommentClass hCl
+  case @.hCl of
+   ccOMFExt: TOMFRec
+   ccLIBMOD: str
+   ccEXESTR,
+   ccINCERR: TCharComment
+   ccNOPAD: TIndices
+   ccWKEXT,ccLZEXT: TNameAssocs
+  else TCharComment
+  endc Txt
+%  array[@:Size-2] of Char Txt
+ends
+
+TPubDefNameRec struc
+  str Name
+  TOfs Ofs
+  TIndex hType
+ends
+
+TPubDefNames array of TPubDefNameRec
+
+TPubDefRec struc
+  TIndex hBaseGr
+  TIndex hBaseSeg
+  case @.hBaseSeg.B of
+   0: word
+  endc BaseFrame
+  TPubDefNames Names
+ends
+
+TComDefDataType enum byte (
+  cdFar = 0x61, cdNear = 0x62
+)
+
+TComDefLen struc
+  Byte B
+  case @.B of
+   0x81: word
+   0x84: ulong
+  endc V
+ends
+
+TComDefRec struc
+  str Name
+  TIndex hType
+  TComDefDataType DT
+  case @.DT of
+   cdFar: TComDefLen
+  endc Cnt
+  TComDefLen ElSz
+ends
+
+TLineNum struc
+  int N
+  TOfs Ofs
+ends
+
+TLineNums array of TLineNum
+
+TLinNumRec struc
+  TIndex hBaseGr
+  TIndex hBaseSeg
+  TLineNums Lines
+ends
+
+TNames array of str
+
+TAbsSegFrameInf struc
+  word Frame
+  byte ofs
+ends
+
+type bit
+
+TBit num+(1)
+
+TBit2 num+(2)
+
+TBit3 num+(3)
+
+TBit4 num+(4)
+
+TSegAlign enum TBit3 (
+  saAbs =  0, //Absolute segment.
+                
+  saAl1 =  1, //Relocatable, byte aligned.
+                
+  saAl2 =  2, //Relocatable, word (2-byte, 16-bit) aligned.
+                
+  saAl16 = 3, //Relocatable, paragraph (16-byte) aligned.
+                
+  saAl256= 4, //Relocatable, aligned on 256-byte boundary (a "page"
+              // in the original Intel specification).
+                
+  saAl4 =  5, //Relocatable, aligned on a double word (4-byte)
+              //boundary. This value is used by the PharLap OMF for
+              //the same alignment.
+                
+  saAl4K = 6, //This value is used by the PharLap OMF for page (4K)
+              //alignment. It is not supported by LINK.
+                
+  saAlUndef = 7 //Not defined.
+)
+
+TSegCombine enum TBit3 (
+  scPrivate = 0, //Private. Do not combine with any other program
+                 //segment.
+                
+  scIBMRes1 = 1, //Reserved by IBM. Not supported by Microsoft.
+                
+  scPublic = 2,  //Public. Combine by appending at an offset that meets
+                 //the alignment requirement.
+                
+  scIBMRes3 = 3, //Reserved by IBM. Not supported by Microsoft.
+                
+  scPublicMS = 4, //As defined by Microsoft, same as C=2 (public).
+                
+  scStack = 5, //Stack. Combine as for C=2. This combine type forces
+               //byte alignment.
+                
+  scCommon = 6, //Common. Combine by overlay using maximum size.
+                
+  scPublicMS7 = 7  //As defined by Microsoft, same as C=2 (public).
+);         
+
+
+TSegAttrF struc
+  TBit P
+  TBit B
+  TSegCombine C
+  TSegAlign A
+ends
+
+type
+
+TSegAttr struc
+  TSegAttrF Flags
+  case @.Flags.A of
+    TSegAlign.saAbs: TAbsSegFrameInf
+  endc AbsInf
+ends
+
+type
+
+TSegDefRec struc
+  TSegAttr SegAttr
+  TOfs Len
+  TIndex hSegName
+  TIndex hClassName
+  TIndex hOverlayName
+ends
+
+TGrpElKind enum byte (
+  geSeg = 0xFF,
+  geExternal = 0xFE,
+  geSegFull = 0xFD,
+  geLTL = 0xFB,
+  geFrame = 0xFA
+)
+
+TGrpFullSegEl struc
+  TIndex hSeg
+  TIndex hClass
+  TIndex hOverlay
+ends
+
+
+TGrpElRec struc
+  TGrpElKind Kind
+  case @.Kind of
+    geSeg, geExternal: TIndex
+    geSegFull: TGrpFullSegEl
+    geFrame: TAbsSegFrameInf
+    %geLTL:
+  endc Data
+ends
+
+TGrpEls array of TGrpElRec
+
+TGrpDefRec struc
+  TIndex hName
+  TGrpEls Els
+ends
+
+/*
+TLibHdrRec struc
+  ulong DictOfs
+  word DictBlSz
+  byte Flags
+  raw[] rest
+ends
+*/
+
+TLEDataRec struc
+  TIndex hSeg
+  word Ofs
+  raw[] at &@.Ofs+2-@.Ofs; Data
+ends
+
+TLEData1Rec struc
+  TIndex hSeg
+  ulong Ofs
+  raw[] at &@.Ofs+2-@.Ofs; Data
+ends
+
+TLIDataBlock struc
+  word ReptCnt
+  word BlCnt
+  case @.BlCnt of
+   0: struc
+     Byte L
+     raw[@.L] M
+    ends
+  else array[@@.BlCnt]of TLIDataBlock
+  endc D
+ends
+
+TLIData1Block struc
+  ulong ReptCnt
+  word BlCnt
+  case @.BlCnt of
+   0: struc
+     Byte L
+     raw[@.L] M
+    ends
+  else array[@@.BlCnt]of TLIDataBlock
+  endc D
+ends
+
+TLIDataRec struc
+  TIndex hSeg
+  word Ofs
+  TLIDataBlock Data
+  raw[] rest
+ends
+
+TLIData1Rec struc
+  TIndex hSeg
+  ulong Ofs
+  TLIData1Block Data
+  raw[] rest
+ends
+
+set byteorder rev
+
+type bit
+
+TFixupFrameMethod enum TBit3 (
+  ffSEGDEF=0, //Specified by a SEGDEF index.
+                 
+  ffGRPDEF=1, //Specified by a GRPDEF index.
+                 
+  ffEXTDEF=2, //Specified by a EXTDEF index.
+                 
+  ffFRAMENUM=3, //Specified by an explicit frame number (not
+                //supported by LINK).
+                 
+  ffDATA=4, //The FRAME is determined by the segment
+            //index of the previous LEDATA or LIDATA
+            //record (that is, the segment in which the
+            //location is defined).
+                          
+  ffTarget=5 //The FRAME is determined by the TARGET's
+              //segment, group, or external index.
+)
+
+TFixupTargetMethod enum TBit3 (
+  ftSEGDEF=0, //Specified by a SEGDEF index.
+                 
+  ftGRPDEF=1, //Specified by a GRPDEF index.
+                 
+  ftEXTDEF=2, //Specified by a EXTDEF index.
+                 
+  ftFRAMENUM=3, //Specified by an explicit frame number (not
+                //supported by LINK).
+                 
+  ftSEGDEFOnly=4, //Specified by a SEGDEF index only; the displacement
+                 //in the FIXUP subrecord is assumed to be 0.
+                 
+  ftGRPDEFOnly=5, //Specified by a GRPDEF index only; the displacement
+                 //in the FIXUP subrecord is assumed to be 0.
+                 
+  ftEXTDEFOnly=6 //   Specified by a EXTDEF index only; the displacement
+                  //in the FIXUP subrecord is assumed to be 0.
+)
+
+TFixupThreadFlags struc
+  TBit Thread
+  TBit IsFrame //Frame or Target
+  TBit Z
+  case @.IsFrame of
+   1: TFixupFrameMethod
+  else TFixupTargetMethod 
+  endc Method
+  TBit2 hThread
+ends
+
+TFixupLocation enum TBit4 (
+              
+  flByteLo =    0, //Low-order byte (8-bit displacement or low byte
+                   //of 16-bit offset).
+                     
+  flWord =      1, //16-bit offset.
+                     
+  flSeg =       2, //16-bit base--logical segment base (selector).
+                     
+  flPtr2_2 =  3, //32-bit Long pointer (16-bit base:16-bit
+                   //offset).
+                     
+  flByteHi =    4, //High-order byte (high byte of 16-bit offset).
+                   //LINK does not support this type.
+                     
+  flWordLdr =   5, //16-bit loader-resolved offset, treated as
+                   //Location=1 by the linker.
+                     
+                   //Conflict: The PharLap OMF uses Location=5 to
+                   //indicate a 32-bit offset, whereas Microsoft
+                   //uses Location=9.
+                     
+  flRsrv6 =     6, //Not defined, reserved.
+                    
+                   //  Conflict: The PharLap OMF uses Location=6 to
+                   //  indicate a 48-bit pointer (16-bit base:32-bit
+                   //  offset), whereas Microsoft uses Location=11.
+                    
+  flRsrv7 =     7, //Not defined, reserved.
+                     
+  flDWORD =     9, //32-bit offset.
+                     
+  flPtr2_4 =    11,//48-bit pointer (16-bit base:32-bit offset).
+                     
+  flDWORDLdr =  13 //32-bit loader-resolved offset, treated as
+                   //Location=9 by the linker.
+)
+
+TFixupFlags struc
+  TBit Fixup
+  TBit IsSegRel //=1 for segment-relative fixups, and =0
+                //for self-relative fixups.
+  TFixupLocation Loc
+  num+(10) Ofs
+ends
+
+TFix struc
+  TBit UseFThread //Fixup thread
+  case @.UseFThread of
+   1: TBit3 //hFrame
+  else TFixupFrameMethod
+  endc Frame
+  TBit UseTThread //Target thread
+  case @.UseTThread of
+   1: TBit3 //hTarget(Lo 2) and High bit replacement for target method
+  else TFixupTargetMethod
+  endc Target
+ends
+
+set byteorder norm
+
+type
+
+TFixupThreadRec struc
+  TFixupThreadFlags F
+  case ((@.F.Method.0)exc(@.F.Method.1))>3 of
+    0: TIndex
+  endc NDX
+ends:assert[@.F.Thread=0]
+
+TFixupRec struc
+  TFixupFlags F
+//  Byte OfsLo
+  TFix Fix
+  case (not @.Fix.UseFThread)and((@.Fix.Frame.0)<=3) of
+   1: TIndex
+  endc FrameDat
+  case @.Fix.UseTThread of
+   0: TIndex
+  endc TargetDat
+  case ((@.Fix.Target.1)exc(@.Fix.Target.0))and 0x4 of
+   0: Word
+  endc Ofs
+ends:assert[@.F.Fixup=1]
+
+TFixup1Rec struc
+  TFixupFlags F
+//  Byte OfsLo
+  TFix Fix
+  case (not @.Fix.UseFThread)and((@.Fix.Frame.0)<=3) of
+   1: TIndex
+  endc FrameDat
+  case @.Fix.UseTThread of
+   0: TIndex
+  endc TargetDat
+  case ((@.Fix.Target.1)exc(@.Fix.Target.0))and 0x4 of
+   0: ulong
+  endc Ofs
+ends:assert[@.F.Fixup=1]
+
+
+TFIXUPPRec try
+  Thread: TFixupThreadRec
+  Fixup: TFixupRec
+endt
+
+TFIXUPP1Rec try
+  Thread: TFixupThreadRec
+  Fixup: TFixup1Rec
+endt
+
+TFIXUPPTbl(Sz)array of TFIXUPPRec:[@:Size=@:Sz]
+TFIXUPP1Tbl(Sz)array of TFIXUPP1Rec:[@:Size=@:Sz]
+
+TObjRec struc
+  TObjRecKind Kind
+  word size
+%  array [@.size-1] of Byte Data
+%  raw[@.size-1] Data
+  case @.Kind of
+    okTHEADR,okLHEADR: str
+    okCOMENT: TCommentRec
+    okEXTDEF: TNameNdxRecs
+    okPUBDEF: TPubDefRec
+    okCOMDEF: array of TComDefRec
+    okLINNUM: TLinNumRec
+    okLNAMES: TNames
+    okSEGDEF: TSegDefRec
+    okGRPDEF: TGrpDefRec
+  //okLIBHDR: TLibHdrRec
+    okLEDATA: TLEDataRec 
+    okLEDATA1: TLEData1Rec 
+    okLIDATA: TLIDataRec 
+    okLIDATA1: TLIData1Rec 
+    okFIXUPP: TFIXUPPTbl(@@.size-1)
+    okFIXUPP1: TFIXUPP1Tbl(@@.size-1)
+  else raw[] at &@@; //TXData
+  endc Data
+  Byte ChkSum
+ends :[@.Data:Size=@.Size-1]
+
+TObjRecStm array of TObjRec ? (@.Kind and 0xFE)=TObjRecKind.okMODEND;
+

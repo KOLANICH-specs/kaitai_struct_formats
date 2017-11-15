@@ -1,0 +1,11 @@
+% FAT - file system structure (when data extracted into a file)(FAT.rfh):Class: OS Specific, Status: Complete, Last change: 29.01.1999 20:36:18
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+/*
+ * FAT - file system structure
+ */
+include parttion.rfi
+
+data
+0x0000 TMasterBootRec MBR
+

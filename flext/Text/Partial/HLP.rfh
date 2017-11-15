@@ -1,0 +1,181 @@
+% Windows Help File(HLP.rfh):Class: Text, Status: Partial, Last change: 07.03.2008 9:18:22
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+% WHSTRUCT.H--Windows Help File Internal Records--Pete Davis and Ron Burk,
+%  June 1993. See "Undocumented Corner," DDJ, September 1993
+
+type
+  DWORD ulong
+
+const
+  HELP_MAGIC=0x00035F3F;
+
+type
+%PFILEHEADER ^TFILEHEADER near
+PWHIFS ^TWHIFSBTREEHEADER near
+
+% Help file Header record
+THELPHEADER struc
+  DWORD   MagicNumber %      /* 0x00035F3F                */
+  PWHIFS WHIFS %            /* File offset of WHIFS header   */
+  word WHIFS0
+  long    Negative1
+  long    FileSize %         /* Size of entire .HLP File  */
+ends
+
+data
+0000 THELPHEADER Hdr
+
+assert (Hdr.MagicNumber=HELP_MAGIC);
+
+descr ('Windows Help File.',NL,
+  'Info Source: WHSTRUCT.H--Windows Help File Internal Records--Pete Davis and Ron Burk,',NL,
+  '  June 1993. See "Undocumented Corner," DDJ, September 1993.',NL)
+
+type
+% File Header for WHIFS files
+
+TFILEHEADER struc
+  long    FilePlusHeader;  /* File size including this header */
+  long    FileSize;        /* File size not including header  */
+  char    TermNull;
+ends
+
+%/* Modified B-Tree Node header to handle a pointer to the page */
+TBTreeEntry struc
+  PChar name
+  ulong Ofs
+ends
+
+TBTREENODEHEADER struc
+  WORD    Signature %      /* Signature word            */
+  int     NEntries %      /* Number of entries         */
+  int     PreviousPage %   /* Index of Previous Page    */
+  int     NextPage %       /* Index of Next Page        */
+%  char    *BTData %        /* Pointer to B-Tree's data  */
+  array[@.NEntries] of TBTreeEntry Items
+  raw[] rest
+ends
+
+%/* Help Directory BTREE */
+TMagic18 raw[18]
+TGarbage13 raw[13]
+
+TWHIFSPage struc
+  case 0 of
+  else
+    TBTREENODEHEADER
+  endc data
+ends:[@.data:Size=1024]
+
+TWHIFSBTREEHEADER struc
+  TMagic18    Magic %     /* Not exactly magic for some .MVB files   */
+  TGarbage13  Garbage
+  int     MustBeZero %    /* Probably shows up when Help > ~40 megs  */
+  int     NSplits  %      /* Number of page split Btree has suffered */
+  int     RootPage %      /* Page # of root page                     */
+  int     MustBeNegOne %  /* Probably shows up when B-Tree is HUGE!! */
+  int     TotalPages %    /* total # to 2Kb pages in Btree           */
+  int     NLevels %       /* Number of levels in this Btree          */
+  DWORD   TotalWHIFSEntries
+  array [@.TotalPages] of TWHIFSPage Pages
+ends
+
+/* Modified B-Tree Index header to handle a pointer to the page */
+TBTREEINDEXHEADER struc
+    WORD    Signature %      /* Signature word            */
+    int     NEntries %      /* Number of entries in node */
+//    char    *IdxData
+ends
+
+%/* Phrase header for uncompressed |Phrases file */
+TPHRASEHDR struc
+    int     NumPhrases %   /* Number of phrases in table                    */
+    WORD    OneHundred %  /* 0x0100                                        */
+ends
+
+%/* Phrase header for compressed |Phrases file */
+TALTPHRASEHDR struc
+    int     NumPhrases %   /* Number of phrases in table                    */
+    WORD    OneHundred %  /* 0x0100                                        */
+    long    PhrasesSize %  /* Amount of space uncompressed phrases requires */
+ends
+
+%  Flags for |SYSTEM header Flags field below:  Unfortunately, none of these
+%  flags are particularly solid. The 0x0004 works MOST of the time. Another
+%  flag, 0x0008, appears both in Win32 .HLP files, and in files with Phrase
+%  compression but without LZ77 compression.
+%#define NO_COMPRESSION_310      0x0000
+%#define COMPRESSION_310         0x0004
+%#define SYSFLAG_300             0x000A
+%/* Header for |SYSTEM file */
+TSYSTEMHEADER struc
+    BYTE    Magic %     /* 0x6C                  */
+    BYTE    Version %   /* Version #             */
+    BYTE    Revision %  /* Revision code         */
+    BYTE    Always0 %   /* Unknown               */
+    WORD    Always1 %   /* Always 0x0001         */
+    DWORD   GenDate %  /* Date/Time that the help file was generated    */
+    WORD    Flags %    /* Values seen: 0x0000 0x0004, 0x0008, 0x000A    */
+ends
+
+%/*Types for SYSTEMREC RecordType below:  note that other record types,
+%  such as 0x0A, 0x0B, 0x0C, 0x0D, shown up in the large .MVB files used
+%  by the MSDN CD-ROM and Cinemania products. */
+%#define HPJ_TITLE       0x0001      /* Title from .HPJ file            */
+%#define HPJ_COPYRIGHT   0x0002      /* Copyright notice from .HPJ file */
+%#define HPJ_CONTENTS    0x0003      /* Contents=  from .HPJ            */
+%#define MACRO_DATA      0x0004      /* RData = 4 nulls if no macros    */
+%#define ICON_DATA       0x0005      /* Data for Icon                   */
+%#define HPJ_SECWINDOWS  0x0006      /* Secondary window info in .HPJ   */
+%#define HPJ_CITATION    0x0008      /* Citation= under [OPTIONS]       */
+%/* Secondary Window Record following type 0x0006 System Record */
+TWINTYPE array[10] of char
+TWINNAME array[9] of char
+TWINCAPTN array[51] of char
+TRGB array[3] of byte
+
+TSECWINDOW struc
+    WORD    Flags %          /* Flags (See Below)        */
+    TWINTYPE Type %       /* Type of window           */
+    TWINNAME Name %        /* Window name              */
+    TWINCAPTN Caption %    /* Caption for window       */
+    WORD    X %              /* X coordinate to start at */
+    WORD    Y %              /* Y coordinate to start at */
+    WORD    Width %          /* Width to create for      */
+    WORD    Height %         /* Height to create for     */
+    WORD    Maximize %       /* Maximize flag            */
+    TRGB    Rgb %         /* RGB for background       */
+    BYTE    Unknown1 %       /* No known use             */
+    TRGB    RgbNsr %      /* RGB for non scrollable region */
+    BYTE    Unknown2 %       /* No known use             */
+ends
+
+%/* Values for Secondary Window Flags */
+%#define WSYSFLAG_TYPE       0x0001  /* Type is valid        */
+%#define WSYSFLAG_NAME       0x0002  /* Name is valid        */
+%#define WSYSFLAG_CAPTION    0x0004  /* Ccaption is valid    */
+%#define WSYSFLAG_X          0x0008  /* X    is valid        */
+%#define WSYSFLAG_Y          0x0010  /* Y    is valid        */
+%#define WSYSFLAG_WIDTH      0x0020  /* Width    is valid    */
+%#define WSYSFLAG_HEIGHT     0x0040  /* Height   is valid    */
+%#define WSYSFLAG_MAXIMIZE   0x0080  /* Maximize is valid    */
+%#define WSYSFLAG_RGB        0x0100  /* Rgb  is valid        */
+%#define WSYSFLAG_RGBNSR     0x0200  /* RgbNsr   is valid    */
+%#define WSYSFLAG_TOP        0x0400  /* On top was set in HPJ file */
+%/* Help Compiler 3.1 System record. Multiple records possible */
+TSYSTEMREC struc
+    WORD    RecordType %   /* Type of Data in record      */
+    WORD    DataSize %     /* Size of RData               */
+//    char   *RData %        /* Raw data (Icon, title, etc) */
+ends
+
+%/* Header for |TOMAP file */
+TRsrv15 array[15] of long
+TTOMAPHEADER struc
+    long    IndexTopic %   /* Index topic for help file */
+    TRsrv15    Reserved
+    int     ToMapLen %     /* Number of topic pointers  */
+//    long    *TopicPtr %    /* Pointer to all the topics */
+ends
+

@@ -1,0 +1,119 @@
+% Microsoft OLE 2.0 Structured storage(DOCFILE.RFH):Class: Text, Status: Partial, Last change: 11.05.2005 19:09:58
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+
+0x0000 ulong Signature
+0x0004 ulong Signature1 //uinC: OLE version code
+
+assert (Signature=0xE011CFD0)and(Signature1=0xE11AB1A1);
+
+descr ('Microsoft OLE 2.0 Structured storage.',NL,
+  'Info Src: The POI Project (http://www.sf.net/projects/poi)',NL)
+
+
+const
+
+BIG_BLOCK_SIZE = 0x0200;
+PROPERTY_SIZE  = 0x0080;
+
+const
+
+//BAT - Block Allocation Table
+
+bat_array_offset      = 0x4c;
+max_bats_in_header    = (BIG_BLOCK_SIZE - bat_array_offset)div 4;
+
+type
+
+TBAT_El enum long (
+  CHAIN_END   = -2,
+  UNUSED = -1
+)
+
+TXBat(Base) forward
+
+PXBat(Base) ^TXBat(@:Base) NIL:@<=0 near=ulong, REF=(@+1)*BIG_BLOCK_SIZE;
+
+PProperty ^TProperty NIL:@<=0 near=ulong, REF=(@+1)*BIG_BLOCK_SIZE;
+
+TBatBl(Base) forward
+
+PBatBl(Base) ^TBatBl((@:Base+@:#)*0x80) NIL:@<=0 near=ulong,
+  REF=(@+1)*BIG_BLOCK_SIZE;
+
+THeader struc
+  array[4] of long Z4
+  word w3b //0x3b or 0x3e
+  int w03 //0x3
+  int w_2 //-2
+  int w9 //0x9//uinC: - sector size, log(512)
+  long w6 //0x6
+  long wz0
+  long wz1 //uinC: - word Rev,word Ver
+  ulong bat_count //0x2C
+  PProperty property_start //0x30
+  long LZ1 //0
+  ulong LZ2 //0x1000
+  ulong sbat_start
+  long LX1 //1;//uinC: - ? SBD continuation, usually 1
+  PXBat(max_bats_in_header) /*(@.bat_count-max_bats_in_header)*/ xbat_start
+  ulong xbat_count
+  array[(@.bat_count when (@.bat_count<=max_bats_in_header))exc
+    max_bats_in_header] of PBatBl(0) bat_array
+  raw[] at 0; rest
+ends:[@:Size=BIG_BLOCK_SIZE-8]
+
+TXBat(Base) struc
+  array[0x7F/*(@:Cnt when (@:Cnt<=0x7F))exc 0x7F*/] of PBatBl(@@:Base) bat_array
+  PXBat(@:Base+0x7F) xbat_start
+ends:[@:Size=BIG_BLOCK_SIZE]
+
+TBatBl(Base) array[0x80] of TBAT_El:displ=(ShowArray(@,
+  (INT(@:#+(@:@ as TBatBl):Base),'->',@,', ')))
+
+const
+
+NO_INDEX=-1;
+
+type
+
+TPropName(Cnt) struc
+  array/*[@:Cnt]*/of WChar N
+  raw[] rest
+ends:[@:Size=0x40,@.N:Size=@:Cnt]
+
+TPropType enum byte (
+  DIRECTORY = 1,
+  DOCUMENT = 2,
+  LOCK_BYTES = 3, //uinC
+  ROOT = 5
+)
+
+TPropNodeColor enum byte (
+  BLACK = 1,
+  RED = 0
+)
+
+TProperty struc
+  TPropName Name
+  int name_size
+  TPropType property_type
+  TPropNodeColor node_color
+  long previous_property
+  long next_property
+  long child_property
+  raw[20] D
+  long seconds_1
+  long days_1
+  long seconds_2
+  long days_2
+  ulong start_block
+  ulong size
+  ulong X
+ends:[@:Size=PROPERTY_SIZE, @.Name:Cnt=@.name_size]
+
+data
+
+0x0008 THeader Hdr
+

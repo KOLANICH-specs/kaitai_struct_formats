@@ -1,0 +1,63 @@
+% DOS/Win95 Directory structure datatypes(DIR.rfi):Class: OS Specific, Status: Complete, Last change: 04.05.2005 18:42:52
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+//DOS/Win95 Directory structure
+include DOSFTIME.RFI
+
+type
+
+TFileAttr set 8 of (
+  RdOnly=0, // 01H 1=Read-only (file can't be written/deleted)
+  Hidden=1,// 02H 1=Hidden
+  System=2,// 04H 1=System
+  VolLbl=3,// 08H 1=Volume label entry
+  SubDir=4,// 10H 1=subDirectory entry
+  Arhive=5 // 20H Archive bit. 1=file has NOT been backed up
+)
+
+TDosName struc pas
+  abName: array[8] of Char,<' '; //left-justified, blank-padded (e.g. 'FILE    '
+  abExt: array[3] of Char,<' '; //left-justified, blank-padded (e.g. 'EXT'
+ends
+
+TWinEntryRec struc pas
+  Cnt: Byte
+  FNameE1: array[5] of WChar
+  bAttr: TFileAttr        // file attribute
+  x1: word
+  abName: array[6] of WChar
+  x2: word
+  abName1: array[2] of WChar
+ends: assert[@.bAttr=0x0F]:displ=('#',@.FNameE1,@.abName,@.abName1,
+  ', Cnt=0x',HEX(@.Cnt),', x1=0x',HEX(@.x1),', x2=0x',HEX(@.x2))
+
+TFSize ulong():displ=(INT(@),'=0x',HEX(@))
+
+TDosEntryRec struc pas
+  FN: TDosName
+  bAttr: TFileAttr        // file attribute
+  res: raw[10] at &@; // (reserved)
+  DT: TFileTime
+//  rTime: Word //time created/last modified in FileTimeRec format
+//  rDate: Word //date created/last modified in FileDateRec format
+  wClstrNo: Word //cluster number of start of file (link into FAT)
+  lSize: TFSize //file size in bytes
+ends
+
+TDirEntryRec try
+  Win: TWinEntryRec
+  DOS: TDosEntryRec
+endt
+
+/*
+     abName  The name of the file or directory.  If fewer than 8
+              characters, it is padded to 8 with spaces (20H).  The
+              following bytes, when at offset 0, have special meaning:
+               00H ( ) The entry has never been used.
+               05H () The first character is really 0e5H
+               2eH (.) This is an alias for a directory. .=self, ..=parent
+               e5H (х) The entry has been deleted.
+*/
+TDirectoryTbl(Sz) array of TDirEntryRec ?(@.DOS.FN.abName[0]=0) exc
+   0!void;//:[@:Size=@:Sz]
+

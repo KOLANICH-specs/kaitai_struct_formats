@@ -1,0 +1,20 @@
+% Linux directory file (when data extracted into a file)(LXD.rfh):Class: OS Specific, Status: Complete, Last change: 16.12.1998 10:38:56
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+//Linux directory file
+
+type
+
+TFileRec struc
+  ulong L
+  word W
+  word WCnt
+  array[@.WCnt]of Char FName
+  (align 4) Al
+ends
+
+TFileTbl array of TFileRec ?@.WCnt=0!void;
+
+data
+0 TFileTbl Tbl
+

@@ -1,0 +1,31 @@
+% STL - stereolitography (3D model) file(STL.rfh):Class: 3D files, Status: Complete, Last change: 25.01.2019 17:33:36
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+0 array[5] of char Hdr0
+
+assert not(Hdr0='solid'); //ignore text version
+
+include Float.rfi
+
+type
+
+TSTLPoint array[3]of TSingle
+
+TSTLFace struc
+  TSTLPoint Normal //Normal vector
+  array[3]of TSTLPoint Vertex
+  Word Attr //Attribute byte count
+ends
+
+data
+5 array[75] of char Hdr1
+80 ulong Count
+
+
+assert 84+Count*50/*TSTLFace:Size*/=FileSize;
+
+data
+84 array[Count] of TSTLFace Faces
+
+

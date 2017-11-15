@@ -1,0 +1,41 @@
+% Windows Icon and Cursor data structures(ICO.rfi):Class: Graphics and Sounds, Status: Complete, Last change: 26.01.1999 14:38:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+//SRC: bmp.txt
+include BMP.RFI
+
+type
+
+TImageData(Sz) struc
+  TBitmapInfo BMI
+  TBitmapMtr(@.BMI.Hdr.biBitCount, @.BMI.Hdr.biHeight div 2,
+    @.BMI.Hdr.biWidth) Img
+  TBitmapMtr(1, @.BMI.Hdr.biHeight div 2,
+    @.BMI.Hdr.biWidth) Msk
+  raw[] rest
+ends:[@:Size = @:Sz]
+
+PImageData(Sz) ^TImageData(@:Sz) near=ulong
+
+TIconDirTbl(Cnt) forward
+
+TIconDirEntry struc
+  byte bWidth
+  byte bHeight
+  byte bColorCount
+  byte bReserved
+  word wXHotSpot//wPlanes
+  word wYHotSpot//wBitCount
+  DWORD dwBytesInRes
+  PImageData(@.dwBytesInRes) dwImageOffset
+ends
+
+TIconDirTbl(Cnt) array[@:Cnt] of TIconDirEntry
+
+TIconHeader struc
+  word ihReserved
+  word ihType
+  word ihCount
+  TIconDirTbl(@.ihCount) ihEntries
+ends
+

@@ -1,0 +1,93 @@
+% Windows NT/2000/XP Registry(reg_NT.rfi):Class: OS Specific, Status: Almost Complete, Last change: 11.11.2002 10:24:58
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+  TSign array[4] of Char
+  TSign2 array[2] of Char
+
+data
+0 TSign Sign
+
+assert Sign='regf';
+
+type
+
+  DWord ulong
+  QWord struc
+    ulong Lo
+    ulong Hi
+  ends: displ = (Hex(@.Hi,8),Hex(@.Lo,8))
+
+  TNTDateTime QWord
+
+  THeader struc
+    DWord X //????
+    DWord Xdup //???? Always the same value as at 0x00000004
+    TNTDateTime lastModif //last modify date in WinNT date-format
+    DWord D1 //1
+    DWord D3 //3
+    DWord D0 //0
+    DWord D1_ //1
+    DWord Keys //Offset of 1st key record
+    DWord DataSize //Size of the data-blocks (Filesize-4kb)
+    DWord D1_1 //1
+    raw[0x1CC] rest
+    DWord ChkSum //Sum of all D-Words from 0x00000000 to 0x000001FB
+  ends:assert[@.DataSize=FileSize-0x1000]
+
+data
+  0x0004 THeader Hdr
+
+assert Hdr:assert;
+descr ('Windows NT registry file.',NL,
+  'Info Src: WinReg.txt by B.D. from www.wotsit.org',NL)
+
+type
+
+TnkRec struc
+  Word	Kind //for the root-key: 0x2C, otherwise 0x20
+  TNTDateTime wrDT //write-date/time in windows nt notation
+  DWord parOfs //Offset of Owner/Parent key
+  DWord	nSubKey //number of sub-Keys
+  DWord	subKeyOfs //Offset of the sub-key lf-Records
+  DWord	nVal //number of values
+  DWord	valOfs //Offset of the Value-List
+  DWord skOfs //Offset of the sk-Record
+  DWord	classNameOfs //Offset of the Class-Name
+  DWord	Unused //(data-trash)
+  Word nameLen //name-length
+  Word classNameLen //class-name length
+//  array[/*@.nameLen*/] of WChar keyName
+ends
+
+TDataRec(Sz) struc
+  TSign2 id
+  case @.id of
+    'nk': TnkRec
+  endc D
+  raw[] at &@; rest
+ends:[@:Size=@:sz]
+
+TDataBl struc
+  DWord Sz
+  case @.Sz>0 of
+    1: raw[@@.Sz-4]
+  else TDataRec(-@@.Sz-4)
+  endc D
+ends:displ=(NL,HEX(&@,8),'[',INT(@.Sz)
+  /*HEX(( (@.Sz when(@.Sz>=0))exc(-@.Sz))-4,8)*/,']:',@.D)
+
+PHbinHeader(Base) ^THbinHeader NIL:@=0 near=Dword REF=@+@:Base;
+
+THbinHeader struc
+  TSign ID //ASCII-"hbin" = 0x6E696268
+  DWord Ofs //Offset from the 1st hbin-Block
+  PHbinHeader(&@) NextOfs //Offset to the next hbin-Block
+  DWord	Sz //Block-size
+  raw[0x10] rest
+  array of TDataBl Data
+ends:[@:Size=@.NextOfs]:assert[@.ID='hbin']
+
+data
+  0x1000 THbinHeader HBin
+

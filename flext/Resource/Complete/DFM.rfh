@@ -1,0 +1,161 @@
+% Borland Delphi form(DFM.rfh):Class: Resource, Status: Complete, Last change: 06.03.2008 10:10:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TFileHdr struc pas
+  bFF: byte
+  w10: word
+  ResName: pchar
+  w1030: word
+  ImageSize: ulong
+ends: assert[@.bFF=0xFF,@.w10=10,@.w1030=0x1030,@.ImageSize=FileSize-@:Size]
+
+data
+  0 TFileHdr FHdr
+  FHdr:Size array[4] of char Sign
+
+assert (Sign='TPF0')and FHdr:Assert;
+
+type
+TValueType enum byte (vaNull, vaList, vaInt8, vaInt16, vaInt32, vaExtended,
+  vaString, vaIdent, vaFalse, vaTrue, vaBinary, vaSet, vaLString,
+  vaNil, vaCollection, vaSingle, vaCurrency, vaDate, vaWString,
+  vaInt64, vaUTF8String)
+
+TExtended array[10] of Byte
+TSingle array[4] of Byte
+TCurrency array[8] of Byte
+TDateTime array[8] of Byte
+
+TLStr struc pas
+  L: ulong
+  S: array[@.L]of Char
+ends:displ=(@.S)
+
+TWStr struc pas
+  L: ulong
+  S: array[@.L]of WChar
+ends:displ=(@.S)
+
+include utf-8.rfi
+
+type
+
+TUtf8Str struc pas
+  L: ulong
+  S: TUtf8Array(@.L)
+ends:displ=(@.S)
+
+TInt64 struc pas
+  Lo: ulong
+  Hi: ulong
+ends:displ=(HEX(@.Hi),HEX(@.Lo,8))
+
+TValList forward
+TCollList forward
+
+TBinValRec struc pas
+  Count: ulong
+  D: raw[@.Count]
+ends
+
+TSetTbl array of str ?@[0]=0!Byte;
+
+TValue struc pas
+  T: TValueType
+  D: case @.T of
+    vaList: TValList
+    vaInt8: byte
+    vaInt16: word
+    vaInt32: ulong
+    vaExtended: TExtended
+    vaString: str
+    vaLString: TLStr
+    vaIdent: str
+    vaBinary: TBinValRec
+    vaSet: TSetTbl
+    vaCollection: TCollList
+    vaSingle: TSingle
+    vaCurrency: TCurrency
+    vaDate: TDateTime
+    vaWString: TWStr
+    vaInt64: TInt64
+    vaUTF8String: TUtf8Str//TLStr
+  endc
+ends
+
+TValList array of TValue ?@.T=TValueType.vaNull;
+
+TPropRec struc pas
+  Name: str
+  V: TValue
+ends
+
+TPropList array of TPropRec ?@.Name[0]=0!byte;
+
+TIntVal struc pas
+  T: TValueType
+  V: case @.T of
+    vaInt8: byte
+    vaInt16: word
+    vaInt32: ulong
+  endc
+ends: assert[(@.T=TValueType.vaInt8)or(@.T=TValueType.vaInt16)
+  or(@.T=TValueType.vaInt32)]
+
+TStopByte enum byte (S=0):assert[@=0]
+
+TCollRec struc pas
+  D: try
+    V: TIntVal
+    Z: TStopByte
+    E: void
+  endt
+  ListT: TValueType
+  Props: TPropList
+ends: assert[@.ListT=TValueType.vaList]
+
+TCollList array of TCollRec ?(@.D.Z=0)exc 0!byte;
+
+type bit
+  TFilerFlags set 4 of (ffInherited,ffChildPos)
+  TFilerPrefixFlags struc pas
+    F: TFilerFlags
+    Rest: num+(4)
+  ends
+
+type
+  TPrefixRec struc
+    TFilerPrefixFlags F
+    case (@.F.F and 0x2) of
+      0x2: TValue
+    endc ChildPos
+  ends:assert[@.F.Rest=0xF]
+
+type
+  TObjectRec forward
+
+  TObjectTbl array of (try
+    Z: TStopByte
+    O: TObjectRec
+  endt) ?(@.Z=0) exc 0;
+
+
+  TObjectRec struc pas
+    Prefix: try
+      P: TPrefixRec
+      E: void
+     endt
+    ClassName: str
+    ObjectName: str
+    PropList: TPropList
+    ObjList: TObjectTbl
+  ends
+
+data
+  FHdr:Size+4 TObjectRec RootObj
+
+descr ('Delphi (All versions) Form File Format.',NL,
+  'Info Source: <Delphi>/source/vcl/classes.pas',NL)
+

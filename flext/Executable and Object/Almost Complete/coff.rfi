@@ -1,0 +1,606 @@
+% Microsoft Portable Executable and Common Object File Format.(coff.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 01.02.2018 10:29:32
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include UNIXTime.rfi
+type
+
+SHORT int
+
+DWORD ulong
+
+ULONGLONG array[2] of ulong //Temp.
+
+TIMAGE_FILE_MACHINE enum word (
+//http://metadataconsulting.blogspot.ru/2014/06/imagefilemachine-extensive-machine-type.html
+  UNKNOWN         = 0,
+  I386            = 0x014c,  // Intel 386.
+  R3000           = 0x0162,  // MIPS little-endian, 0x160 big-endian
+  R4000           = 0x0166,  // MIPS little-endian
+  R10000          = 0x0168,  // MIPS little-endian
+  WCEMIPSV2       = 0x0169,  // MIPS little-endian WCE v2
+  ALPHA           = 0x0184,  // Alpha_AXP
+  POWERPC         = 0x01F0,  // IBM PowerPC Little-Endian
+  SH3             = 0x01a2,  // SH3 little-endian
+  SH3E            = 0x01a4,  // SH3E little-endian
+  SH4             = 0x01a6,  // SH4 little-endian
+  ARM             = 0x01c0,  // ARM Little-Endian
+  THUMB           = 0x01c2,  ////ARM or Thumb (interworking), (32-bit) core instruction set, used in Nintendo Gameboy Advance
+  ARMV7           = 0x01c4, //ARMv7 or ARMNT (or higher) Thumb mode only (32 bit)
+  IA64            = 0x0200,  // Intel 64
+  MIPS16          = 0x0266,  // MIPS
+  MIPSFPU         = 0x0366,  // MIPS
+  MIPSFPU16       = 0x0466,  // MIPS
+  ALPHA64         = 0x0284,  // ALPHA64
+  ARM64           = 0xaa64   // ARM8+ (64-bit)
+ //AXP64             IMAGE_FILE_MACHINE_ALPHA64
+)
+
+TIMAGE_FILE_Characteristics set 16 of (
+  RELOCS_STRIPPED,         // Relocation info stripped from file.
+  EXECUTABLE_IMAGE,        // File is executable  (i.e. no unresolved externel references).
+  LINE_NUMS_STRIPPED,      // Line nunbers stripped from file.
+  LOCAL_SYMS_STRIPPED,     // Local symbols stripped from file.
+  AGGRESIVE_WS_TRIM,       // Agressively trim working set
+  LARGE_ADDRESS_AWARE,     // App can handle >2gb addresses
+  MACHINE_16BIT,           //Use of this flag is reserved for future use.
+  BYTES_REVERSED_LO,       // Bytes of machine word are reversed.
+  MACHINE_32BIT,           // 32 bit word machine.
+  DEBUG_STRIPPED,          // Debugging info stripped from file in .DBG file
+  REMOVABLE_RUN_FROM_SWAP, // If Image is on removable media, copy and run from the swap file.
+  NET_RUN_FROM_SWAP,       // If Image is on Net, copy and run from the swap file.
+  SYSTEM,                  // System File.
+  DLL,                     // File is a DLL.
+  UP_SYSTEM_ONLY,          // File should only be run on a UP machine
+  BYTES_REVERSED_HI        // Bytes of machine word are reversed.
+)
+
+TIMAGE_SYMBOL_TABLE_REC(Cnt) forward
+
+PIMAGE_SYMBOL_TABLE(Cnt) ^TIMAGE_SYMBOL_TABLE_REC(@:Cnt) NEAR=DWORD
+
+TIMAGE_FILE_HEADER struc
+  TIMAGE_FILE_MACHINE Machine;
+  WORD    NumberOfSections;
+  TTimeStamp TimeDateStamp;
+  PIMAGE_SYMBOL_TABLE SymbolTablePtr;
+  DWORD   NumberOfSymbols;
+  WORD    SizeOfOptionalHeader;
+  TIMAGE_FILE_Characteristics Characteristics;
+ends:[@.SymbolTablePtr:Cnt=@.NumberOfSymbols]
+
+//
+// Directory format.
+//
+TIMAGE_DIRECTORY_ENTRY_NUM enum byte (
+  EXPORT       =  0, // Export Directory
+  IMPORT       =  1, // Import Directory
+  RESOURCE     =  2, // Resource Directory
+  EXCEPTION    =  3, // Exception Directory
+  SECURITY     =  4, // Security Directory
+  BASERELOC    =  5, // Base Relocation Table
+  DEBUG        =  6, // Debug Directory
+  COPYRIGHT    =  7, // (X86 usage)
+//  ARCHITECTURE =  7, // Architecture Specific Data
+  GLOBALPTR    =  8, // RVA of GP
+  TLS          =  9, // TLS Directory
+  LOAD_CONFIG  = 10, // Load Configuration Directory
+  BOUND_IMPORT = 11, // Bound Import Directory in headers
+  IAT          = 12, // Import Address Table
+  DELAY_IMPORT = 13, // Delay Load Import Descriptors
+  COM_DESCRIPTOR=14  // COM Runtime descriptor
+)
+
+TIMAGE_DATA_DIRECTORY struc
+  DWORD   VirtualAddress;
+  DWORD   Size;
+ends:displ=('[',valname(@:#,TIMAGE_DIRECTORY_ENTRY_NUM)/*Wrong !!!*/,']',@)
+
+TIMAGE_OPTIONAL_HDR_MAGIC enum word (
+  NT32=0x10b,
+  NT64=0x20b,
+  ROM =0x107
+)
+
+TIMAGE_OPTIONAL_HEADER_STD struc
+  TIMAGE_OPTIONAL_HDR_MAGIC Magic;
+  BYTE    MajorLinkerVersion;
+  BYTE    MinorLinkerVersion;
+  DWORD   SizeOfCode;
+  DWORD   SizeOfInitializedData;
+  DWORD   SizeOfUninitializedData;
+  DWORD   AddressOfEntryPoint;
+  DWORD   BaseOfCode;
+ends
+
+TIMAGE_SUBSYSTEM enum word (
+  UNKNOWN            = 0, // Unknown subsystem.
+  NATIVE             = 1, // Image doesn't require a subsystem.
+  WINDOWS_GUI        = 2, // Image runs in the Windows GUI subsystem.
+  WINDOWS_CUI        = 3, // Image runs in the Windows character subsystem.
+  OS2_CUI            = 5, // image runs in the OS/2 character subsystem.
+  POSIX_CUI          = 7, // image runs in the Posix character subsystem.
+  NATIVE_WINDOWS     = 8, // image is a native Win9x driver.
+  WINDOWS_CE_GUI     = 9  // Image runs in the Windows CE subsystem.
+  EFI_APPLICATION = 10, // An EFI application.
+  EFI_BOOT_SERVICE_DRIVER = 11, // An EFI driver with boot services.
+  EFI_RUNTIME_DRIVER = 12, // An EFI driver with run-time services.
+  EFI_ROM = 13, // An EFI ROM image.
+  XBOX = 14, // XBOX.
+  WINDOWS_BOOT_APPLICATION = 16 // A BCD application.
+)
+
+TIMAGE_LIBRARY_Characteristics set 16 of (
+  PROCESS_INIT ^ 0x0001, // Reserved.
+  PROCESS_TERM ^ 0x0002, // Reserved.
+  THREAD_INIT ^ 0x0004, // Reserved.
+  THREAD_TERM ^ 0x0008, // Reserved.
+  WDM_DRIVER ^ 0x2000  // Driver uses WDM model
+)
+
+TIMAGE_OPTIONAL_HEADER_NT struc
+  DWORD   BaseOfData;
+  DWORD   ImageBase;
+  DWORD   SectionAlignment;
+  DWORD   FileAlignment;
+  WORD    MajorOperatingSystemVersion;
+  WORD    MinorOperatingSystemVersion;
+  WORD    MajorImageVersion;
+  WORD    MinorImageVersion;
+  WORD    MajorSubsystemVersion;
+  WORD    MinorSubsystemVersion;
+  DWORD   Win32VersionValue;
+  DWORD   SizeOfImage;
+  DWORD   SizeOfHeaders;
+  DWORD   CheckSum;
+  TIMAGE_SUBSYSTEM Subsystem;
+  TIMAGE_LIBRARY_Characteristics DllCharacteristics;
+  DWORD   SizeOfStackReserve;
+  DWORD   SizeOfStackCommit;
+  DWORD   SizeOfHeapReserve;
+  DWORD   SizeOfHeapCommit;
+  DWORD   LoaderFlags;
+  DWORD   NumberOfRvaAndSizes;
+  array[@.NumberOfRvaAndSizes/*16*/] of TIMAGE_DATA_DIRECTORY DataDirectory;
+ends
+
+TIMAGE_OPTIONAL_HEADER_NT64 struc
+//  DWORD   BaseOfData; - not used here
+  ULONGLONG ImageBase;
+  DWORD   SectionAlignment;
+  DWORD   FileAlignment;
+  WORD    MajorOperatingSystemVersion;
+  WORD    MinorOperatingSystemVersion;
+  WORD    MajorImageVersion;
+  WORD    MinorImageVersion;
+  WORD    MajorSubsystemVersion;
+  WORD    MinorSubsystemVersion;
+  DWORD   Win32VersionValue;
+  DWORD   SizeOfImage;
+  DWORD   SizeOfHeaders;
+  DWORD   CheckSum;
+  TIMAGE_SUBSYSTEM Subsystem;
+  WORD    DllCharacteristics;
+  ULONGLONG SizeOfStackReserve;
+  ULONGLONG SizeOfStackCommit;
+  ULONGLONG SizeOfHeapReserve;
+  ULONGLONG SizeOfHeapCommit;
+  DWORD   LoaderFlags;
+  DWORD   NumberOfRvaAndSizes;
+  array[@.NumberOfRvaAndSizes/*16*/] of TIMAGE_DATA_DIRECTORY DataDirectory;
+ends
+
+TIMAGE_OPTIONAL_HEADER_ROM struc
+  DWORD  BaseOfData;
+  DWORD  BaseOfBss;
+  DWORD  GprMask;
+  array[4] of DWORD CprMask;
+  DWORD  GpValue;
+ends
+
+type bit
+
+TIMAGE_SCN_FLAGS0 set 20 of (
+//  TYPE_REG                 ^ 0x00000000, // Reserved.
+  TYPE_DSECT               ^ 0x00000001, // Reserved.
+  TYPE_NOLOAD              ^ 0x00000002, // Reserved.
+  TYPE_GROUP               ^ 0x00000004, // Reserved.
+  TYPE_NO_PAD              ^ 0x00000008, // Reserved.
+  TYPE_COPY                ^ 0x00000010, // Reserved.
+
+  CNT_CODE                 ^ 0x00000020, // Section contains code.
+  CNT_INITIALIZED_DATA     ^ 0x00000040, // Section contains initialized data.
+  CNT_UNINITIALIZED_DATA   ^ 0x00000080, // Section contains uninitialized data.
+
+  LNK_OTHER                ^ 0x00000100, // Reserved.
+  LNK_INFO                 ^ 0x00000200, // Section contains comments or some other type of information.
+  TYPE_OVER                ^ 0x00000400, // Reserved.
+  LNK_REMOVE               ^ 0x00000800, // Section contents will not become part of image.
+  LNK_COMDAT               ^ 0x00001000, // Section contents comdat.
+//                           0x00002000, // Reserved.
+//MEM_PROTECTED - Obsolete ^ 0x00004000,
+  NO_DEFER_SPEC_EXC        ^ 0x00004000, // Reset speculative exceptions handling bits in the TLB entries for this section.
+  GPREL                    ^ 0x00008000, // Section content can be accessed relative to GP
+//MEM_FARDATA              ^ 0x00008000,
+  MEM_SYSHEAP              ^ 0x00010000, //- Obsolete
+  MEM_PURGEABLE            ^ 0x00020000,
+//MEM_16BIT                ^ 0x00020000,
+  MEM_LOCKED               ^ 0x00040000,
+  MEM_PRELOAD              ^ 0x00080000
+)
+
+TBit4 num+(4)
+
+TIMAGE_SCN_ALIGN enum TBit4 (
+  ALIGN_1BYTES    = 0x1, //
+  ALIGN_2BYTES    = 0x2, //
+  ALIGN_4BYTES    = 0x3, //
+  ALIGN_8BYTES    = 0x4, //
+  ALIGN_16BYTES   = 0x5, // Default alignment if no others are specified.
+  ALIGN_32BYTES   = 0x6, //
+  ALIGN_64BYTES   = 0x7, //
+  ALIGN_128BYTES  = 0x8, //
+  ALIGN_256BYTES  = 0x9, //
+  ALIGN_512BYTES  = 0xA, //
+  ALIGN_1024BYTES = 0xB, //
+  ALIGN_2048BYTES = 0xC, //
+  ALIGN_4096BYTES = 0xD, //
+  ALIGN_8192BYTES = 0xE //
+)
+
+TIMAGE_SCN_FLAGS1 set 8 of (
+  LNK_NRELOC_OVFL ^ 0x01, // Section contains extended relocations.
+  MEM_DISCARDABLE ^ 0x02, // Section can be discarded.
+  MEM_NOT_CACHED  ^ 0x04, // Section is not cachable.
+  MEM_NOT_PAGED   ^ 0x08, // Section is not pageable.
+  MEM_SHARED      ^ 0x10, // Section is shareable.
+  MEM_EXECUTE     ^ 0x20, // Section is executable.
+  MEM_READ        ^ 0x40, // Section is readable.
+  MEM_WRITE       ^ 0x80 // Section is writeable.
+)
+
+TIMAGE_SCN_FLAGS /*DWORD*/ struc
+  TIMAGE_SCN_FLAGS0 F0
+  TIMAGE_SCN_ALIGN Al
+  TIMAGE_SCN_FLAGS1 F1
+ends
+
+//
+// TLS Characteristic Flags
+//
+//#define IMAGE_SCN_SCALE_INDEX                0x00000001  // Tls index is scaled
+
+type
+TSectionData(Sz) raw[@:Sz]
+PSectionData(Sz) ^TSectionData(@:Sz) near=DWORD
+
+TIMAGE_RELOCATION_TBL(Cnt) forward
+PIMAGE_RELOCATION_TBL(Cnt) ^TIMAGE_RELOCATION_TBL(@:Cnt) near=DWORD
+
+TIMAGE_LINENUMBER_Tbl(Cnt) forward
+PIMAGE_LINENUMBER_Tbl(Cnt) ^TIMAGE_LINENUMBER_Tbl(@:Cnt) NEAR=DWORD
+
+TIMAGE_SECTION_HEADER struc
+  array[8] of char,<0; Name;
+  /*  union {
+            DWORD   PhysicalAddress;
+            DWORD   VirtualSize;
+    } Misc; */
+  DWORD   VirtualSize;
+  DWORD   VirtualAddress;
+  DWORD   SizeOfRawData;
+  PSectionData(@.SizeOfRawData) PointerToRawData;
+  PIMAGE_RELOCATION_TBL PointerToRelocations;
+  PIMAGE_LINENUMBER_Tbl PointerToLinenumbers;
+  WORD    NumberOfRelocations;
+  WORD    NumberOfLinenumbers;
+  TIMAGE_SCN_FLAGS Characteristics;
+ends:[@.PointerToRelocations:Cnt=@.NumberOfRelocations,
+  @.PointerToLinenumbers:Cnt=@.NumberOfLinenumbers]:
+  autoname=('sec_',@.Name,'(',INT(@:#),')') //Will name data references
+
+TIMAGE_HEADERS struc
+  TIMAGE_FILE_HEADER FileHeader;
+  case @.FileHeader.SizeOfOptionalHeader<28 of
+    0: struc
+      TIMAGE_OPTIONAL_HEADER_STD std
+      case @.std.Magic of
+        NT32: TIMAGE_OPTIONAL_HEADER_NT
+        NT64: TIMAGE_OPTIONAL_HEADER_NT64
+        ROM: TIMAGE_OPTIONAL_HEADER_ROM
+      endc specific
+      raw[] rest
+    ends
+  else raw[]
+  endc OptionalHeader;
+  array[@.FileHeader.NumberOfSections] of TIMAGE_SECTION_HEADER Sections
+ends:[@.OptionalHeader:Size=@.FileHeader.SizeOfOptionalHeader]
+
+type
+
+TIMAGE_SYM_SECTION_NUM0 enum SHORT = COFFHdr.Sections[@-1].Name;
+TIMAGE_SYM_SECTION_NUM enum TIMAGE_SYM_SECTION_NUM0 (
+  UNDEFINED = 0, // Symbol is undefined or is common.
+  ABSOLUTE = -1,         // Symbol is an absolute value.
+  DEBUG = -2         // Symbol is a special debug item.
+)
+
+type bit
+
+TIMAGE_SYM_BTYPE enum TBit4 (
+  NULL   = 0x00, // no type.
+  VOID   = 0x01, //
+  CHAR   = 0x02, // type character.
+  SHORT  = 0x03, // type short integer.
+  INT    = 0x04, //
+  LONG   = 0x05, //
+  FLOAT  = 0x06, //
+  DOUBLE = 0x07, //
+  STRUCT = 0x08, //
+  UNION  = 0x09, //
+  ENUM   = 0x0A, // enumeration.
+  MOE    = 0x0B, // member of enumeration.
+  BYTE   = 0x0C, //
+  WORD   = 0x0D, //
+  UINT   = 0x0E, //
+  DWORD  = 0x0F  //
+)
+
+//
+// Type (derived) values.
+//
+
+TBit2 num+(2)
+
+TIMAGE_SYM_DTYPE enum TBit2 (
+  NULL = 0, // no derived type.
+  POINTER = 1, // pointer.
+  FUNCTION = 2, // function.
+  ARRAY = 3 // array.
+)
+//  PCODE = 0x80 //
+
+TIMAGE_SYM_TYPE struc
+  TIMAGE_SYM_BTYPE B
+  TIMAGE_SYM_DTYPE D
+  num+(10) Rest
+ends
+
+type
+TIMAGE_SYM_CLASS enum byte (
+  END_OF_FUNCTION  = 0xFF,
+  NULL             = 0x00,
+  AUTOMATIC        = 0x01,
+  EXTERNAL         = 0x02,
+  STATIC           = 0x03,
+  REGISTER         = 0x04,
+  EXTERNAL_DEF     = 0x05,
+  LABEL            = 0x06,
+  UNDEFINED_LABEL  = 0x07,
+  MEMBER_OF_STRUCT = 0x08,
+  ARGUMENT         = 0x09,
+  STRUCT_TAG       = 0x0A,
+  MEMBER_OF_UNION  = 0x0B,
+  UNION_TAG        = 0x0C,
+  TYPE_DEFINITION  = 0x0D,
+  UNDEFINED_STATIC = 0x0E,
+  ENUM_TAG         = 0x0F,
+  MEMBER_OF_ENUM   = 0x10,
+  REGISTER_PARAM   = 0x11,
+  BIT_FIELD        = 0x12,
+
+  FAR_EXTERNAL     = 0x44,  //
+
+  BLOCK            = 0x64,
+  FUNCTION         = 0x65,
+  END_OF_STRUCT    = 0x66,
+  FILE             = 0x67,
+ // new
+  SECTION          = 0x68,
+  WEAK_EXTERNAL    = 0x69
+)
+
+TIMAGE_SYMBOL_LongNamePtr forward
+
+TIMAGE_SYMBOL_Name try
+  LongName: struc
+    DWORD Short     // if 0, use LongName
+    TIMAGE_SYMBOL_LongNamePtr/*DWORD*/ Long;      // offset into string table
+  ends: assert[@.Short=0]:displ=(@.Long)
+  ShortName: array[8] of Char,<0;
+endt:[@:Size=8]
+
+/*
+TIMAGE_AUX_SYMBOL {
+    struct {
+        DWORD    TagIndex;                      // struct, union, or enum tag index
+        union {
+            struct {
+                WORD    Linenumber;             // declaration line number
+                WORD    Size;                   // size of struct, union, or enum
+            } LnSz;
+           DWORD    TotalSize;
+        } Misc;
+        union {
+            struct {                            // if ISFCN, tag, or .bb
+                DWORD    PointerToLinenumber;
+                DWORD    PointerToNextFunction;
+            } Function;
+            struct {                            // if ISARY, up to 4 dimen.
+                WORD     Dimension[4];
+            } Array;
+        } FcnAry;
+        WORD    TvIndex;                        // tv index
+    } Sym;
+    struct {
+        BYTE    Name[IMAGE_SIZEOF_SYMBOL];
+    } File;
+    struct {
+        DWORD   Length;                         // section length
+        WORD    NumberOfRelocations;            // number of relocation entries
+        WORD    NumberOfLinenumbers;            // number of line numbers
+        DWORD   CheckSum;                       // checksum for communal
+        SHORT   Number;                         // section number to associate with
+        BYTE    Selection;                      // communal selection type
+    } Section;
+ends
+*/
+
+TIMAGE_COMDAT_SELECT enum byte (
+  NODUPLICATES=1,
+  ANY=2,
+  SAME_SIZE=3,
+  EXACT_MATCH=4,
+  ASSOCIATIVE=5,
+  LARGEST=6,
+  NEWEST=7
+)
+
+TIMAGE_AUX_SYMBOL_SECTION struc
+  DWORD   Length;                         // section length
+  WORD    NumberOfRelocations;            // number of relocation entries
+  WORD    NumberOfLinenumbers;            // number of line numbers
+  DWORD   CheckSum;                       // checksum for communal
+  SHORT   Number;                         // section number to associate with
+  TIMAGE_COMDAT_SELECT Selection;         // communal selection type
+  array[3]of byte Rest
+ends
+
+TIMAGE_AUX_SYMBOL_BF_EF struc
+  DWORD    TagIndex;   // struct, union, or enum tag index, not used here
+  WORD    Linenumber;  // declaration line number
+  WORD    Size;        // size of struct, union, or enum, not used here
+  DWORD    PointerToLinenumber; //may be not used too
+  DWORD    PointerToNextFunction; //Symbol-table index of the next .bf symbol record.
+                       //If the function is the last in the symbol table,
+                       //this field is set to zero. Not used for .ef records
+  word rest
+ends
+
+TIMAGE_AUX_SYMBOL_FUNCTION struc
+  DWORD    TagIndex;  // Symbol table index of .bf
+  DWORD    TotalSize;
+  DWORD    PointerToLinenumber; //may be not used too
+  DWORD    PointerToNextFunction; //Symbol-table index of the next .bf symbol record.
+                       //If the function is the last in the symbol table,
+                       //this field is set to zero. Not used for .ef records
+  word rest
+ends
+
+TIMAGE_WEAK_EXTERN_FLAG enum DWORD (
+  SEARCH_NOLIBRARY=1,
+  SEARCH_LIBRARY=2,
+  SEARCH_ALIAS=3
+)
+
+TIMAGE_AUX_SYMBOL_WEAK_EXTERNAL struc
+  DWORD    TagIndex;  // Symbol table index of replacement if not linked
+  TIMAGE_WEAK_EXTERN_FLAG FLAGS;
+  array[10]of byte rest
+ends
+
+TIMAGE_AUX_SYMBOL(StorageClass,SecNo,V,Tp) case TIMAGE_SYM_CLASS @:StorageClass of
+  FILE: array[18] of Char,<0;
+  STATIC,SECTION: TIMAGE_AUX_SYMBOL_SECTION
+  FUNCTION: TIMAGE_AUX_SYMBOL_BF_EF
+  WEAK_EXTERNAL: TIMAGE_AUX_SYMBOL_WEAK_EXTERNAL
+  EXTERNAL: case (@:SecNo>0)and(@:Tp=TIMAGE_SYM_DTYPE.FUNCTION) of
+      1: TIMAGE_AUX_SYMBOL_FUNCTION
+      else case (@@:SecNo=0)and(@@:V=0) of
+        1: TIMAGE_AUX_SYMBOL_WEAK_EXTERNAL
+        else raw[]
+        endc
+      endc
+else raw[]
+endc:[@:Size=18]
+
+TIMAGE_SYMBOL struc
+  /*
+  union {
+      BYTE    ShortName[8];
+      struct {
+          DWORD   Short;     // if 0, use LongName
+          DWORD   Long;      // offset into string table
+      } Name;
+      PBYTE   LongName[2];
+  } N;
+  */
+  TIMAGE_SYMBOL_Name N;
+  DWORD   Value;
+  TIMAGE_SYM_SECTION_NUM SectionNumber;
+  TIMAGE_SYM_TYPE/*WORD*/ Type;
+  TIMAGE_SYM_CLASS StorageClass;
+  BYTE NumberOfAuxSymbols;
+  array[@.NumberOfAuxSymbols]of TIMAGE_AUX_SYMBOL(@@.StorageClass,
+    @@.SectionNumber,@@.Value,@@.Type.D) AuxTbl;
+ends
+
+//TIMAGE_SYMBOL_TABLE(Cnt) array[@:Cnt] of TIMAGE_SYMBOL
+
+//TIMAGE_SYMBOL_TABLE(Cnt) array of TIMAGE_SYMBOL:[@:Size=@:Cnt*18
+//  /*SizeOf(TIMAGE_SYMBOL)*/]
+TIMAGE_SYMBOL_TABLE(Cnt) array[@:Cnt] of TIMAGE_SYMBOL TAKES
+  1+@.NumberOfAuxSymbols;
+
+TIMAGE_STRING_TABLE struc
+  DWORD Sz
+  array of pchar Names
+ends:[@:Size=@.Sz]
+
+TIMAGE_SYMBOL_TABLE_REC(Cnt) struc
+  TIMAGE_SYMBOL_TABLE(@:Cnt) SymTbl
+  TIMAGE_STRING_TABLE StrTbl
+ends
+
+const
+  IMAGE_STRING_TABLE_OFS = &COFFHdr.FileHeader.SymbolTablePtr^.StrTbl exc 0;
+
+type
+TIMAGE_SYMBOL_LongNamePtr ^pchar hideref near=DWORD, REF=
+  @+IMAGE_STRING_TABLE_OFS; :displ=(DemangleVC_Wine(@^),'{',@,'}')
+
+include COFF_rel.rfi
+
+type
+
+TSymTblNDX DWORD():displ=(COFFHdr.FileHeader.SymbolTablePtr^.SymTbl[@].N,
+  '{',INT(@),'}')
+
+TIMAGE_RELOCATION struc
+  /*union {
+      DWORD VirtualAddress;
+      DWORD RelocCount; // Set to the real count when IMAGE_SCN_LNK_NRELOC_OVFL is set
+  };*/
+  DWORD VirtualAddress;
+  TSymTblNDX SymbolTableIndex;
+  TIMAGE_REL_TYPE Type;
+ends
+
+TIMAGE_RELOCATION_TBL(Cnt) array[@:Cnt]of TIMAGE_RELOCATION
+
+
+type
+TIMAGE_LINENUMBER_SymTabIndex DWORD
+TIMAGE_LINENUMBER_VirtAddr DWORD
+
+TIMAGE_LINENUMBER struc
+  /*
+  union {
+    DWORD   SymbolTableIndex; // Symbol table index of function name if Linenumber is 0.
+    DWORD   VirtualAddress;  // Virtual address of line number.
+  }*/
+  case int of
+   0: TIMAGE_LINENUMBER_SymTabIndex
+  else TIMAGE_LINENUMBER_VirtAddr
+  endc Typ;
+  WORD Linenumber; // Line number.
+ends:[@.Typ:Case=@.Linenumber]
+
+TIMAGE_LINENUMBER_Tbl(Cnt) array[@:Cnt] of TIMAGE_LINENUMBER
+
+descr ('Microsoft Portable Executable and Common Object File Format.',NL,
+  'Info Source: WinNT.h',NL,
+  'Info Source: MSDN Library Visual studio 6.0.\Specifications\Platforms\',NL,
+  '  Microsoft Portable Executable and Common Object File Format Specification',NL,
+  '    Revision 5.0 October 1997',NL)
+
+

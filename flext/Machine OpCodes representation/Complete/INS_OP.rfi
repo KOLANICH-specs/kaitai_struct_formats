@@ -1,0 +1,996 @@
+% InstallShield script file opcodes as data types(INS_OP.rfi):Class: Machine OpCodes representation, Status: Complete, Last change: 20.10.2000 19:23:56
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TOpCode enum word (
+// these are all the system defined functions
+ AddFolderIcon                = 0x013a,
+ AddProfString                = 0x00ee,
+ AddProgItem                  = 0x0018,
+ AddProgItemEx                = 0x00c9,
+ AddressNumber                = 0x00b9,
+ AddressString                = 0x00ba,
+ AddressStruct                = 0x00bb,
+ AppCommand                   = 0x0081,
+ AppendToPath                 = 0x002e,
+ AskDestPath                  = 0x0137,
+ AskOptions                   = 0x0020,
+ AskPath                      = 0x000d,
+ AskText                      = 0x001e,
+ AskYesNo                     = 0x0028,
+
+ BatchAdd                     = 0x004b,
+ BatchDelete                  = 0x004c,
+ BatchDeleteEx                = 0x00d8,
+ BatchFileLoad                = 0x0048,
+ BatchFileSave                = 0x004d,
+ BatchFind                    = 0x0049,
+ BatchGetFileName             = 0x0047,
+ BatchMove                    = 0x004a,
+ BatchMoveEx                  = 0x00d7,
+ BatchSetFileName             = 0x0062,
+ BitAnd                       = 0x007f,
+ BitOr                        = 0x0080,
+ BitNot                       = 0x007e,
+
+ CallDLLFx                    = 0x013b,
+ ChangeDirectory              = 0x0082,
+ CloseFile                    = 0x001f,
+ CmdGetHwndDlg                = 0x009a,
+ CmdGetParam1                 = 0x009c,
+ CmdGetParam2                 = 0x009d,
+ CmdGetMsg                    = 0x009b,
+ CommitSharedFiles            = 0x014f,
+ ComponentAddItem             = 0x014a,
+ ComponentCompareSizeRequired = 0x0172,
+ ComponentDialog              = 0x0149,
+ ComponentError               = 0x0173,
+ ComponentFileEnum            = 0x0174,
+ ComponentFileInfo            = 0x0175,
+ ComponentFilter              = 0x0176,
+ ComponentFilterLanguage      = 0x0197,
+ ComponentFilterOS            = 0x0196,
+ ComponentGetData             = 0x0177,
+ ComponentGetItemInfo         = 0x0161,
+ ComponentGetItemSize         = 0x0157,
+ ComponentInitialize          = 0x0178,
+ ComponentIsItemSelected      = 0x014b,
+ ComponentListItems           = 0x0156,
+ ComponentLink                = 0x0163,
+ ComponentMoveData            = 0x0179,
+ ComponentMoveDataEz          = 0x017a,
+ ComponentSelectItem          = 0x014c,
+ ComponentSetData             = 0x017b,
+ ComponentSetCurrent          = 0x0193,
+ ComponentSetItemInfo         = 0x0160,
+ ComponentSetTarget           = 0x0192,
+ ComponentSetupTypeEnum       = 0x018a,
+ ComponentSetupTypeGetData    = 0x0194,
+ ComponentSetupTypeSet        = 0x0189,
+ ComponentTextSubEnum         = 0x0187,
+ ComponentTextSubEval         = 0x0188,
+ ComponentTextSubQuery        = 0x0186,
+ ComponentTextSubSet          = 0x017c,
+ ComponentTotalSize           = 0x0162,
+ ComponentValidate            = 0x017d,
+ ComponentViewCreate          = 0x018b,
+ ComponentViewCreateWindow    = 0x0190,
+ ComponentViewDestroy         = 0x018f,
+ ComponentViewQueryInfo       = 0x018d,
+ ComponentViewRefresh         = 0x018e,
+ ComponentViewSelectAll       = 0x0191,
+ ComponentViewSetInfo         = 0x018c,
+ CompressAdd                  = 0x00c0,
+ CompressGet                  = 0x00c1,
+ CompressDel                  = 0x00c2,
+ CompressEnum                 = 0x00c3,
+ CompressInfo                 = 0x00c4,
+ ConfigAdd                    = 0x0056,
+ ConfigDelete                 = 0x0057,
+ ConfigFileLoad               = 0x0053,
+ ConfigFileSave               = 0x005a,
+ ConfigFind                   = 0x0054,
+ ConfigGetFileName            = 0x0052,
+ ConfigGetInt                 = 0x0058,
+ ConfigMove                   = 0x0055,
+ ConfigSetFileName            = 0x0063,
+ ConfigSetInt                 = 0x0059,
+ CopyBytes                    = 0x0079,
+ CopyFile                     = 0x001c,
+ CopyFileEx                   = 0x00e5,
+ CreateDir                    = 0x0010,
+ CreateFile                   = 0x0011,
+ CreateProgramFolder          = 0x013c,
+ CreateProgGroup              = 0x0017,
+ CreateProgGroupEx            = 0x00c7,
+ CreateRegistrySet            = 0x019a,
+ CreateShellObjects           = 0x0199,
+ CtrlClear                    = 0x0096,
+ CtrlDir                      = 0x0097,
+ CtrlGetCurSel                = 0x0094,
+ CtrlGetMLEText               = 0x00f0,
+ CtrlGetMultCurSel            = 0x00f2,
+ CtrlGetState                 = 0x008f,
+ CtrlGetSubCommand            = 0x009e,
+ CtrlGetText                  = 0x0092,
+ CtrlPGroups                  = 0x0098,
+ CtrlSelectText               = 0x0093,
+ CtrlSetCurSel                = 0x0095,
+ CtrlSetFont                  = 0x0106,
+ CtrlSetList                  = 0x0099,
+ CtrlSetMLEText               = 0x00f1,
+ CtrlSetMultCurSel            = 0x00f9,
+ CtrlSetState                 = 0x0090,
+ CtrlSetText                  = 0x0091,
+
+ DefineDialog                 = 0x008b,
+ DeinstallStart               = 0x0145,
+ DeinstallSetReference        = 0x0195,
+ Delay                        = 0x000a,
+ DeleteDir                    = 0x003f,
+ DeleteFile                   = 0x001d,
+ DeleteFolderIcon             = 0x013e,
+ DeleteGroup                  = 0x0066,
+ DeleteProgItem               = 0x00cb,
+ DeleteProgramFolder          = 0x013d,
+ DialogSetFont                = 0x0198,
+ DialogSetInfo                = 0x015f,
+ Disable                      = 0x0002,
+ Divide                       = 0x0077,
+ Do                           = 0x0154,
+ DoInstall                    = 0x00e4,
+
+ Effects                      = 0x012a,
+ Enable                       = 0x0001,
+ EndDialog                    = 0x008d,
+ EnterDisk                    = 0x001a,
+ ExecuteDLL                   = 0x0034,
+ ExistsDir                    = 0x000c,
+ ExistsDisk                   = 0x000b,
+ ExitProgMan                  = 0x00d1,
+ ExportNum                    = 0x0038,
+ ExportStr                    = 0x0039,
+ EzBatchAddPath               = 0x0045,
+ EzBatchAddString             = 0x0046,
+ EzBatchReplace               = 0x0083,
+ EzConfigAddDriver            = 0x004e,
+ EzConfigAddString            = 0x004f,
+ EzConfigGetValue             = 0x0050,
+ EzConfigSetValue             = 0x0051,
+ EzDefineDialog               = 0x0113,
+
+ FileCompare                  = 0x00dd,
+ FileDeleteLine               = 0x00e0,
+ FileGrep                     = 0x00de,
+ FileInsertLine               = 0x00df,
+ FileSetBeginDefine           = 0x00d2,
+ FileSetEndDefine             = 0x00d3,
+ FileSetEndPerform            = 0x00d6,
+ FileSetPerform               = 0x00d5,
+ FileSetPerformEz             = 0x013f,
+ FileSetReset                 = 0x00d4,
+ FileSetRoot                  = 0x00fc,
+ FindAllDirs                  = 0x0101,
+ FindAllFiles                 = 0x0040,
+ FindFile                     = 0x0029,
+ FindWindow                   = 0x0073,
+
+ GetByte                      = 0x007a,
+ GetDir                       = 0x000f,
+ GetDisk                      = 0x000e,
+ GetDiskSpace                 = 0x0005,
+ GetDiskSpaceEx               = 0x019b,
+ GetEnvVar                    = 0x0041,
+ GetExtents                   = 0x0035,
+ GetFileInfo                  = 0x007c,
+ GetFolderNameList            = 0x0165,
+ GetFont                      = 0x0105,
+ GetGroupNames                = 0x0072,
+ GetGroupNameList             = 0x00c8,
+ GetItemNameList              = 0x00ca,
+ GetLine                      = 0x0037,
+ GetMemFree                   = 0x0006,
+ GetMode                      = 0x0007,
+ GetProfInt                   = 0x0027,
+ GetProfString                = 0x0026,
+ GetScriptFunctionAddress     = 0x016e,
+ GetSystemInfo                = 0x0061,
+ GetValidDrivesList           = 0x00e1,
+ GetWindowHandle              = 0x00c6,
+ Handler                      = 0x0084,
+
+ InstallationInfo             = 0x0146,
+ IndirectNumber               = 0x017e,
+ Is                           = 0x00e2,
+
+ Language                     = 0x0114,
+ LanguageInfo                 = 0x0118,
+ LaunchApp                    = 0x0033,
+ LaunchAppAndWait             = 0x00e3,
+ ListAddItem                  = 0x00a3,
+ ListAddString                = 0x00a1,
+ ListCount                    = 0x00f8,
+ ListCreate                   = 0x009f,
+ ListCurrentItem              = 0x00f5,
+ ListCurrentString            = 0x00f4,
+ ListDeleteString             = 0x00a8,
+ ListDeleteItem               = 0x00f6,
+ ListDestroy                  = 0x00a0,
+ ListFindItem                 = 0x00f7,
+ ListFindString               = 0x00a2,
+ ListGetFileResource          = 0x0117,
+ ListGetFirstItem             = 0x00a6,
+ ListGetFirstString           = 0x00a4,
+ ListGetNextItem              = 0x00a7,
+ ListGetNextString            = 0x00a5,
+ ListReadFromFile             = 0x0116,
+ ListSetCurrentItem           = 0x00aa,
+ ListSetCurrentString         = 0x00a9,
+ ListSetIndex                 = 0x0155,
+ ListWriteToFile              = 0x0115,
+ LongPathFromShortPath        = 0x015c,
+ LongPathToQuote              = 0x015a,
+ LongPathToShortPath          = 0x015b,
+
+ MessageBeep                  = 0x003a,
+ MessageBox                   = 0x002a,
+ MMediaIsPlaying              = 0x0171,
+ Mul                          = 0x0076,
+
+ NumToStr                     = 0x006e,
+
+ OpenFile                     = 0x0024,
+ OpenFileMode                 = 0x0065,
+
+ ParsePath                    = 0x00d9,
+ PathAdd                      = 0x005d,
+ PathDelete                   = 0x0060,
+ PathFind                     = 0x005f,
+ PathGet                      = 0x005c,
+ PathMove                     = 0x005e,
+ PathSet                      = 0x005b,
+ PlaceBitmap                  = 0x0036,
+ PlaceWindow                  = 0x0068,
+ PlayMMedia                   = 0x0170,
+ ProgDefGroupType             = 0x0111,
+
+ QueryProgGroup               = 0x00cd,
+ QueryProgItem                = 0x00cc,
+ QueryShellMgr                = 0x00ce,
+
+ ReadBytes                    = 0x006b,
+ RebootDialog                 = 0x014d,
+ RegDBConnectRegistry         = 0x016a,
+ RegDBCreateKey               = 0x0085,
+ RegDBCreateKeyEx             = 0x0150,
+ RegDBCreateKeyValue          = 0x0086,
+ RegDBDeleteKey               = 0x0087,
+ RegDBDeleteValue             = 0x0166,
+ RegDBDisConnectRegistry      = 0x016b,
+ RegDBGetAppInfo              = 0x0142,
+ RegDBGetItem                 = 0x0148,
+ RegDBGetKeyValue             = 0x0089,
+ RegDBGetKeyValueEx           = 0x0152,
+ RegDBKeyExist                = 0x0088,
+ RegDBMergeRegFile            = 0x016c,
+ RegDBQueryKey                = 0x0164,
+ RegDBSetAppInfo              = 0x0141,
+ RegDBSetDefaultRoot          = 0x0110,
+ RegDBSetItem                 = 0x0147,
+ RegDBSetKeyValue             = 0x008a,
+ RegDBSetKeyValueEx           = 0x0151,
+ ReleaseDialog                = 0x008e,
+ ReloadProgGroup              = 0x00cf,
+ RenameFile                   = 0x0078,
+ ReplaceFolderIcon            = 0x0143,
+ ReplaceProfString            = 0x00ef,
+ ReplaceProgItem              = 0x00d0,
+
+ SeekBytes                    = 0x006a,
+ SelectDir                    = 0x0158,
+ SelectFolder                 = 0x0139,
+ SendMessage                  = 0x0074,
+ SetColor                     = 0x0003,
+ SetByte                      = 0x007b,
+ SetDialogTitle               = 0x003b,
+ SetDisplayEffect             = 0x016f,
+ SetErrorMsg                  = 0x003d,
+ SetErrorTitle                = 0x003e,
+ SetFileInfo                  = 0x007d,
+ SetFont                      = 0x003c,
+ SetInfoWindow                = 0x0009,
+ SetStatusWindow              = 0x0008,
+ SetTitle                     = 0x0004,
+ SetupType                    = 0x0138,
+ ShowGroup                    = 0x0067,
+ ShowProgramFolder            = 0x014e,
+ SilentReadData               = 0x015d,
+ SilentWriteData              = 0x015e,
+ SizeWindow                   = 0x0069,
+ Split                        = 0x00e6,
+ Sprintf                      = 0x0103,
+ SprintfBox                   = 0x0104,
+ StatusUpdate                 = 0x0064,
+ StatusGetSize                = 0x00eb,
+ StatusSetLine                = 0x00ea,
+ StrCompare                   = 0x0023,
+ StrConcat                    = 0x0014,
+ StrFind                      = 0x0031,
+ StrGetTokens                 = 0x00dc,
+ StrLength                    = 0x002f,
+ StrLoadString                = 0x0112,
+ StrRemoveLastSlash           = 0x0153,
+ StrSub                       = 0x0030,
+ StrToLower                   = 0x00da,
+ StrToNum                     = 0x006d,
+ StrToUpper                   = 0x00db,
+ StructGet                    = 0x00bc,
+ StructPut                    = 0x00be,
+ StructGetAddressEx           = 0x017f,
+ StructGetPAddressEx          = 0x0180,
+ StructGetP                   = 0x00bd,
+ StructGetEx                  = 0x0181,
+ StructGetPEx                 = 0x0182,
+ StructPutEx                  = 0x0183,
+ StructPutP                   = 0x00bf,
+ StructPutPEx                 = 0x0184,
+ StructSizeOf                 = 0x00f3,
+ StructSizeOfEx               = 0x0185,
+ SuppressErrorMsg             = 0x0042,
+ System                       = 0x006f,
+
+ UnUseDLL                     = 0x00b3,
+ UseDLL                       = 0x00b2,
+
+ VarRestore                   = 0x0100,
+ VarLoadFromFile              = 0x012b,
+ VarSave                      = 0x00ff,
+ VarSaveToFile                = 0x012c,
+ VerCompare                   = 0x0102,
+ VerFindFileVersion           = 0x00ac,
+ VerGetFileVersion            = 0x00ab,
+ VarSaveListToFile            = 0x012d,
+ VerSearchAndUpdateFile       = 0x00ad,
+ VerUpdateFile                = 0x00ae,
+
+ WaitOnDialog                 = 0x008c,
+ Welcome                      = 0x0144,
+ WriteBytes                   = 0x006c,
+ WriteLine                    = 0x0012,
+ WriteProfString              = 0x0025,
+
+ XCopyFile                    = 0x00fa,
+
+
+// arithmetic operations
+ PLUS   = 0x0119,
+ uPLUS  = 0x0032,
+ MINUS  = 0x011a, // X = Y - Z
+ uMINUS = 0x0075, // X -= Y
+ MULT   = 0x011b,
+ DIV    = 0x011c,
+ MOD    = 0x0123,
+
+// binary operations
+ _BITAND = 0x011d,
+ _BITOR  = 0x011e,
+ _BITXOR = 0x011f,
+ _BITNOT = 0x0120,
+
+// shift operators
+ SHIFTL = 0x0121,
+ SHIFTR = 0x0122,
+
+// logical operators
+ LOGICAND = 0x0127,
+ LOGICOR  = 0x0126,
+// ! (NOT) is done by comparing with 0
+
+// string operators
+ STRCAT  = 0x0124,
+ PATHCAT = 0x0125,
+// other ops are done with StringCompare() and
+// the numerical operators.
+
+// copy commands (e.g. X = D)
+ LetNum = 0x0021,
+ LetStr = 0x0013,
+
+// number comparison operators
+ CmpNum = 0x0128,
+
+// function stuff
+ fnStart    = 0x00b6,
+ fnEnd      = 0x00b8,
+ fnReturn  = 0x00b7,
+ fnReturn1 = 0x012f,
+
+// flow control stuff
+ exit    = 0x002b,
+ abort   = 0x0159,
+ fnUser = 0x00b5,
+ label   = 0x0000,
+ Goto    = 0x002c,
+ Call    = 0x0043,
+ Return  = 0x0044,
+ ifStmt  = 0x0022,
+ fnDLL = 0x00b4,
+
+ Ignore  = 0x0129, // WHILE/SWITCH => ignore it
+
+ DebugStart = 0x455f //Start of some block of unknown purpose
+)
+
+fail void():assert[0]
+
+TArgCode enum byte (
+  STRINGCONST=0x61,
+  LONGCONST=0x41,
+  SrcStrVar=0x62,  // source string variable
+  DestStrVar=0x52, // destination string variable
+  DstNumVar=0x32,  // destination number variable
+  SrcNumVar=0x42   // source number variable
+)
+
+TArg struc
+  TArgCode C
+  case @.C of
+    STRINGCONST: TName
+    LONGCONST: ulong
+    SrcStrVar, DestStrVar,
+    DstNumVar, SrcNumVar: word
+  endc D
+ends
+
+TArgs(cnt) array[@:cnt] of TArg
+
+TArgs1 TArg
+TArgs2 TArgs(2)
+TArgs3 TArgs(3)
+TArgs4 TArgs(4)
+TArgs5 TArgs(5)
+TArgs6 TArgs(6)
+TArgs7 TArgs(7)
+TArgs8 TArgs(8)
+TArgs9 TArgs(9)
+TArgs10 TArgs(10)
+
+//parseStructFunction
+TArgs1s TArgs1
+TArgs5s TArgs5
+
+TOtherCode enum byte (
+  NUMPARAMS=0x20, // number of variable pairs following
+  USERFUNCTION=0x80, // function number
+  LABEL=0x70
+)
+
+TParamPair struc
+  TArg A1
+  TArg A2
+ends
+
+TOther struc
+  TOtherCode C
+  case @.C of
+    NUMPARAMS: int
+    USERFUNCTION: word // function number
+    LABEL: word
+  endc D
+ends
+
+TAskOptions struc
+  TOther Num
+  TParamPair Parm1
+  array[@.Num.D.NUMPARAMS]of TParamPair Parms
+ends:assert[@.Num.C=TOtherCode.NUMPARAMS]
+
+TComponentTotalSize struc
+  TArgs2 A
+  case @.A[1].C of
+    STRINGCONST,SrcStrVar,DestStrVar: TArgs2
+  endc A1
+ends
+
+TSPrintf struc
+  TOther Num
+  array[@.Num.D.NUMPARAMS]of TArg Args
+ends:assert[@.Num.C=TOtherCode.NUMPARAMS]
+
+TBinOp struc
+  TArg Dst
+  TArg A1
+  TArg A2
+ends
+
+TUnOp struc
+  TArg Dst
+  TArg A
+ends
+
+TEqOp struc
+  TArg Dst
+  TArg Src
+ends
+
+type bit
+TBit4 num+(4)
+TBit28 num+(28)
+TCmpCode enum TBit4 (LT=1,GT=2,LE=3,GE=4,EQ=5,NE=6)
+TCmpCodeB struc
+  TCmpCode C
+  TBit4 X //Unused
+ends
+
+TCmpCodeL struc
+  TCmpCode C
+  TBit28 X //Unused
+ends
+
+type
+TComparison struc
+  TArg Dst
+  TArg A1
+  TArgCode C     //TArg
+  TCmpCodeL CC //
+  TArg A2
+ends: assert[@.C=TArgCode.LONGCONST]
+
+TFnStart struc
+  word Len
+  word numLocalStr
+  array[@.numLocalStr] of word StringFlags
+  word X
+  word numLocalNum
+  word X1
+ends
+
+TGoto struc
+  TOther Lbl
+ends:assert[@.Lbl.C=TOtherCode.LABEL]
+
+TUserFunction struc
+  TOther FNum
+  TOther Lbl
+  TArgs(Hdr.functionPrototypes[@.FNum.D.USERFUNCTION].paramsCount) Args
+ends:assert[@.FNum.C=TOtherCode.USERFUNCTION,@.Lbl.C=TOtherCode.LABEL]
+
+TDLLFunction struc
+  TOther FNum
+  TArgs(Hdr.functionPrototypes[@.FNum.D.USERFUNCTION].paramsCount) Args
+ends:assert[@.FNum.C=TOtherCode.USERFUNCTION]
+
+TCall try
+  lbl: TGoto
+  arg: TArg
+  err: fail
+endt:assert[@.*:assert]
+
+TIfStmt struc
+  TOther Lbl
+  TCmpCodeB CC
+  TArg A1
+  TArg A2
+ends:assert[@.Lbl.C=TOtherCode.LABEL]
+
+TOp struc
+  TOpCode Op
+  case @.Op of
+    AddFolderIcon: TArgs8
+    AddProfString: TArgs4
+    AddProgItem: TArgs4
+    AddProgItemEx: TArgs8
+    AddressNumber: TArgs1
+    AddressString: TArgs1
+    AddressStruct: TArgs1
+    AppCommand: TArgs2
+    AppendToPath: TArgs2
+    AskDestPath: TArgs4
+    AskOptions: TAskOptions
+    AskPath: TArgs3
+    AskText: TArgs3
+    AskYesNo: TArgs2
+
+    BatchAdd: TArgs4
+    BatchDelete: TArgs1
+    BatchDeleteEx: TArgs2
+    BatchFileLoad: TArgs1
+    BatchFileSave: TArgs1 // = BatchSave
+    BatchFind: TArgs3
+    BatchGetFileName: TArgs1
+    BatchMove: TArgs3
+    BatchMoveEx: TArgs4
+    BatchSetFileName: TArgs1
+    BitAnd: TArgs2
+    BitOr: TArgs2
+    BitNot: TArgs1
+
+    CallDLLFx: TArgs4
+    ChangeDirectory: TArgs1
+    CloseFile: TArgs1
+    CmdGetHwndDlg: TArgs1
+    CmdGetParam1: TArgs1
+    CmdGetParam2: TArgs1
+    CmdGetMsg: TArgs1
+    CommitSharedFiles: TArgs1
+    ComponentAddItem: TArgs4
+    ComponentCompareSizeRequired: TArgs3
+    ComponentDialog: TArgs4
+    ComponentError: TArgs5
+    ComponentFileEnum: TArgs5
+    ComponentFileInfo: TArgs6
+    ComponentFilter: TArgs4
+    ComponentFilterLanguage: TArgs3
+    ComponentFilterOS: TArgs4
+    ComponentGetData: TArgs5
+    ComponentGetItemInfo: TArgs4
+    ComponentGetItemSize: TArgs3
+    ComponentInitialize: TArgs2
+    ComponentIsItemSelected: TArgs2
+    ComponentListItems: TArgs((3 when(Ver>=5)) exc 2)
+    ComponentLink: TArgs7
+    ComponentMoveData: TArgs3
+    ComponentMoveDataEz: TArgs2
+    ComponentSelectItem: TArgs3
+    ComponentSetData: TArgs5
+    ComponentSetCurrent: TArgs2
+    ComponentSetItemInfo: TArgs4
+    ComponentSetTarget: TArgs3
+    ComponentSetupTypeEnum: TArgs2
+    ComponentSetupTypeGetData: TArgs5
+    ComponentSetupTypeSet: TArgs2
+    ComponentTextSubEnum: TArgs2
+    ComponentTextSubEval: TArgs4
+    ComponentTextSubQuery: TArgs4
+    ComponentTextSubSet: TArgs3
+    ComponentTotalSize: TComponentTotalSize
+    ComponentValidate: TArgs3
+    ComponentViewCreate: TArgs2
+    ComponentViewCreateWindow: TArgs1
+    ComponentViewDestroy: TArgs1
+    ComponentViewQueryInfo: TArgs4
+    ComponentViewRefresh: TArgs2
+    ComponentViewSelectAll: TArgs2
+    ComponentViewSetInfo: TArgs4
+    CompressAdd: TArgs3   // IS file version 1 only
+    CompressGet: TArgs3   // IS file version 1 only
+    CompressDel: TArgs3   // IS file version 1 only
+    CompressEnum: TArgs4  // IS file version 1 only
+    CompressInfo: TArgs5  // IS file version 1 only
+    ConfigAdd: TArgs4
+    ConfigDelete: TArgs1
+    ConfigFileLoad: TArgs1
+    ConfigFileSave: TArgs1 // = ConfigSave
+    ConfigFind: TArgs3
+    ConfigGetFileName: TArgs1
+    ConfigGetInt: TArgs2
+    ConfigMove: TArgs3
+    ConfigSetFileName: TArgs1
+    ConfigSetInt: TArgs2
+    CopyBytes: TArgs5
+    CopyFile: TArgs2
+    CopyFileEx: TArgs2
+    CreateDir: TArgs1
+    CreateFile: TArgs3
+    CreateProgramFolder: TArgs1
+    CreateProgGroup: TArgs1
+    CreateProgGroupEx: TArgs2
+    CreateRegistrySet: TArgs1
+    CreateShellObjects: TArgs1
+    CtrlClear: TArgs2
+    CtrlDir: TArgs4
+    CtrlGetCurSel: TArgs3
+    CtrlGetMLEText: TArgs3
+    CtrlGetMultCurSel: TArgs3
+    CtrlGetState: TArgs2
+    CtrlGetSubCommand: TArgs1
+    CtrlGetText: TArgs3
+    CtrlPGroups: TArgs2
+    CtrlSelectText: TArgs2
+    CtrlSetCurSel: TArgs3
+    CtrlSetFont: TArgs3
+    CtrlSetList: TArgs3
+    CtrlSetMLEText: TArgs3
+    CtrlSetMultCurSel: TArgs3
+    CtrlSetState: TArgs3
+    CtrlSetText: TArgs3
+
+    DefineDialog: TArgs8
+    DeinstallStart: TArgs4
+    DeinstallSetReference: TArgs1
+    Delay: TArgs1
+    DeleteDir: TArgs2
+    DeleteFile: TArgs1
+    DeleteFolderIcon: TArgs2
+    DeleteGroup: TArgs1
+    DeleteProgItem: TArgs3
+    DeleteProgramFolder: TArgs1
+    DialogSetFont: TArgs3
+    DialogSetInfo: TArgs3
+    Disable: TArgs1
+    Divide: TArgs2  // "Div"?
+    Do: TArgs1
+    DoInstall: TArgs3
+
+    Effects: TArgs2
+    Enable: TArgs1
+    EndDialog: TArgs1
+    EnterDisk: TArgs2
+    ExecuteDLL: TArgs2
+    ExistsDir: TArgs1
+    ExistsDisk: TArgs1
+    ExitProgMan: TArgs1
+    ExportNum: TArgs2
+    ExportStr: TArgs2
+    EzBatchAddPath: TArgs4
+    EzBatchAddString: TArgs3
+    EzBatchReplace: TArgs1
+    EzConfigAddDriver: TArgs3
+    EzConfigAddString: TArgs3
+    EzConfigGetValue: TArgs2
+    EzConfigSetValue: TArgs2
+    EzDefineDialog: TArgs4
+
+    FileCompare: TArgs3
+    FileDeleteLine: TArgs3
+    FileGrep: TArgs5
+    FileInsertLine: TArgs4
+    FileSetBeginDefine: TArgs1
+    FileSetEndDefine: TArgs1
+    FileSetEndPerform: TArgs1
+    FileSetPerform: TArgs2
+    FileSetPerformEz: TArgs2
+    FileSetReset: TArgs2
+    FileSetRoot: TArgs2
+    FindAllDirs: TArgs3
+    FindAllFiles: TArgs4
+    FindFile: TArgs3
+    FindWindow: TArgs2
+
+    GetByte: TArgs3
+    GetDir: TArgs2
+    GetDisk: TArgs2
+    GetDiskSpace: TArgs1
+    GetDiskSpaceEx: TArgs2 // installshield 5.5+ only
+    GetEnvVar: TArgs2
+    GetExtents: TArgs2
+    GetFileInfo: TArgs4
+    GetFolderNameList: TArgs3
+    GetFont: TArgs3
+    GetGroupNames: TArgs2
+    GetGroupNameList: TArgs1
+    GetItemNameList: TArgs2
+    GetLine: TArgs2
+    GetMemFree: void
+    GetMode: void
+    GetProfInt: TArgs4
+    GetProfString: TArgs4
+    GetScriptFunctionAddress: TArgs2
+    GetSystemInfo: TArgs3
+    GetValidDrivesList: TArgs3
+    GetWindowHandle: TArgs1
+    Handler: TArgs2 //doHandler
+
+    InstallationInfo: TArgs4
+    IndirectNumber: TArgs1
+    Is: TArgs2
+//    ISCompareServicePack: TArgs1
+
+
+    Language: TArgs1 // = LanguageSet
+    LanguageInfo: TArgs2
+    LaunchApp: TArgs2
+    LaunchAppAndWait: TArgs3
+    ListAddItem: TArgs3
+    ListAddString: TArgs3
+    ListCount: TArgs1
+    ListCreate: TArgs1
+    ListCurrentItem: TArgs2
+    ListCurrentString: TArgs2
+    ListDeleteString: TArgs1
+    ListDeleteItem: TArgs1
+    ListDestroy: TArgs1
+    ListFindItem: TArgs2
+    ListFindString: TArgs2
+    ListGetFileResource: TArgs3
+    ListGetFirstItem: TArgs2
+    ListGetFirstString: TArgs2
+    ListGetNextItem: TArgs2
+    ListGetNextString: TArgs2
+    ListReadFromFile: TArgs2
+    ListSetCurrentItem: TArgs2
+    ListSetCurrentString: TArgs2
+    ListSetIndex: TArgs2
+    ListWriteToFile: TArgs2
+    LongPathFromShortPath: TArgs1
+    LongPathToQuote: TArgs2
+    LongPathToShortPath: TArgs1
+
+    MessageBeep: TArgs1
+    MessageBox: TArgs2
+    MMediaIsPlaying: TArgs1
+    Mul: TArgs2
+
+    NumToStr: TArgs2
+
+    OpenFile: TArgs3
+    OpenFileMode: TArgs1
+
+    ParsePath: TArgs3
+    PathAdd: TArgs4
+    PathDelete: TArgs2
+    PathFind: TArgs4
+    PathGet: TArgs1
+    PathMove: TArgs5
+    PathSet: TArgs1
+    PlaceBitmap: TArgs5
+    PlaceWindow: TArgs4
+    PlayMMedia: TArgs3
+    ProgDefGroupType: TArgs1
+
+    QueryProgGroup: TArgs3
+    QueryProgItem: TArgs8
+    QueryShellMgr: TArgs1
+
+    ReadBytes: TArgs4
+    RebootDialog: TArgs3
+    RegDBConnectRegistry: TArgs3
+    RegDBCreateKey: TArgs1
+    RegDBCreateKeyEx: TArgs2
+    RegDBCreateKeyValue: TArgs2
+    RegDBDeleteKey: TArgs1
+    RegDBDeleteValue: TArgs2
+    RegDBDisConnectRegistry: TArgs1
+    RegDBGetAppInfo: TArgs4
+    RegDBGetItem: TArgs2
+    RegDBGetKeyValue: TArgs2
+    RegDBGetKeyValueEx: TArgs5
+    RegDBKeyExist: TArgs1
+    RegDBMergeRegFile: TArgs2
+    RegDBQueryKey: TArgs3
+    RegDBSetAppInfo: TArgs4
+    RegDBSetDefaultRoot: TArgs1
+    RegDBSetItem: TArgs2
+    RegDBSetKeyValue: TArgs2
+    RegDBSetKeyValueEx: TArgs5
+    ReleaseDialog: TArgs1
+    ReloadProgGroup: TArgs1
+    RenameFile: TArgs2
+    ReplaceFolderIcon: TArgs10
+    ReplaceProfString: TArgs5
+    ReplaceProgItem: TArgs9
+
+    SeekBytes: TArgs3
+    SelectDir: TArgs4
+    SelectFolder: TArgs3
+    SendMessage: TArgs4
+    SetColor: TArgs2
+    SetByte: TArgs3
+    SetDialogTitle: TArgs2
+    SetDisplayEffect: TArgs1
+    SetErrorMsg: TArgs2
+    SetErrorTitle: TArgs2
+    SetFileInfo: TArgs4
+    SetFont: TArgs3
+    SetInfoWindow: TArgs2
+    SetStatusWindow: TArgs2
+    SetTitle: TArgs3
+    SetupType: TArgs5
+    ShowGroup: TArgs2
+    ShowProgramFolder: TArgs2
+    SilentReadData: TArgs5
+    SilentWriteData: TArgs5
+    SizeWindow: TArgs3
+    Split: TArgs4
+    Sprintf: TSPrintf
+    SprintfBox: TSPrintf
+    StatusUpdate: TArgs2
+    StatusGetSize: TArgs5
+    StatusSetLine: TArgs3
+    StrCompare: TArgs2
+    StrConcat: TArgs2
+    StrFind: TArgs2
+    StrGetTokens: TArgs3
+    StrLength: TArgs1
+    StrLoadString: TArgs3
+    StrRemoveLastSlash: TArgs1
+    StrSub: TArgs4
+    StrToLower: TArgs2
+    StrToNum: TArgs2
+    StrToUpper: TArgs2
+    StructGet: TArgs5
+    StructPut: TArgs5
+    StructGetAddressEx: TArgs5s //parseStructFunction
+    StructGetPAddressEx: TArgs5s //parseStructFunction
+    StructGetP: TArgs5
+    StructGetEx: TArgs5s //parseStructFunction
+    StructGetPEx: TArgs5s //parseStructFunction
+    StructPutEx: TArgs5s //parseStructFunction
+    StructPutP: TArgs5
+    StructPutPEx: TArgs5s //parseStructFunction
+    StructSizeOf: TArgs1s //parseStructFunction
+    StructSizeOfEx: TArgs1s //parseStructFunction
+    SuppressErrorMsg: TArgs2
+    System: TArgs1
+
+    UnUseDLL: TArgs1
+    UseDLL: TArgs1
+
+    VarRestore: TArgs1
+    VarLoadFromFile: TArgs1
+    VarSave: TArgs1
+    VarSaveToFile: TArgs1
+    VerCompare: TArgs3
+    VerFindFileVersion: TArgs3
+    VerGetFileVersion: TArgs2
+    VarSaveListToFile: TArgs2
+    VerSearchAndUpdateFile: TArgs3
+    VerUpdateFile: TArgs3
+
+    WaitOnDialog: TArgs1
+    Welcome: TArgs2
+    WriteBytes: TArgs4
+    WriteLine: TArgs2
+    WriteProfString: TArgs4
+
+    XCopyFile: TArgs3
+
+  // arithmetic operations
+    PLUS: TBinOp
+    uPLUS: TUnOp
+    MINUS: TBinOp    // X = Y - Z
+    uMINUS: TUnOp    // X -= Y
+    MULT: TBinOp
+    DIV: TBinOp
+    MOD: TBinOp
+
+  // binary operations
+    _BITAND: TBinOp
+    _BITOR: TBinOp
+    _BITXOR: TBinOp
+    _BITNOT: TBinOp //1st arg is not used
+
+  // shift operators
+    SHIFTL: TBinOp
+    SHIFTR: TBinOp
+
+  // logical operators
+    LOGICAND: TBinOp
+    LOGICOR: TBinOp
+    // ! (NOT) is done by comparing with 0
+
+  // string operators
+    STRCAT: TBinOp
+    PATHCAT: TBinOp
+    // other ops are done with StringCompare() and
+    // the numerical operators.
+
+  // copy commands (e.g. X = D)
+    LetNum: TEqOp // number = number  (= Assign())
+    LetStr: TEqOp // string = string (= StrCopy())
+
+  // number comparison operators
+    CmpNum: TComparison
+
+  // function stuff
+    fnStart: TFnStart
+    fnEnd: void
+    fnReturn: TArg
+    fnReturn1: void //fnReturn should follow?
+
+  // flow control stuff
+    label: word
+    exit,
+    abort: void
+    fnUser: TUserFunction
+    Goto: TGoto
+    Call: TCall
+    Return: void
+    ifStmt: TIfStmt
+    fnDLL: TDLLFunction
+    Ignore: void
+  else fail
+  endc:assert[@.*:assert/*@.DebugStart:size/*assert*/ exc 1*/] D
+ends:assert[@.D:assert]
+

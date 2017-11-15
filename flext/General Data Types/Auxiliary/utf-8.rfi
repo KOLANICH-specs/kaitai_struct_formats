@@ -1,0 +1,26 @@
+% UTF-8 encoding specification(utf-8.rfi):Class: General Data Types, Status: Auxiliary, Last change: 29.07.2006 21:17:58
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+T1ByteChar char():assert[(@>0)and(@<0x80)]
+T2ByteChar array[2]of Byte:assert[((@[0]and 0xE0)=0xC0)
+  and((@[1]and 0xC0)=0x80)]:displ=(HEX((@[0]and 0x1F)shl 6+(@[1]and 0x3F)))
+T3ByteChar array[3]of Byte:assert[((@[0]and 0xF0)=0xE0)
+  and((@[1]and 0xC0)=0x80)and((@[2]and 0xC0)=0x80)]:displ=(HEX((@[0]and 0x0F)shl 12
+  +(@[1]and 0x3F)shl 6+(@[2]and 0x3F)))
+
+TUtf8Char try
+  B1: T1ByteChar
+  B2: T2ByteChar
+  B3: T3ByteChar
+  X: Byte
+endt
+
+TUtf8Array(Sz) array of TUtf8Char:[@:Size=@:Sz]:displ=(
+  '"',ShowArray(@,(WCHR(@.B1 exc(
+    ((@.B2[0]and 0x1F)shl 6+(@.B2[1]and 0x3F)) exc(
+    ((@.B3[0]and 0x0F)shl 12+(@.B3[1]and 0x3F)shl 6+(@.B3[2]and 0x3F)) exc
+    @.X))))),'"')
+
+

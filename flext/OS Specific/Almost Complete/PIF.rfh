@@ -1,0 +1,94 @@
+% Windows Program description files(PIF.rfh):Class: OS Specific, Status: Almost Complete, Last change: 15.10.1998 19:02:54
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TPIFHdrFlags set 16 of (
+  CloseWinOnExit = 4
+)
+
+TPIFHeader struc
+  byte reserved1
+  byte reserved2
+  array[30] of char windowTitle
+  word maxMem
+  word minMem
+  array[63] of char programFilename
+  TPIFHdrFlags msFlags
+  array[64] of char startupDirectory
+  array[102] of word reserved3
+  array[72] of char someInfo
+ends
+
+data
+
+0 TPIFHeader Hdr
+
+type
+
+TPIFDataFlags1 set 8 of (
+  CanCloseFromWin = 0,
+  BkMode = 1,
+  ExclusiveMode = 2,
+  FullScreen = 3,
+  AltTabRsrv = 4,
+  AltEscRsrv = 5,
+  Rsrv6 = 6,
+  AltSpaceRsrv = 7
+)
+
+TPIFDataFlags2 set 8 of (
+  AltEnterRsrv = 0,
+  AltPrtScRsrv = 1,
+  PrtScRsrv = 2,
+  CtrlEscRsrv = 3,
+  AnalyzeIdle = 4,
+  UseHighMem = 5,
+  AppHotKeyActive = 6,
+  MappedMemLock = 7
+)
+
+TPIFDataFlags3 set 8 of (
+  LockXMem = 0,
+  QuickClipboardCopy = 1,
+  LockAppMem = 2
+)
+
+TPIFDataFlags5 set 8 of (
+  DisplEmulText = 0,
+  DisplText = 1,
+  DisplGrLowRes = 2,
+  DisplGrHighRes = 3,
+  VideoMemText = 4,
+  VideoMemGrLowRes = 5,
+  VideoMemGrHighRes = 6,
+  SaveVideoMem = 7
+)
+
+TPIFData struc
+  word memKBDesired
+  word memKBRequired
+  word foregroundPriority
+  word backgroundPriority
+  word emsKBLimit
+  word emsKBRequired
+  word xmsKBLimit
+  word xmsKBRequired
+  TPIFDataFlags1 fFlags1
+  TPIFDataFlags2 fFlags2
+  TPIFDataFlags3 fFlags3
+  byte fFlags4
+  TPIFDataFlags5 fFlags5
+  byte fFlags6
+  word reserved1
+  word keyScanCode
+  word appKeyFlags
+  array[12] of byte reserved2
+  word somePrm
+  array[62] of char optionalParameters
+ends
+
+data
+0x1B9 TPIFData PIFData
+
+

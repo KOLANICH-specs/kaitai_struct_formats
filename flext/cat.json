@@ -1,0 +1,896 @@
+{
+	"Graphics and Sounds": {
+		"Partial": {
+			"ANI.rfh": {
+				"file": "ANI.rfh",
+				"description": "Windows animated cursors",
+				"class": "Graphics and Sounds",
+				"status": "Partial",
+				"date": "14.01.2022 11:52:16",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ANI.rfh"
+			}
+		},
+		"Complete": {
+			"BMP.rfh": {
+				"file": "BMP.rfh",
+				"description": "Windows Bitmap file",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "09.04.2006 10:40:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?BMP.rfh"
+			},
+			"BMP.rfi": {
+				"file": "BMP.rfi",
+				"description": "Bitmap file data structures",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "26.01.1999 14:31:08",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?BMP.rfi"
+			},
+			"BMP_DAT.rfi": {
+				"file": "BMP_DAT.rfi",
+				"description": "Bitmap file data structures",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "09.04.2006 10:18:42",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?BMP_DAT.rfi"
+			},
+			"BMP_OS2.rfi": {
+				"file": "BMP_OS2.rfi",
+				"description": "Bitmap file header and palette (Windows or OS/2)",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "09.04.2006 10:38:26",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?BMP_OS2.rfi"
+			},
+			"ICO.rfh": {
+				"file": "ICO.rfh",
+				"description": "Windows Icon or Cursor",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "02.12.1998 12:42:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ICO.rfh"
+			},
+			"ICO.rfi": {
+				"file": "ICO.rfi",
+				"description": "Windows Icon and Cursor data structures",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "26.01.1999 14:38:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ICO.rfi"
+			},
+			"MetaFile.rfi": {
+				"file": "MetaFile.rfi",
+				"description": "Windows Metafile data structures",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "13.01.2022 21:07:58",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?MetaFile.rfi"
+			},
+			"WMF.rfi": {
+				"file": "WMF.rfi",
+				"description": "Windows Metafile",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "24.06.1999 21:08:56",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?WMF.rfi"
+			},
+			"x.rfh": {
+				"file": "x.rfh",
+				"description": "DirectX mesh file",
+				"class": "Graphics and Sounds",
+				"status": "Complete",
+				"date": "16.04.2007 12:07:08",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?x.rfh"
+			}
+		},
+		"Headers only": {
+			"EMF.rfh": {
+				"file": "EMF.rfh",
+				"description": "Windows Enhanced Metafile",
+				"class": "Graphics and Sounds",
+				"status": "Headers only",
+				"date": "27.06.2007 5:07:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?EMF.rfh"
+			},
+			"EMF.rfi": {
+				"file": "EMF.rfi",
+				"description": "Enhanced metafile data structures",
+				"class": "Graphics and Sounds",
+				"status": "Headers only",
+				"date": "24.11.2009 8:56:52",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?EMF.rfi"
+			},
+			"GIF89a.rfi": {
+				"file": "GIF89a.rfi",
+				"description": "CompuServe GIF (GRAPHICS INTERCHANGE FORMAT)",
+				"class": "Graphics and Sounds",
+				"status": "Headers only",
+				"date": "27.09.1999 9:45:28",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?GIF89a.rfi"
+			},
+			"jpeg.rfi": {
+				"file": "jpeg.rfi",
+				"description": "JPEG File Interchange Format",
+				"class": "Graphics and Sounds",
+				"status": "Headers only",
+				"date": "28.05.2018 11:44:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?jpeg.rfi"
+			},
+			"PNG.rfh": {
+				"file": "PNG.rfh",
+				"description": "PNG (Portable Network Graphics) files",
+				"class": "Graphics and Sounds",
+				"status": "Headers only",
+				"date": "24.01.2008 14:22:56",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?PNG.rfh"
+			}
+		},
+		"Almost Complete": {
+			"SWF.rfh": {
+				"file": "SWF.rfh",
+				"description": "Macromedia Flash File",
+				"class": "Graphics and Sounds",
+				"status": "Almost Complete",
+				"date": "08.03.2008 17:57:24",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?SWF.rfh"
+			},
+			"wav.rfh": {
+				"file": "wav.rfh",
+				"description": "Windows Sound",
+				"class": "Graphics and Sounds",
+				"status": "Almost Complete",
+				"date": "08.03.2008 18:06:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?wav.rfh"
+			}
+		},
+		"Auxiliary": {
+			"WIN_CF.rfi": {
+				"file": "WIN_CF.rfi",
+				"description": "Windows Clipboard Format Tags",
+				"class": "Graphics and Sounds",
+				"status": "Auxiliary",
+				"date": "25.12.1998 8:07:16",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?WIN_CF.rfi"
+			}
+		}
+	},
+	"Archive": {
+		"Headers only": {
+			"ARJ.rfh": {
+				"file": "ARJ.rfh",
+				"description": "ARJ Archive Format",
+				"class": "Archive",
+				"status": "Headers only",
+				"date": "21.01.2022 12:10:46",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ARJ.rfh"
+			},
+			"cab.rfh": {
+				"file": "cab.rfh",
+				"description": "CAB Archive Format",
+				"class": "Archive",
+				"status": "Headers only",
+				"date": "16.04.2002 10:00:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?cab.rfh"
+			},
+			"gz.rfh": {
+				"file": "gz.rfh",
+				"description": "GZIP Archive Format",
+				"class": "Archive",
+				"status": "Headers only",
+				"date": "09.09.1999 18:51:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?gz.rfh"
+			},
+			"rar.rfh": {
+				"file": "rar.rfh",
+				"description": "RAR Archive Format",
+				"class": "Archive",
+				"status": "Headers only",
+				"date": "21.01.2022 13:02:46",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?rar.rfh"
+			},
+			"rpm.rfh": {
+				"file": "rpm.rfh",
+				"description": "Linux RPM file header",
+				"class": "Archive",
+				"status": "Headers only",
+				"date": "29.09.2000 19:30:00",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?rpm.rfh"
+			},
+			"ZIP.rfh": {
+				"file": "ZIP.rfh",
+				"description": "ZIP Archive Format",
+				"class": "Archive",
+				"status": "Headers only",
+				"date": "18.10.2021 19:59:20",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ZIP.rfh"
+			}
+		},
+		"Complete": {
+			"TAR.rfh": {
+				"file": "TAR.rfh",
+				"description": "TAR Archive Format",
+				"class": "Archive",
+				"status": "Complete",
+				"date": "29.09.2000 17:10:12",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?TAR.rfh"
+			}
+		}
+	},
+	"Executable and Object": {
+		"Auxiliary": {
+			"BGI.rfi": {
+				"file": "BGI.rfi",
+				"description": "Borland Graphics Interface",
+				"class": "Executable and Object",
+				"status": "Auxiliary",
+				"date": "29.09.2000 20:29:52",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?BGI.rfi"
+			},
+			"COFF_rel.rfi": {
+				"file": "COFF_rel.rfi",
+				"description": "COFF Relocation information for different platforms",
+				"class": "Executable and Object",
+				"status": "Auxiliary",
+				"date": "16.06.1999 17:00:44",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?COFF_rel.rfi"
+			},
+			"elf_386.rfi": {
+				"file": "elf_386.rfi",
+				"description": "ELF Intel 386 specific",
+				"class": "Executable and Object",
+				"status": "Auxiliary",
+				"date": "03.01.2018 21:52:40",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?elf_386.rfi"
+			},
+			"elf_M32.rfi": {
+				"file": "elf_M32.rfi",
+				"description": "ELF M32 specific",
+				"class": "Executable and Object",
+				"status": "Auxiliary",
+				"date": "03.01.2018 21:53:02",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?elf_M32.rfi"
+			},
+			"elf_ppc.rfi": {
+				"file": "elf_ppc.rfi",
+				"description": "ELF Power PC specific",
+				"class": "Executable and Object",
+				"status": "Auxiliary",
+				"date": "03.01.2018 21:53:10",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?elf_ppc.rfi"
+			},
+			"elfSPARC.rfi": {
+				"file": "elfSPARC.rfi",
+				"description": "ELF SPARC specific",
+				"class": "Executable and Object",
+				"status": "Auxiliary",
+				"date": "03.01.2018 21:53:18",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?elfSPARC.rfi"
+			}
+		},
+		"Almost Complete": {
+			"cla.rfh": {
+				"file": "cla.rfh",
+				"description": "Java-machine executable (class file)",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "03.07.2020 15:42:24",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?cla.rfh"
+			},
+			"coff.rfi": {
+				"file": "coff.rfi",
+				"description": "Microsoft Portable Executable and Common Object File Format.",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "01.02.2018 10:29:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?coff.rfi"
+			},
+			"COFF_LIB.rfi": {
+				"file": "COFF_LIB.rfi",
+				"description": "COFF Archive (Library) File Format.",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "05.02.2018 9:36:50",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?COFF_LIB.rfi"
+			},
+			"COFF_OBJ.rfi": {
+				"file": "COFF_OBJ.rfi",
+				"description": "COFF Object (*.obj) File Format (Used by Microsoft Visual C).",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "16.06.1999 8:59:26",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?COFF_OBJ.rfi"
+			},
+			"ELF.rfh": {
+				"file": "ELF.rfh",
+				"description": "Executable and Linkable Format.",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "03.01.2018 22:00:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ELF.rfh"
+			},
+			"EXE.rfi": {
+				"file": "EXE.rfi",
+				"description": "EXE (DOS,WINDOWS (NE,PE,LE),OS/2(LX))",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "29.09.2000 20:05:10",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?EXE.rfi"
+			},
+			"LE.rfi": {
+				"file": "LE.rfi",
+				"description": "Linear Executable (Windows-95 VXD - drivers)",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "07.03.2008 9:28:00",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?LE.rfi"
+			},
+			"LIB.rfi": {
+				"file": "LIB.rfi",
+				"description": "Library files (DOS,WINDOWS)",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "07.03.2008 9:30:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?LIB.rfi"
+			},
+			"Mach-O.rfi": {
+				"file": "Mach-O.rfi",
+				"description": "Mac OS X ABI Mach-O File",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "13.09.2016 11:12:18",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?Mach-O.rfi"
+			},
+			"NE.rfi": {
+				"file": "NE.rfi",
+				"description": "Windows 16-bit Executable",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "08.03.2008 14:47:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?NE.rfi"
+			},
+			"OBJ.rfh": {
+				"file": "OBJ.rfh",
+				"description": "OBJ files",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "03.07.1999 21:41:20",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?OBJ.rfh"
+			},
+			"OBJ.rfi": {
+				"file": "OBJ.rfi",
+				"description": "OBJ and LIB files` data structures",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "08.03.2008 14:49:46",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?OBJ.rfi"
+			},
+			"OBJ_FILE.rfi": {
+				"file": "OBJ_FILE.rfi",
+				"description": "OBJ-files (DOS,Windows)",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "03.07.1999 21:41:20",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?OBJ_FILE.rfi"
+			},
+			"TPU.rfi": {
+				"file": "TPU.rfi",
+				"description": "Turbo Pascal 6.0,7.0 and Delphi 1.0 Units",
+				"class": "Executable and Object",
+				"status": "Almost Complete",
+				"date": "08.03.2008 18:02:22",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?TPU.rfi"
+			}
+		},
+		"Guess Work": {
+			"DCU32.rfi": {
+				"file": "DCU32.rfi",
+				"description": "Borland Delphi (vv. 2.0-9.0), Kylix (vv. 1.0-3.0) Unit",
+				"class": "Executable and Object",
+				"status": "Guess Work",
+				"date": "08.05.2021 16:34:46",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DCU32.rfi"
+			}
+		},
+		"Complete": {
+			"INS.rfi": {
+				"file": "INS.rfi",
+				"description": "InstallShield script file (NOTE: not of IS Express for Delphi)",
+				"class": "Executable and Object",
+				"status": "Complete",
+				"date": "26.09.2000 22:45:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?INS.rfi"
+			}
+		},
+		"Partial": {
+			"MBX.rfi": {
+				"file": "MBX.rfi",
+				"description": "MapBasic eXecutable (for MapInfo).",
+				"class": "Executable and Object",
+				"status": "Partial",
+				"date": "09.04.2009 19:12:50",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?MBX.rfi"
+			}
+		}
+	},
+	"Database": {
+		"Almost Complete": {
+			"CLARION.rfi": {
+				"file": "CLARION.rfi",
+				"description": "Clarion DBMS data file.",
+				"class": "Database",
+				"status": "Almost Complete",
+				"date": "29.07.1999 11:01:58",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?CLARION.rfi"
+			},
+			"CNF.RFH": {
+				"file": "CNF.RFH",
+				"description": "BDE Configuration file",
+				"class": "Database",
+				"status": "Almost Complete",
+				"date": "05.09.2011 21:16:50",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?CNF.RFH"
+			},
+			"mxl.rfh": {
+				"file": "mxl.rfh",
+				"description": "Moxcel spreadsheet file format (1c)",
+				"class": "Database",
+				"status": "Almost Complete",
+				"date": "07.03.2008 10:19:46",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?mxl.rfh"
+			}
+		},
+		"Complete": {
+			"db.rfi": {
+				"file": "db.rfi",
+				"description": "Paradox DBMS data file",
+				"class": "Database",
+				"status": "Complete",
+				"date": "01.07.2008 19:25:08",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?db.rfi"
+			},
+			"DBF.rfh": {
+				"file": "DBF.rfh",
+				"description": "xBase DBMS data file",
+				"class": "Database",
+				"status": "Complete",
+				"date": "08.12.2007 8:05:56",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DBF.rfh"
+			},
+			"KXX.rfi": {
+				"file": "KXX.rfi",
+				"description": "Clarion key/index file.",
+				"class": "Database",
+				"status": "Complete",
+				"date": "20.05.1999 10:27:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?KXX.rfi"
+			},
+			"SQLite.rfi": {
+				"file": "SQLite.rfi",
+				"description": "SQLite format 3 database file",
+				"class": "Database",
+				"status": "Complete",
+				"date": "08.09.2016 17:29:56",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?SQLite.rfi"
+			}
+		},
+		"Partial": {
+			"jet.rfi": {
+				"file": "jet.rfi",
+				"description": "Microsoft Jet 4 DB file",
+				"class": "Database",
+				"status": "Partial",
+				"date": "18.11.2004 16:20:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?jet.rfi"
+			}
+		}
+	},
+	"Machine OpCodes representation": {
+		"Complete": {
+			"CMD_Z80.rfi": {
+				"file": "CMD_Z80.rfi",
+				"description": "Opcode of Z-80 microprocessor as data type",
+				"class": "Machine OpCodes representation",
+				"status": "Complete",
+				"date": "11.04.2011 6:31:36",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?CMD_Z80.rfi"
+			},
+			"INS_OP.rfi": {
+				"file": "INS_OP.rfi",
+				"description": "InstallShield script file opcodes as data types",
+				"class": "Machine OpCodes representation",
+				"status": "Complete",
+				"date": "20.10.2000 19:23:56",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?INS_OP.rfi"
+			},
+			"JAVA_COD.rfi": {
+				"file": "JAVA_COD.rfi",
+				"description": "Java-machine opcodes as data types",
+				"class": "Machine OpCodes representation",
+				"status": "Complete",
+				"date": "30.10.2018 15:38:50",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?JAVA_COD.rfi"
+			},
+			"OP_ARM.rfi": {
+				"file": "OP_ARM.rfi",
+				"description": "Opcodes of ARM 32bit as data type",
+				"class": "Machine OpCodes representation",
+				"status": "Complete",
+				"date": "29.11.2016 16:16:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?OP_ARM.rfi"
+			},
+			"OP_PDP11.rfi": {
+				"file": "OP_PDP11.rfi",
+				"description": "Opcodes of PDP-11 family as data type",
+				"class": "Machine OpCodes representation",
+				"status": "Complete",
+				"date": "29.05.2000 17:43:54",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?OP_PDP11.rfi"
+			},
+			"op_ttf.rfi": {
+				"file": "op_ttf.rfi",
+				"description": "TrueType Instructions",
+				"class": "Machine OpCodes representation",
+				"status": "Complete",
+				"date": "02.05.2001 17:42:52",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?op_ttf.rfi"
+			}
+		},
+		"Partial": {
+			"MBX_CMD.rfi": {
+				"file": "MBX_CMD.rfi",
+				"description": "MapBasic eXecutable (for MapInfo) file opcodes as data types",
+				"class": "Machine OpCodes representation",
+				"status": "Partial",
+				"date": "09.04.2009 18:28:50",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?MBX_CMD.rfi"
+			}
+		}
+	},
+	"OS Specific": {
+		"Almost Complete": {
+			"Dat.rfi": {
+				"file": "Dat.rfi",
+				"description": "Windows 95 Register",
+				"class": "OS Specific",
+				"status": "Almost Complete",
+				"date": "11.11.2002 8:51:00",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?Dat.rfi"
+			},
+			"LNK.rfh": {
+				"file": "LNK.rfh",
+				"description": "Windows Short Cut (*.lnk)",
+				"class": "OS Specific",
+				"status": "Almost Complete",
+				"date": "29.07.1999 11:06:08",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?LNK.rfh"
+			},
+			"PIF.rfh": {
+				"file": "PIF.rfh",
+				"description": "Windows Program description files",
+				"class": "OS Specific",
+				"status": "Almost Complete",
+				"date": "15.10.1998 19:02:54",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?PIF.rfh"
+			},
+			"reg_NT.rfi": {
+				"file": "reg_NT.rfi",
+				"description": "Windows NT/2000/XP Registry",
+				"class": "OS Specific",
+				"status": "Almost Complete",
+				"date": "11.11.2002 10:24:58",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?reg_NT.rfi"
+			}
+		},
+		"Complete": {
+			"DIR.rfh": {
+				"file": "DIR.rfh",
+				"description": "DOS/Win95 Directory structure (when data extracted into a file)",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "31.01.1999 12:39:34",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DIR.rfh"
+			},
+			"DIR.rfi": {
+				"file": "DIR.rfi",
+				"description": "DOS/Win95 Directory structure datatypes",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "04.05.2005 18:42:52",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DIR.rfi"
+			},
+			"FAT.rfh": {
+				"file": "FAT.rfh",
+				"description": "FAT - file system structure (when data extracted into a file)",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "29.01.1999 20:36:18",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?FAT.rfh"
+			},
+			"FFAT.rfh": {
+				"file": "FFAT.rfh",
+				"description": "FAT - file system structure on floppy (when data extracted into a file)",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "31.01.1999 12:31:02",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?FFAT.rfh"
+			},
+			"LXD.rfh": {
+				"file": "LXD.rfh",
+				"description": "Linux directory file (when data extracted into a file)",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "16.12.1998 10:38:56",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?LXD.rfh"
+			},
+			"NTF.rfh": {
+				"file": "NTF.rfh",
+				"description": "NTFS - file system structure (when data extracted into a file)",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "03.02.1999 9:01:50",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?NTF.rfh"
+			},
+			"PARTTION.rfi": {
+				"file": "PARTTION.rfi",
+				"description": "MBR and Partition header data structures",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "13.08.2003 10:05:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?PARTTION.rfi"
+			},
+			"spl.rfh": {
+				"file": "spl.rfh",
+				"description": "Windows 2000/XP[/NT - may be too] printer spool file.",
+				"class": "OS Specific",
+				"status": "Complete",
+				"date": "07.07.2005 8:52:16",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?spl.rfh"
+			}
+		}
+	},
+	"Resource": {
+		"Complete": {
+			"DFM.rfh": {
+				"file": "DFM.rfh",
+				"description": "Borland Delphi form",
+				"class": "Resource",
+				"status": "Complete",
+				"date": "06.03.2008 10:10:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DFM.rfh"
+			},
+			"PKI.rfh": {
+				"file": "PKI.rfh",
+				"description": "Delphi 3.0 Package Info Resource format (not a real file)",
+				"class": "Resource",
+				"status": "Complete",
+				"date": "03.04.1999 12:32:00",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?PKI.rfh"
+			}
+		},
+		"Almost Complete": {
+			"MSB.rfh": {
+				"file": "MSB.rfh",
+				"description": "Oracle messages file",
+				"class": "Resource",
+				"status": "Almost Complete",
+				"date": "15.11.2001 19:50:04",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?MSB.rfh"
+			}
+		},
+		"Headers only": {
+			"res.rfh": {
+				"file": "res.rfh",
+				"description": "Windows 32-Bit Binary Resource Files",
+				"class": "Resource",
+				"status": "Headers only",
+				"date": "09.04.2019 13:47:22",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?res.rfh"
+			}
+		},
+		"Partial": {
+			"tlb_MSFT.rfi": {
+				"file": "tlb_MSFT.rfi",
+				"description": "Type Library MSFT signature",
+				"class": "Resource",
+				"status": "Partial",
+				"date": "08.03.2008 17:58:46",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?tlb_MSFT.rfi"
+			},
+			"tlb_SLTG.rfi": {
+				"file": "tlb_SLTG.rfi",
+				"description": "Type Library SLTG signature",
+				"class": "Resource",
+				"status": "Partial",
+				"date": "08.03.2008 17:59:52",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?tlb_SLTG.rfi"
+			},
+			"VERRES16.rfi": {
+				"file": "VERRES16.rfi",
+				"description": "Version Resource in 16-bit Windows EXE files",
+				"class": "Resource",
+				"status": "Partial",
+				"date": "10.07.2000 13:38:24",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?VERRES16.rfi"
+			}
+		}
+	},
+	"Text": {
+		"Partial": {
+			"DOCFILE.RFH": {
+				"file": "DOCFILE.RFH",
+				"description": "Microsoft OLE 2.0 Structured storage",
+				"class": "Text",
+				"status": "Partial",
+				"date": "11.05.2005 19:09:58",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DOCFILE.RFH"
+			},
+			"HLP.rfh": {
+				"file": "HLP.rfh",
+				"description": "Windows Help File",
+				"class": "Text",
+				"status": "Partial",
+				"date": "07.03.2008 9:18:22",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?HLP.rfh"
+			}
+		},
+		"Complete": {
+			"DVI.rfh": {
+				"file": "DVI.rfh",
+				"description": "TeX output file",
+				"class": "Text",
+				"status": "Complete",
+				"date": "29.09.2000 20:34:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DVI.rfh"
+			}
+		}
+	},
+	"General Data Types": {
+		"Auxiliary": {
+			"DOSFTIME.rfi": {
+				"file": "DOSFTIME.rfi",
+				"description": "Dos File Time data type",
+				"class": "General Data Types",
+				"status": "Auxiliary",
+				"date": "16.04.1999 14:57:20",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DOSFTIME.rfi"
+			},
+			"DPMI.rfi": {
+				"file": "DPMI.rfi",
+				"description": "DPMI call registers",
+				"class": "General Data Types",
+				"status": "Auxiliary",
+				"date": "28.10.1996 17:00:08",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?DPMI.rfi"
+			},
+			"GUID.rfi": {
+				"file": "GUID.rfi",
+				"description": "Windows GUID",
+				"class": "General Data Types",
+				"status": "Auxiliary",
+				"date": "13.11.2003 20:36:18",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?GUID.rfi"
+			},
+			"UNIXTime.rfi": {
+				"file": "UNIXTime.rfi",
+				"description": "UNIX Time data type (Sec. since 1.1.1970)",
+				"class": "General Data Types",
+				"status": "Auxiliary",
+				"date": "21.08.1999 12:27:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?UNIXTime.rfi"
+			},
+			"utf-8.rfi": {
+				"file": "utf-8.rfi",
+				"description": "UTF-8 encoding specification",
+				"class": "General Data Types",
+				"status": "Auxiliary",
+				"date": "29.07.2006 21:17:58",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?utf-8.rfi"
+			}
+		}
+	},
+	"GIS files": {
+		"Complete": {
+			"INF.rfi": {
+				"file": "INF.rfi",
+				"description": "\"Integral file\" - russian GIS file format",
+				"class": "GIS files",
+				"status": "Complete",
+				"date": "16.11.2001 13:22:10",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?INF.rfi"
+			},
+			"SHP.rfh": {
+				"file": "SHP.rfh",
+				"description": "ArcInfo Shape file",
+				"class": "GIS files",
+				"status": "Complete",
+				"date": "01.03.2021 20:08:16",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?SHP.rfh"
+			},
+			"SHP.rfi": {
+				"file": "SHP.rfi",
+				"description": "ArcInfo Shape files` data structures",
+				"class": "GIS files",
+				"status": "Complete",
+				"date": "05.11.2009 10:19:32",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?SHP.rfi"
+			},
+			"SHX.rfh": {
+				"file": "SHX.rfh",
+				"description": "ArcInfo Shape index file",
+				"class": "GIS files",
+				"status": "Complete",
+				"date": "03.02.1999 9:38:52",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?SHX.rfh"
+			}
+		},
+		"Almost Complete": {
+			"map.rfh": {
+				"file": "map.rfh",
+				"description": "MapInfo MAP file (Undocumented,restored)",
+				"class": "GIS files",
+				"status": "Almost Complete",
+				"date": "29.06.2012 14:11:14",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?map.rfh"
+			},
+			"rsc.rfh": {
+				"file": "rsc.rfh",
+				"description": "RSC - format of classifier of GIS Panorama ver. 7.2.",
+				"class": "GIS files",
+				"status": "Almost Complete",
+				"date": "12.11.2020 19:01:48",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?rsc.rfh"
+			},
+			"rsc_gdi.rfi": {
+				"file": "rsc_gdi.rfi",
+				"description": "data structures of graphics in classifiers of GIS Panorama ver. 7.2.",
+				"class": "GIS files",
+				"status": "Almost Complete",
+				"date": "16.02.2017 16:34:02",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?rsc_gdi.rfi"
+			}
+		}
+	},
+	"3D files": {
+		"Complete": {
+			"STL.rfh": {
+				"file": "STL.rfh",
+				"description": "STL - stereolitography (3D model) file",
+				"class": "3D files",
+				"status": "Complete",
+				"date": "25.01.2019 17:33:36",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?STL.rfh"
+			}
+		}
+	},
+	"Font file": {
+		"Almost Complete": {
+			"ttf.rfh": {
+				"file": "ttf.rfh",
+				"description": "True Type fonts",
+				"class": "Font file",
+				"status": "Almost Complete",
+				"date": "08.03.2008 18:03:30",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ttf.rfh"
+			}
+		},
+		"Auxiliary": {
+			"ttf_glfn.rfi": {
+				"file": "ttf_glfn.rfi",
+				"description": "True Type fonts Mac symbol names",
+				"class": "Font file",
+				"status": "Auxiliary",
+				"date": "03.05.2001 10:02:22",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?ttf_glfn.rfi"
+			},
+			"TTFPANOSE.RFI": {
+				"file": "TTFPANOSE.RFI",
+				"description": "True Type fonts PANOSE font properties",
+				"class": "Font file",
+				"status": "Auxiliary",
+				"date": "08.03.2008 18:04:08",
+				"uri": "http://geos0.icc.ru/scripts/wwwbinv.dll/ShowR?TTFPANOSE.RFI"
+			}
+		}
+	}
+}

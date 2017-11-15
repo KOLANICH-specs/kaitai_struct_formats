@@ -1,0 +1,186 @@
+% Borland Graphics Interface(BGI.rfi):Class: Executable and Object, Status: Auxiliary, Last change: 29.09.2000 20:29:52
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TDDO struc
+
+word install    % install device.
+                % required to return es:<bx> to status table.
+
+word init       % (bh)=texture (bl)= background color to use.
+                % ready device for output.
+                % es:[di] --> rotate,xclip1,yclip1,xclip2,yclip2
+
+word clear      % clear graphics device and ready it for
+                % output.
+
+word post       % make picture visible. used for making
+                % printer bitmaps visible, for unloading
+                % the plotter pen, or for restoring screen.
+
+word move       % used by text, arc, symbol, draw, fill etc.
+                % set c.p. (ax,bx) = (x,y)
+
+word draw       % draw to (ax,bx) = (x,y)
+
+word vect       % (ax,bx,cx,dx) = x0,y0,x1,y1
+
+word poly       % draw polygon.
+                % ax=0 start new polygon definition
+                % ax=1 close and trace poly
+                % ax=2 close,  fill poly and trace
+                % ax=3 close and fill poly
+                % ax=4 draw points and don't capture
+                % ax=5 turn off polygon capture
+                % ax=6 draw polygon at es:[bx] and (cx) points
+                % ax=7 fill & trace polygon at es:[bx] with (cx) points
+                % ax=8 fill polygon at es:[bx] with (cx) points
+
+word dbar       % bar fill (cpx,cpy,ax,bx)=x0,y0,x1,y1
+                % (bx,cx)=dx,dy for 3d (with outline)
+
+word patbar     % pattern bar (no outline)
+
+word darc       % draw arc
+
+word piesl      % (ax,bx)= start ang, end ang
+                % (cx,dx)= x radius, y radius
+                % center is a cp. (with outline)
+
+word fellipse   % (ab,bx) = x radius, yradius
+                % (no outline)
+
+word palette    % load a palette entry
+                % (ax)=entry # (bx)=value
+                % if (ax)=-1 set background
+
+word allpalette % load the full palette
+                % es:[bx] --> palette array
+
+word color      % set active draw color & pattern fill color
+                % (al)= draw (trace) color (ah)=fill color
+
+word fstyle     % (al)=fill pattern #
+                % (al)=0 no fill, 1 solid ...
+                % (ah)=background color (normally 0)
+                % (used only if pattern in al > 80h)
+                % if (al)=ff es:<bx>--> pattern definition
+
+word lstyle     % (al)=0(solid) 1(dotted) 2(centerline) 3(dash)
+                % 4(use pattern) (bx)=bit pattern
+                % (cx)=line width (normally one)
+
+word tstyle     % (al)=font (ah)=style
+                % (bx)=x charsize (cx)=y charsize
+                % if (al)=ff es:<bx>--> font definition table
+                % changes all params to those available.
+
+word text       % draw text. es:<bx> --> <string>, (0)
+
+word textsize   % text length.
+
+word textinfo   % extended text settings.
+
+word flood      % floodfill (ax,bx) = x,y seed coordinate.
+
+word getpix     % read pixel @(ax,bx) to (dl)
+
+word putpix     % put (dl) to pixel @(ax,bx)
+
+word bitmaputil % returns (es:[bx]) = bitmap utilities.
+                %       dw gotographic
+                %       dw exitgraphic
+                %       dw putpix
+                %       dw getpix
+                %       dw pixelsperbyte
+                %       dw setwritemode
+
+word savebitmap % es:[bx]--> buffer to save bitmap to.
+                % contain bitmap size (pixels) in 1st 2 words
+                % cx = start x  dx = start line # y
+
+
+word restorebitmap      % es:[bx]--> bitmap buffer to restore.
+                        % contains bitmap size (pixels) in 1st 2 words
+                        % cx=start x dx= start y to put
+                        % (al) = bitblt op (copy, xor, comp, etc.)
+
+word setclip    % extended function to set clip window
+                % (ax,bx)-(cx,dx) = clip rectangle
+
+word query_color        % extended function for color information
+
+word escape     % escape function for direct i/o
+
+word symbol     % draw symbol (al) = symbol #
+                % if (al)=ff es:<bx>--> symbol definition
+
+word reserve    % 32 reserved entry points
+
+word user       % User available entry points
+
+ends
+
+TBitMapInfo  struc
+codeofs  gotographic
+codeofs  exitgraphic
+codeofs  putpixel
+codeofs  getpixel
+codeofs  bitsperpixel
+codeofs  setpage       % draw page in (al)
+codeofs  setvisual     % visual display page (al)
+codeofs  setwritemode  % set write mode (al)
+ends
+
+% ************** the device driver status table definition **************
+TBGIStatus struc
+  byte stat     % 0 = no errors
+  byte devtypdb %device type 0=screen 1=printer 2=plotter
+  int xres     % full resolution
+  int yres
+  int xefres     % effective resolution
+  int yefres
+  int xinch    % device size in inches*1000
+  int yinch
+  int aspec    % aspect ratio
+  int chsiz    % standard char size x,y (points)
+  word coltbl     % color tables
+ends
+
+TVESAModeInfo struc
+  int     ModeAttr
+  byte    WinAAttr
+  byte    WinBAttr
+  int     WinGranularity
+  int     WinSize
+  word    WinASeg
+  word    WinBSeg 
+  pointer WinFuncPtr
+  int     BytesPerScanLine
+% Optional data
+  int     XRes
+  int     YRes
+  int     XCharSize
+  int     YCharSize
+  byte    PlaneNum
+  byte    BitsPerPixel
+  byte    BankNum
+  byte    MemModel
+  byte    BankSize
+  byte    PageNum
+  byte    Reserved
+% direct color fields
+  byte    RedMaskSize
+  byte    RedFldPos
+  byte    GreenMaskSize
+  byte    GreenFldPos
+  byte    BlueMaskSize
+  byte    BlueFldPos
+  byte    RsvdMaskSize
+  byte    RsvdFldPos
+  byte    DirecColorModeInf
+% Reserved2: array[1..216] of Byte%
+ends
+
+

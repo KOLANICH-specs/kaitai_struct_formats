@@ -1,0 +1,23 @@
+% ArcInfo Shape index file(SHX.rfh):Class: GIS files, Status: Complete, Last change: 03.02.1999 9:38:52
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+/* Information source:
+==================================================
+ArcView(R) Version 2 Shapefile Technical Description
+
+An ESRI White Paper
+==================================================
+*/
+
+include shp.rfi
+
+type
+
+TShapeNDXRec struc
+  ulongrev RecOfs
+  ulongrev RecLen
+ends
+
+data
+Hdr:Size (array of TShapeNDXRec:[@:Size=FileSize-&@]) Tbl
+

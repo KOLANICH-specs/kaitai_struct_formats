@@ -1,0 +1,270 @@
+% JPEG File Interchange Format(jpeg.rfi):Class: Graphics and Sounds, Status: Headers only, Last change: 28.05.2018 11:44:32
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder rev
+
+type
+
+UI8 num+(1)
+UI16 num+(2)
+fail void():assert[0]
+
+data
+0x0000 UI16 StartRec
+
+assert StartRec=0xFFD8;
+
+descr ('JPEG File Interchange Format',NL)
+descr ('Info Source: CRYX''s note about the JPEG decoding algorithm.',NL)
+descr ('             Copyright 1999 Cristi Cuturicu.',NL)
+
+type
+
+TSegTag enum byte (
+ //Start Of Frame markers, non-differential, Huffman coding
+  SOF0  = 0xc0, //Start Of Frame (Baseline DCT)
+  SOF1  = 0xc1, //Start Of Frame (Extended sequential DCT)
+  SOF2  = 0xc2, //Start Of Frame (Progressive DCT)
+  SOF3  = 0xc3, //Start Of Frame (Lossless (sequential))
+ //Start Of Frame markers, differential, Huffman coding
+  SOF5  = 0xc5, //Start Of Frame (Differential sequential DCT)
+  SOF6  = 0xc6, //Start Of Frame (Differential progressive DCT)
+  SOF7  = 0xc7, //Start Of Frame (Differential lossless (sequential))
+ //Start Of Frame markers, non-differential, arithmetic coding
+  JPG  = 0xc8, //Start Of Frame (Reserved for JPEG extensions)
+  SOF9  = 0xc9, //Start Of Frame (Extended sequential DCT)
+  SOF10 = 0xca, //Start Of Frame (Progressive DCT)
+  SOF11 = 0xcb, //Start Of Frame (Lossless (sequential))
+ //Start Of Frame markers, differential, arithmetic coding
+  SOF13 = 0xcd, //Start Of Frame (Differential sequential DCT)
+  SOF14 = 0xce, //Start Of Frame (Differential progressive DCT)
+  SOF15 = 0xcf, //Start Of Frame (Differential lossless (sequential))
+ //Huffman table specification
+  DHT   = 0xc4, //Define Huffman Table(s)
+ //Arithmetic coding conditioning specification
+  DAC   = 0xcc, //Define arithmetic coding conditioning(s)
+ //Restart interval termination
+  RST0  = 0xd0, /**///Restart with modulo 8 count "m"
+  RST1  = 0xd1, /**/
+  RST2  = 0xd2, /**/
+  RST3  = 0xd3, /**/
+  RST4  = 0xd4, /**/
+  RST5  = 0xd5, /**/
+  RST6  = 0xd6, /**/
+  RST7  = 0xd7, /**/
+ //Other markers
+  SOI   = 0xd8, //Start Of Image
+  EOI   = 0xd9, //End Of Image
+  SOS   = 0xda, //Start Of Scan
+  DQT   = 0xdb, //Define Quantization Table
+  DNL   = 0xdc, //Define number of lines
+  DRI   = 0xdd, //Define Restart Interval
+  DHP   = 0xde, //Define hierarchical progression
+  EXP   = 0xdf, //Expand reference component(s)
+  APP0  = 0xe0, //JFIF APP0 segment marker
+  APP1  = 0xe1, //Reserved for application segments
+  APP2  = 0xe2, //
+  APP3  = 0xe3, //
+  APP4  = 0xe4, //
+  APP5  = 0xe5, //
+  APP6  = 0xe6, //
+  APP7  = 0xe7, //
+  APP8  = 0xe8, //
+  APP9  = 0xe9, //
+  APP10 = 0xea, //
+  APP11 = 0xeb, //
+  APP12 = 0xec, //
+  APP13 = 0xed, //
+  APP14 = 0xee, //
+  APP15 = 0xef, //
+  JPG0  = 0xf0, //Reserved for JPEG extensions
+  JPG1  = 0xf1, //
+  JPG2  = 0xf2, //
+  JPG3  = 0xf3, //
+  JPG4  = 0xf4, //
+  JPG5  = 0xf5, //
+  JPG6  = 0xf6, //
+  JPG7  = 0xf7, //
+  JPG8  = 0xf8, //
+  JPG9  = 0xf9, //
+  JPG10 = 0xfa, //
+  JPG11 = 0xfb, //
+  JPG12 = 0xfc, //
+  JPG13 = 0xfd, //
+  COM   = 0xfe,  //Comment, for details see below
+ //Reserved markers
+  TEM   = 0x01 /**///For temporary private use in arithmetic coding
+ //0x02..0xBF //Reserved
+)
+
+type bit
+
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+TBit4 num+(4)
+
+TDQTPrec enum TBit4 (dqt8Bit=0,dqt16Bit=1)
+
+TDQTFlags struc pas
+  Prec: TDQTPrec
+  N: TBit4 //Table number
+ends
+
+TDHTFlags struc pas
+  Rsrv: TBit3
+  IsAC: TBit //1-AC,0-DC table
+  N: TBit4 //Table number
+ends
+
+TSamplingFactors struc pas
+  Hor: TBit4
+  Vert: TBit4
+ends
+
+TScanTblNums struc pas
+  DCTbl: TBit4
+  ACTbl: TBit4
+ends
+
+TApproxBitPositions struc pas
+  Ah: TBit4 //Successive approximation bit position high
+  Al: TBit4 //Successive approximation bit position low or point transform
+ends
+
+type
+
+TXYunits enum UI8 (
+  aspectRatio=0, //no units, x/y-density specify the aspect ratio instead
+  dotsPerInch=1, //x/y-density are dots/inch
+  dotsPerCm=2  //x/y-density are dots/cm
+)
+
+TRGB struc pas
+  R: Byte
+  G: Byte
+  B: Byte
+ends
+
+TAPP0JFIF struc pas
+  VerMaj: UI8 //major revision number, should be 1 (otherwise error)
+  VerMin: UI8 //- minor revision number, should be 0..2
+  XYunits: TXYunits //units for x/y densities
+  xDensity: UI16 //x-density, should be <> 0
+  yDensity: UI16 //y-density, should be <> 0
+  thumbW: Byte //thumbnail width (1 byte)
+  thumbH: Byte //thumbnail height (1 byte)
+  thumb: array[@.thumbH]of array[@@.thumbW]of TRGB
+ends
+
+TAPP0Rec struc pas
+  Mrk: PChar
+  D: case @.Mrk of
+   'JFIF': TAPP0JFIF
+  endc
+ends
+
+TComponId enum UI8 (Y=1, Cb=2, Cr=3, I=4, Q=5)
+
+TComponInfo struc pas
+  Id: TComponId //component id
+  Sampling: TSamplingFactors //sampling factors (bit 0-3 vert., 4-7 hor.)
+  TblNum: Byte //quantization table number
+ends
+
+TSOFRec struc pas
+  BitsPerSample: UI8 //data precision (1 byte) in bits/sample,
+        //usually 8 (12 and 16 not supported by most software)
+  H: UI16 //image height (2 bytes, Hi-Lo), must be >0 if DNL not supported
+  W: UI16 //image width (2 bytes, Hi-Lo), must be >0 if DNL not supported
+  NCompon: Byte //number of components (1 byte), usually
+     //1 = grey scaled, 3 = color YCbCr	or YIQ, 4 = color CMYK)
+  Compon: array[@.NCompon] of TComponInfo
+ends
+
+TDefineQuantTableRec struc pas
+  F: TDQTFlags //QT information (1 byte)
+  Tbl: array[64]of (num(1+@@.F.Prec):displ=(INT(@))) //QT elements
+ends
+
+TDefineHuffmanTableRec struc pas
+  F: TDHTFlags //HT information (1 byte)
+  LenCodes: array[16]of Byte //LenCodes[i]=number of Huffman codes of length i+1
+  CodeVal: array[16]of struc pas
+     V: array[@@@.LenCodes[@:#]]of Byte //the BYTE value associated to the j-th Huffman code of length k
+    ends
+ends
+
+TSOSComponInfo struc pas
+  Id: TComponId //component id
+  Tbls: TScanTblNums //Huffman table to use
+ends
+
+TSOSRec struc pas
+  nCompon: UI8 //number of components in scan (1 byte),
+     //must be >= 1 and <=4 (otherwise error), usually 1 or 3
+  Compon: array[@.nCompon] of TSOSComponInfo
+  Ss: UI8 //Start of spectral or predictor selection (select the predictor in lossless mode)
+  Se: UI8 //End of spectral selection (ignored and =0 in lossless mode)
+  A: TApproxBitPositions //Successive approximation bit positions
+ends    
+
+TExif(Sz) struc pas
+  Sign: array[4]of Char
+  Z: Word
+  Data: subfile[@:Sz-6] spec 'tif.rfh'
+ends:assert[@.Sign='Exif',@.Z=0]
+
+TAPP1Rec(Sz) try
+  Exif: TExif(@:Sz)
+  Other: raw[@:Sz]
+endt
+
+TSegData(Sz,Tag) case TSegTag @:Tag of
+  APP0: TAPP0Rec
+  APP1: TAPP1Rec(@:Sz)
+  SOF0,SOF1,SOF2,SOF3,SOF5,SOF6,SOF7,SOF9,
+  SOF10,SOF11,SOF13,SOF14,SOF15,JPG: TSOFRec
+  DHT: array of TDefineHuffmanTableRec:[@:Size=@@:Sz] //(@:Sz)
+  DQT: array of TDefineQuantTableRec:[@:Size=@@:Sz] //(@:Sz)
+  COM: raw[@:Sz] //Comment
+  SOS: TSOSRec
+  DNL: UI8 //Specifies the number of lines in the frame (instead of SOF.H)
+//else raw[@:Sz]
+endc
+
+TSegment struc pas
+  bFF: Byte
+  Tag: TSegTag
+  D: case @.Tag of
+    TEM,RST0,RST1,RST2,RST3,RST4,RST5,RST6,RST7,SOI,EOI: void
+    SOF0,SOF1,SOF2,SOF3,SOF5,SOF6,SOF7,SOF9,
+    SOF10,SOF11,SOF13,SOF14,SOF15,DHT,JPG,DAC,SOS,
+    DQT,DNL,DRI,DHP,EXP,APP0..APP15,JPG0..JPG13,COM: struc pas
+      Sz: UI16
+      D: TSegData(@.Sz-2,@@@.Tag)
+      Rest: raw[]
+     ends:[@:Size=@.Sz]:assert[@.Sz>=2]
+  else
+    fail
+  endc
+ends: assert[@.bFF=0xFF,(@.Tag<>0xFF)and(@.Tag<>0),@.D.*:assert]
+
+TFFVal struc pas
+  bFF: Byte
+  b00: Byte
+ends: assert[@.bFF=0xFF,@.b00=0]
+
+TNoFFData array of Byte?@=0xFF!void;:displ=(ShowArray(@,(@),' '))
+
+TChkSegment try
+  Seg: TSegment
+  FF: TFFVal
+  X: TNoFFData
+endt
+
+TJPEGStream array of TChkSegment?@.Seg.Tag=TSegTag.EOI exc 0;
+
+data
+0x0002 TJPEGStream Stm
+

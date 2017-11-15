@@ -1,0 +1,10 @@
+% OBJ files(OBJ.rfh):Class: Executable and Object, Status: Almost Complete, Last change: 03.07.1999 21:41:20
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include obj.rfi
+
+data
+0x0000 TObjRecStm Stream
+
+assert (Stream[0].Kind=TObjRecKind.okTHEADR)exc 0;
+

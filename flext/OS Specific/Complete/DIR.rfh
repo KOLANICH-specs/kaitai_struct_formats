@@ -1,0 +1,8 @@
+% DOS/Win95 Directory structure (when data extracted into a file)(DIR.rfh):Class: OS Specific, Status: Complete, Last change: 31.01.1999 12:39:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include DIR.rfi
+
+data
+ 0 TDirectoryTbl(FileSize) Tbl
+

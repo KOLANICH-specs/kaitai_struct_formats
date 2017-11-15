@@ -1,0 +1,364 @@
+% Moxcel spreadsheet file format (1c)(mxl.rfh):Class: Database, Status: Almost Complete, Last change: 07.03.2008 10:19:46
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TSign array[6]of char
+
+data
+0 TSign Sign
+
+assert (Sign='MOXCEL');
+
+descr ('Moxcel spreadsheet file format (1c)',NL)
+descr ('Info Src: Moxcel (ver. 1.11 beta, 25.03.2004)',NL,
+  'Location: http://sourceforge.net/projects/lproject, http://1l.w4b.ru/',NL,
+  '      Copyright (c) 2004 Dmitry Pavluk <dmp@myrealbox.com>, Evgeny Pivnev <eugene@spb.rosgazservice.com>.',NL)
+
+
+type
+
+TMXLHdr struc
+  Word w06 //Always 6
+  long MaxCol
+  long MaxRow
+  long ObjCnt
+ends
+
+data
+0x0b TMXLHdr MXLHdr
+
+type
+
+TCellFlags0 set 8 of (
+  FontNameUsed ^ 0x01, //+ЁшЇЄ - Lь  (эх ртЄю)
+  FontSizeUsed ^ 0x02, //+ЁшЇЄ - ¦рчьхЁ (эх ртЄю)
+  FontBold ^ 0x04, //+ЁшЇЄ - ¦шЁэvщ (шчьхэхэшх)
+  FontItalic ^ 0x08, //+ЁшЇЄ - =ръыюээvщ (шчьхэхэшх)
+  FontUnderline ^0x10, //+ЁшЇЄ - ¦юфўхЁъэєЄvщ (шчьхэхэшх)
+  LeftEdge ^ 0x20, //¦рьър - Tхтю (шчьхэхэшх)
+  TopEdge ^ 0x40, //¦рьър - TхЁї (шчьхэхэшх)
+  RightEdge ^ 0x80  //¦рьър - ¦Ёртю (шчьхэхэшх)
+)
+
+TCellFlags1 set 8 of (
+  BottomEdge ^ 0x01, //¦рьър - =шч (шчьхэхэшх)
+  EdgeColorUsed ^ 0x02, //гтхЄ Ёрьюъ (эх ртЄю)
+  Flag1 ^ 0x04, //Lырцюъ юс•шщ ¦ 1 (шёя. т фЁєушї ёт-трї)
+  Flag2 ^ 0x08, //Lырцюъ юс•шщ ¦ 2 (шёя. т фЁєушї ёт-трї)
+  Hor ^ 0x10, //¦ю уюЁшчюэЄрыш (шчьхэхэшх)|¦ю тvфхыхээvь ёЄюысЎрь (шчьхэхэшх)
+  Vert ^ 0x20, //¦ю тхЁЄшърыш (шчьхэхэшх)
+  FontColorUsed ^ 0x40, //гтхЄ °ЁшЇЄр (эх ртЄю)
+  BackGroundUsed ^ 0x80  //Lюэ (эх ртЄю)
+)
+
+TCellFlags2 set 8 of (
+  PatternUsed ^ 0x01, //LчюЁ (эх ртЄю)
+  PatternColorUsed ^ 0x02, //гтхЄ єчюЁр (эх ртЄю)
+  Checked ^ 0x04, //¦юэЄЁюы№ (шчьхэхэшх)
+  Type_ ^ 0x08, //Tшя (шчьхэхэшх)
+  Protection ^ 0x10,  //¦р•шЄр (шчьхэхэшх) 
+  IsDialog ^ 0x20 //-шрыюуютр   ўхщър
+)
+
+TCellFlags3 set 8 of (
+  DescrUsed ^ 0x40, //¦рё°шЇЁютър (фышэр > 0)
+  TextUsed ^ 0x80  //TхъёЄ (фышэр > 0)
+)
+
+TFontBold enum byte (
+  Off = 4, //+ЁшЇЄ - ¦шЁэvщ = 0
+  On = 7 //+ЁшЇЄ - ¦шЁэvщ = 1
+)
+ 
+TFontItalic enum byte (
+  Off = 0, //+ЁшЇЄ - =ръыюээvщ = 0
+  On = 1 //+ЁшЇЄ - =ръыюээvщ = 1
+)
+ 
+TFontUnderline enum byte (
+  Off = 0, //+ЁшЇЄ - ¦юфўхЁъэєЄvщ = 0
+  On = 1 //+ЁшЇЄ - ¦юфўхЁъэєЄvщ = 1 
+)
+
+TTextRec0 struc
+  byte L0
+  case @.L0 of
+    255: word
+  endc L1
+  array[@.L0 when (@.L0<>255) exc @.L1.255]of Char S
+ends
+
+TTextRec(Present) case @:Present of
+  0x0: void
+else TTextRec0
+endc
+
+TDlgCellType enum byte (
+ Calc = 0x41, // Tшф ЁрёўхЄр
+ Lookup = 0x42, // TяЁртюўэшъ
+ Cal = 0x43, // ¦рыхэфрЁ№
+ Date = 0x44, // -рЄр
+ Enum = 0x45, // ¦хЁхўшёыхэшх
+ Sub = 0x4b, // Tшф ёєсъюэЄю
+ Num = 0x4e, // +шёыю
+ Doc = 0x4f, // -юъєьхэЄ
+ Plan = 0x50, // ¦ырэ ёўхЄют
+ Str = 0x53, // TЄЁюър
+ Account = 0x54, // TўхЄ
+ Undef = 0x55  // =хюяЁхфхыхээvщ
+)
+
+TDialogAddInf0 struc
+  word L0
+  word W0 //=0
+  word W3 //=3 ? шёя. т ёЄЁюъх, ўшёыю
+  TDlgCellType Type_ //Tшя
+  long Len //-ышэр (ёЄЁюъш, ўшёыр ш Є. я.)
+  long Prec //TюўэюёЄ№ (ўшёыю)
+  long hKind //? =юьхЁ тшфр ёяЁртюўэшър, фюъєьхэЄр, яхЁхўшёыхэш , ш Є.я.
+  byte IsUnsigned //=хюЄЁшЎрЄхы№эvщ=1 (ўшёыю)
+  byte Split3 //¦рчфхы Є№ ЄЁшрфv=1 (ўшёыю)
+  TTextRec0 InternalVal //? TэєЄЁхэхх чэрўхэшх
+  TTextRec0 Fmt //LюЁьрЄ
+  byte IsNull //? (єёЄрэютыхээю є эхюяЁ. чэрўхэш )
+  byte X
+  byte HasButton //¦эюяър тvсюЁр=1
+  byte X1
+  byte Disabled //TфхырЄ№ эхфюёЄєяэvь=1
+  byte ReadOnly //¦ряЁхЄшЄ№ ЁхфръЄшЁютрэшх=1
+  byte /*TTextRec0 - Єръ эх яюыєўшыюё№*/ Mask //¦рёър
+  raw[] rest
+ends:[@:Size=@.L0+2]
+
+TDialogAddInf(Present) case @:Present of
+  0x0: void
+else TDialogAddInf0
+endc
+
+type bit
+
+TBit4 num+(4)
+
+THorAlign enum TBit4 (
+  Left = 0, //¦ю уюЁшчюэЄрыш = Tхтю
+  Right = 2, //¦ю уюЁшчюэЄрыш = ¦Ёртю
+  Width = 4, //¦ю уюЁшчюэЄрыш = ¦ю °шЁшэх
+  Center = 6 //¦ю уюЁшчюэЄрыш = гхэЄЁ
+)
+
+TSelCol set 4 of (
+  SelCol ^ 0x2 //¦ю тvфхыхээvь ёЄюысЎрь
+)
+
+THorAlignSelCol struc
+  THorAlign Al
+  TSelCol F
+ends
+
+type
+
+TVertAlign enum byte (
+  Top=0, //¦ю тхЁЄшърыш = TхЁї
+  Bottom=0x08, //¦ю тхЁЄшърыш = =шч
+  Center=0x18 //¦ю тхЁЄшърыш = гхэЄЁ
+)
+
+
+TFillPattern byte
+
+TFrameStyle byte
+
+TPalColor byte
+
+TCheckStyle enum byte (
+  Auto = 0, //LтЄю
+  Cut = 1, //+сЁхчрЄ№
+  Fill = 2, //¦рсштрЄ№
+  Shift = 3, //¦хЁхэюёшЄ№
+  Red = 4, //¦Ёрёэvщ
+  FillRed = 5 //¦рсштрЄ№ + ¦Ёрёэvщ
+)
+
+TCellType enum byte (
+  cText=0, //TхъёЄ
+  cExpr=1, //TvЁрцхэшх
+  cTempl=2, //+рсыюэ
+  cFixTempl=3 //Lшъё. °рсыюэ
+)
+
+TCellCommon struc
+  TCellFlags0 F0
+  TCellFlags1 F1
+  TCellFlags2 F2
+  TCellFlags3 F3
+  word V1 //¦эрўхэшх юс•шх ¦ 1 (шёя. т фЁєушї ёт-трї)
+  word V2 //¦эрўхэшх юс•шх ¦ 2 (шёя. т фЁєушї ёт-трї)
+  word hFont //=юьхЁ Lьхэш °ЁшЇЄр, Deft = Arial (чрфрхЄё  т ъюэЇшуєЁрЄюЁх)
+  word FontSize //=-4*@
+  TFontBold FontBold
+  TFontItalic FontItalic
+  TFontUnderline FontUnderline
+  THorAlignSelCol AlHor //¦ю уюЁшчюэЄрыш, ¦ю тvфхыхээvь ёЄюысЎрь
+  TVertAlign AlVert //¦ю тхЁЄшърыш
+  TFillPattern hPattern //LчюЁ = =юьхЁ єчюЁр
+  TFrameStyle LeftFrame //¦рьър - Tхтю = =юьхЁ ёЄшы  Ёрьъш
+  TFrameStyle TopFrame //¦рьър - TхЁї = =юьхЁ ёЄшы  Ёрьъш
+  TFrameStyle RightFrame //¦рьър - ¦Ёртю = =юьхЁ ёЄшы  Ёрьъш
+  TFrameStyle BottomFrame //¦рьър - =шч = =юьхЁ ёЄшы  Ёрьъш
+  TPalColor PatternColor //гтхЄ єчюЁр = =юьхЁ ЎтхЄр
+  TPalColor FrameColor //гтхЄ Ёрьюъ = =юьхЁ ЎтхЄр
+  TPalColor FontColor //гтхЄ °ЁшЇЄр = =юьхЁ ЎтхЄр
+  TPalColor BgColor //Lюэ = =юьхЁ ЎтхЄр
+  TCheckStyle CheckStyle //¦юэЄЁюы№
+  TCellType Type_ //Tшя
+  byte NotProtected //¦р•шЄр = 0, Є. х. шэтхЁёш !
+  byte X //?
+  TTextRec(@.F3 and TCellFlags3.TextUsed) Text
+  TTextRec(@.F3 and TCellFlags3.DescrUsed) Descr
+  TDialogAddInf(@.F2 and TCellFlags2.IsDialog) Dialog
+ends
+
+TFntInf raw[60] //Temp.
+
+TFontTbl struc
+  word Cnt
+  array[@.Cnt] of Long hFnt //эюьхЁ °ЁшЇЄр
+  word ValCnt
+  array[@.ValCnt] of TFntInf FntInf //ёт-тр °ЁшЇЄр
+  ulong X //(?)
+ends
+
+TColCellPropTbl struc
+  word Cnt
+  array[@.Cnt] of Long h //эюьхЁ ъюыюэъш
+  word ValCnt
+  array[@.ValCnt] of TCellCommon CellProp //ёт-тр  ўхщъш фы  ъюы.
+ends
+
+TRowProp struc
+  TCellCommon RowCell
+  TColCellPropTbl Cells
+ends
+
+TRowCellPropTbl struc
+  word Cnt
+  array[@.Cnt] of Long h //эюьхЁ ёЄЁюъш
+  word ValCnt
+  array[@.ValCnt] of TRowProp RowProp //ёт-тр  ўхщъш фы  ёЄЁ.
+ends
+
+TPicKind enum long (
+  Line=1, //Tшэш 
+  Rect=2, //¦Ё ьюєуюы№эшъ
+  Text=3, //TхъёЄ
+  OLE=4,  //OLE, -шруЁрььр
+  Image=5 //¦шёєэюъ
+)
+
+TPicProp struc
+  TCellCommon Cell
+  TPicKind Kind
+  long Col0//=юьхЁ ъюыюэъш эрўры№эющ  ўхщъш 
+  long Row0//=юьхЁ ёЄЁюъш эрўры№эющ  ўхщъш 
+  long dX0//Tьх•хэшх X юЄэюёшЄхы№эю тхЁїэхую ыхтюую єуыр эрўры№эющ  ўхщъш т ? 
+  long dY0//Tьх•хэшх Y юЄэюёшЄхы№эю тхЁїэхую ыхтюую єуыр эрўры№эющ  ўхщъш т ? 
+  long Col1//=юьхЁ ъюыюэъш ъюэхўэющ  ўхщъш
+  long Row1//=юьхЁ ёЄЁюъш ъюэхўэющ  ўхщъш 
+  long dX1//Tьх•хэшх X юЄэюёшЄхы№эю тхЁїэхую ыхтюую єуыр ъюэхўэющ  ўхщъш т ?
+  long dY1//Tьх•хэшх Y юЄэюёшЄхы№эю тхЁїэхую ыхтюую єуыр ъюэхўэющ  ўхщъш т ? 
+  long ZOrder//LЁютхэ№ яырэр (?), ёт чрэю ё ъюьрэфрьш эр яхЁхфэшщ, чрфэшщ яырэ
+  case @.Kind of
+   Image: struc
+     ulong Sign //? = "lt\x00\x00"= 0x0000746c 
+     ulong Size
+     raw[@.Size] Dat
+    ends
+   OLE: struc
+     word RecKind //0xffff - +ёЄ№ "ёЄЁюър шьхэш OLE" (?), 0x8001 - =хЄ
+     case @.RecKind of
+      0xffff: struc
+        word Z //=0
+        word L //-ышэр ёЄЁюъш OLE (тёхуфр 0x0e)
+        array[@.L]of Char Name //TЄЁюър OLE (тёхуфр "CSheetCntrItem")
+       ends
+     endc ClassNameInf
+     ulong d0x100 //? = 256
+     long Num //¦юЁ фъютvщ эюьхЁ Ёшёєэър (?), юЄ Ёшё. ъ Ёшё. єтхышўштрхЄё  эр 2 шыш 3
+     ulong Kind //1 - фы  OLE, 0x0012f150 - фы  "-шруЁрььv"
+     word W0  //=0
+     ulong D1 //=1
+     ulong Size //-ышэр OLE юс·хъЄр
+     raw[@.Size] Dat
+    ends
+  endc AddInf
+ends
+
+TPicPropTbl struc
+  word Cnt
+  array[@.Cnt] of TPicProp Tbl
+ends
+
+TCellRect struc
+  long Col0 //=юьхЁ эрўры№эющ ъюыюэъш 
+  long Row0 //=юьхЁ ъюэхўэющ ёЄЁюъш 
+  long Col1 //=юьхЁ ъюэхўэющ ъюыюэъш 
+  long Row1 //=юьхЁ ъюэхўэющ ёЄЁюъш 
+ends
+
+TUnionPropTbl struc
+  word Cnt
+  array[@.Cnt] of TCellRect Tbl
+ends
+
+TSecProp struc
+  long N0 //=юьхЁ эрўры№эющ ёЄЁюъш/ъюыюэъш
+  long N1 //=юьхЁ ъюэхўэющ ёЄЁюъш/ъюыюэъш 
+  long hParGr //TїюфшьюёЄ№ т фЁєує¦ уЁєяяє = эюьхЁ тхЁїэхщ уЁєяяv, Deft=0
+  TTextRec0 Name //Lь  ёхъЎшш 
+ends
+
+TSecPropTbl struc
+  word Cnt
+  array[@.Cnt] of TSecProp Tbl
+ends
+
+TPgSplitTbl struc
+  word Cnt
+  array[@.Cnt] of long Tbl //эюьхЁр ъюыюэюъ/ёЄЁюъ яюёых
+ends
+
+TNameProp struc
+  TTextRec0 Name //Lь 
+  ulong D1 //=1
+  ulong DX //=0x0012f9e8 (?)
+  ulong D3 //=3
+  TCellRect R //¦Ё ьюєуюы№эшъ
+ends 
+
+TNamePropTbl struc
+  long Cnt
+  array[@.Cnt] of TNameProp Tbl
+ends
+
+
+
+TMXLData struc
+  TCellCommon TblCell //ёт-тр  ўхщъш фы  тёхщ ЄрсышЎv
+  TFontTbl FontTbl
+  TCellCommon PgTitleTop //тхЁїэшщ ъюыюэЄшЄєы
+  TCellCommon PgTitleBottom //эшцэшщ ъюыюэЄшЄєы
+  TColCellPropTbl ColCells //ёт-тр  ўххъ фы  ъюыюэюъ
+  TRowCellPropTbl RowCells //ёт-тр  ўххъ фы  ёЄЁюъ
+  TPicPropTbl Pics //Ёшёєэъш тёЄрты хьvх
+  TUnionPropTbl Unions //юс·хфшэхэшх
+  TSecPropTbl VertSecs //ёхъЎшш тхЁЄшъры№эvх
+  TSecPropTbl HorSecs //ёхъЎшш уюЁшчюэЄры№эvх
+  TPgSplitTbl VertSplits //яхЁхтюфv ёЄЁрэшЎ тхЁЄшъры№эvх
+  TPgSplitTbl HorSplits //яхЁхтюфv ёЄЁрэшЎ уюЁшчюэЄры№эvх
+  TNamePropTbl CellNames //шьхэр
+ends
+
+data
+0x0b+MXLHdr:size; TMXLData MXLData
+

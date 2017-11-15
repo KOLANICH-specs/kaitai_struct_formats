@@ -1,0 +1,444 @@
+% MapInfo MAP file (Undocumented,restored)(map.rfh):Class: GIS files, Status: Almost Complete, Last change: 29.06.2012 14:11:14
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include Float.rfi
+
+type
+
+TBlockTag enum int (
+  Header=0,
+  Index=1,
+  ObjDef=2,
+  Coords=3,
+  Deleted=4,
+  Tools=5
+)
+
+TSmallPoint struc
+  int X
+  int Y
+ends
+
+TPoint struc
+  long X
+  long Y
+ends
+
+TSmallRect struc
+  int L
+  int T
+  int R
+  int B
+ends
+
+TRect struc
+  long L
+  long T
+  long R
+  long B
+ends
+
+TColor struc
+  byte R
+  byte G
+  byte B
+ends
+
+include MITables.rfi
+
+TCoordPrecision enum byte (
+  LatLong=6, //Lat/Long maps
+  Cartesian=8, //Cartesian maps
+  Projected=1 //Projected maps
+)
+
+TCoordOriginCode enum byte (
+  LatLong=2, //for Lat/Long maps
+  CartProj=1 //for Cartesian and Projected maps
+)
+
+TReflectAxisCode enum byte (
+  LatLong=1, //for Lat/Long maps
+  CartProj=0 //for Cartesian and Projected maps
+)
+
+
+PBlock ^TBlock near=ulong
+
+TIndexDataRec struc
+  TRect MBR //Coordinates of Minimum Bounding Rectangle
+  PBlock Bl
+ends
+
+TObjRecTbl(Sz) forward
+
+TMapToolTbl(Sz) forward
+
+TBlock struc
+  TBlockTag Tag
+  word Num
+  case @.Tag of
+   Index: array[@@.Num]of TIndexDataRec
+   ObjDef: struc
+     TPoint Center
+     PBlock pFirstCoordBlock
+     PBlock pLastCoordBlock
+     TObjRecTbl(@@@.Num) Defs
+    ends
+   Coords: struc
+     PBlock Next
+    ends
+   Deleted: struc
+     PBlock Next
+    ends
+   Tools: struc
+     PBlock Next
+     TMapToolTbl(@@@.Num) Tools
+    ends
+  endc D
+ends
+
+
+THeader struc
+  /*
+  TBlockTag Tag
+  raw[0xFF] at 0; LongSign //??
+  */
+  long Sign
+  int FileVer
+  word BlSize
+  TDouble CoordSysToDistUnits //Miles/LatDegree for Lat/Long maps 1.0  for all others
+  TRect MBR //Coordinates of Minimum Bounding Rectangle
+  TRect VR  //Coordinates of Default View of table
+  PBlock pObjDefIndex //Offset of Object Definition Index
+  PBlock DelBlockList //Offset of the beginning of Deleted Block sequence
+  PBlock pTools //Offset of Tools Block
+  long NSymbol //Number of Symbol elements
+  long NLine //Number of Line elements
+  long NRegion //Number of Region elements
+  long NText //Number of Text elements
+  ulong MaxCoordBufSize
+  raw[14] Z //14 Unknown bytes (Probably reserved and set to zero)
+  TMapUnit DistUnit //Map File Distance Units
+  sint MaxSpIndexDepth //Max spatial index depth
+  TCoordPrecision CoordPrecision
+  TCoordOriginCode CoordOriginCode
+  TReflectAxisCode ReflectAxisCode
+  byte ObjLenArraySize //(at the start of the file)
+  sint NPenRes //Number of pen resources
+  sint NBrushRes //Number of brush resources
+  sint NSymbolRes //Number of symbol resources
+  sint NTextRes //Number of text resources
+  int NResBl //Number of Resource Blocks
+  raw[3] Z1 //Unknown(probably reserved and set to zero)
+  TProjectionType ProjectionType
+  TDatumType Datum
+  TMapUnit CoordUnit //Units of coordinate system
+  TDouble XScale
+  TDouble YScale
+  TDouble XOffset
+  TDouble YOffset
+  array[6]of TDouble ProjParms //1-based array of projection parameters
+  TDouble DatumShiftX
+  TDouble DatumShiftY
+  TDouble DatumShiftZ
+  array[5]of TDouble DatumParms //1-based array of datum parameters
+ends:assert[/*@.Tag=TBlockTag.Header*/@.Sign=42424242]
+
+data
+0x0100 THeader Hdr
+0x0 array[Hdr.ObjLenArraySize+1]of Byte ObjDefRecSize
+
+
+assert Hdr:assert;
+
+descr ('MapInfo vector graphics file.')
+descr (NL,
+  'Info Src: Notes on the MapInfoR Native table format by Anssi Joutsiniemi',NL,
+  '          Robert Edwards. http://spatialnews.geocomm.com/features/mif_format/',NL,
+  'Info Src: MITAB Library. http://mitab.maptools.org/',NL)
+
+type
+
+TObjDefTag enum byte (
+  NONE         = 0,
+  SYMBOL_C     = 0x01,
+  SYMBOL       = 0x02,
+  LINE_C       = 0x04,
+  LINE         = 0x05,
+  PLINE_C      = 0x07,
+  PLINE        = 0x08,
+  ARC_C        = 0x0a,
+  ARC          = 0x0b,
+  REGION_C     = 0x0d,
+  REGION       = 0x0e,
+  TEXT_C       = 0x10,
+  TEXT         = 0x11,
+  RECT_C       = 0x13,
+  RECT         = 0x14,
+  ROUNDRECT_C  = 0x16,
+  ROUNDRECT    = 0x17,
+  ELLIPSE_C    = 0x19,
+  ELLIPSE      = 0x1a,
+  MULTIPLINE_C = 0x25,
+  MULTIPLINE   = 0x26,
+  FONTSYMBOL_C = 0x28,
+  FONTSYMBOL   = 0x29,
+  CUSTOMSYMBOL_C=0x2b,
+  CUSTOMSYMBOL = 0x2c,
+/* Version 450 object types: */
+  V450_REGION_C= 0x2e,
+  V450_REGION  = 0x2f,
+  V450_MULTIPLINE_C=0x31,
+  V450_MULTIPLINE = 0x32,
+/* Version 650 object types: */
+  MULTIPOINT_C = 0x34,
+  MULTIPOINT   = 0x35,
+  COLLECTION_C = 0x37,
+  COLLECTION   = 0x38
+)
+
+TSmallPoints(Sz) array of TSmallPoint:[@:Size=@:Sz when @:Sz<Hdr.BlSize exc Hdr.BlSize /*For presentation purposes only*/]
+
+PSmallPoints(Sz) ^TSmallPoints(@:Sz) near=ulong
+PRelSmallPoints(Sz,Base) ^TSmallPoints(@:Sz) near=ulong, REF=@+@:Base;
+
+TPoints(Sz) array of TPoint:[@:Size=@:Sz when @:Sz<Hdr.BlSize exc Hdr.BlSize /*For presentation purposes only*/]
+
+PPoints(Sz) ^TPoints(@:Sz) near=ulong
+PRelPoints(Sz,Base) ^TPoints(@:Sz) near=ulong, REF=@+@:Base;
+
+TNumVertices(V450) case @:V450 of
+  0: int
+else long
+endc:let Val=(@.0)exc(@.1);
+
+
+TCoordSection(V450) struc
+  TNumVertices(@:V450) numVertices
+  int numHoles
+  TRect MBR
+ // ulong pCoords
+  PRelPoints(@.numVertices:Val*8,&@-@:#*@:Size/*Array start*/) pCoords
+ends
+
+TCoordSection_C(V450) struc
+  TNumVertices(@:V450) numVertices
+  int numHoles
+  TSmallRect MBR
+ // ulong pCoords
+  PRelSmallPoints(@.numVertices:Val*4,&@-@:#*@:Size/*Array start*/) pCoords
+ends
+
+
+//In fact all such pointers point into some block and, when
+//the variable doesn't fit completely into the block, its
+//rest is placed into the next block(s)
+
+PCoordSection_C(V450) ^TCoordSection_C(@:V450) NEAR=ulong
+PCoordSection(V450) ^TCoordSection(@:V450) NEAR=ulong
+
+TCoordSections_C(Num,V450) array[@:Num]of TCoordSection_C(@:V450)
+TCoordSections(Num,V450) array[@:Num]of TCoordSection(@:V450)
+
+PCoordSections_C(Num,V450) ^TCoordSections_C(@:Num,@:V450) NEAR=ulong
+PCoordSections(Num,V450) ^TCoordSections(@:Num,@:V450) NEAR=ulong
+
+TLblTextStr(L) array[@:L]of Char
+PLblTextStr(L) ^TLblTextStr(@:L) NEAR=ulong :displ=(@^,'{',@,'}')
+
+TFontStyle set 16 of (
+  fsBold      ^ 0x001,
+  fsItalic    ^ 0x002,
+  fsUnderline ^ 0x004,
+  fsShadow    ^ 0x020,
+  fsFill      ^ 0x100,
+  fsAround    ^ 0x200,
+  fsCapital   ^ 0x400,
+  fsSparse    ^ 0x800
+)
+
+TObjDefRec struc
+  TObjDefTag Tag
+  ulong RowID //(0 = Valid; 0x40000000 = Deleted
+  case @.Tag of
+   SYMBOL_C: struc
+     TSmallPoint P
+     byte hSym //Symbol type number from Resource Block
+    ends
+   SYMBOL: struc
+     TPoint P
+     byte hSym //Symbol type number from Resource Block
+    ends
+   LINE_C: struc
+     TSmallPoint S
+     TSmallPoint E
+     byte hPen //Pen type number from Resource Block
+    ends
+   LINE: struc
+     TPoint S
+     TPoint E
+     byte hPen //Pen type number from Resource Block
+    ends
+   PLINE_C: struc
+     PSmallPoints CoordOfs
+     ulong CoordSz
+     TSmallPoint LabelPos
+     TPoint Org
+     TSmallRect MBR
+     byte hPen //Pen type number from Resource Block
+    ends:[@.CoordOfs:Sz=@.CoordSz and 0x7FFFFFFF] //Take smooth flag out of the value
+   PLINE: struc
+     PPoints CoordOfs
+     ulong CoordSz
+     TPoint LabelPos
+     TRect MBR
+     byte hPen //Pen type number from Resource Block
+    ends:[@.CoordOfs:Sz=@.CoordSz and 0x7FFFFFFF] //Take smooth flag out of the value
+   ARC_C: struc
+     int StartAngle
+     int EndAngle
+     TSmallRect EllipseMBR
+     TSmallRect ArcMBR
+     byte hPen //Pen type number from Resource Block
+    ends
+   ARC: struc
+     int StartAngle
+     int EndAngle
+     TRect EllipseMBR
+     TRect ArcMBR
+     byte hPen //Pen type number from Resource Block
+    ends
+   REGION_C,V450_REGION_C: struc
+     PCoordSections_C CoordOfs
+     ulong CoordSz
+     int numLineSections
+     TSmallPoint LabelPos
+     TPoint Org
+     TSmallRect MBR
+     byte hPen //Pen type number from Resource Block
+     byte hBrush //Brush type number from Resource Block
+    ends:[@.CoordOfs:Num=@.numLineSections,
+      @.CoordOfs:V450=@@@.Tag=TObjDefTag.V450_REGION_C]
+   REGION,V450_REGION: struc
+     PCoordSections CoordOfs
+     ulong CoordSz
+     int numLineSections
+     TPoint LabelPos
+     TRect MBR
+     byte hPen //Pen type number from Resource Block
+     byte hBrush //Brush type number from Resource Block
+    ends:[@.CoordOfs:Num=@.numLineSections,
+      @.CoordOfs:V450=@@@.Tag=TObjDefTag.V450_REGION]
+    //:[@.CoordOfs:Sz=@.CoordSz and 0x7FFFFFFF] //Take smooth flag out of the value
+   MULTIPLINE_C,V450_MULTIPLINE_C: struc
+     PCoordSections CoordOfs
+     ulong CoordSz
+     int numLineSections
+     TSmallPoint LabelPos
+     TPoint Org
+     TSmallRect MBR
+     byte hPen //Pen type number from Resource Block
+    ends:[@.CoordOfs:Num=@.numLineSections,
+      @.CoordOfs:V450=@@@.Tag=TObjDefTag.V450_MULTIPLINE_C]
+   MULTIPLINE,V450_MULTIPLINE: struc
+     PCoordSections CoordOfs
+     ulong CoordSz
+     int numLineSections
+     TPoint LabelPos
+     TRect MBR
+     byte hPen //Pen type number from Resource Block
+    ends:[@.CoordOfs:Num=@.numLineSections,
+      @.CoordOfs:V450=@@@.Tag=TObjDefTag.V450_MULTIPLINE]
+   FONTSYMBOL_C: struc
+     byte SymbolId // Symbol index
+     byte PointSize
+     word FontStyle
+     TColor TextColor
+     TColor BGColor //??? BG Color ???
+     int Angle
+     TSmallPoint Pos
+     byte FontId
+    ends
+   FONTSYMBOL: struc
+     byte SymbolId // Symbol index
+     byte PointSize
+     word FontStyle
+     TColor TextColor
+     TColor BGColor //??? BG Color ???
+     int Angle
+     TPoint Pos
+     byte FontId
+    ends
+   TEXT_C: struc
+     PLblTextStr TxtOfs
+     word TxtLen
+     word Alignment // just./spacing/arrow
+     int nAngle // Tenths of degree
+     word FontStyle
+     TColor TextColor
+     TColor BGColor
+     TSmallPoint Pos // Label line end point
+     int TextH
+     byte FontId
+     TSmallRect MBR // MBR after rotation
+     byte hPen //Pen type number from Resource Block
+    ends:[@.TxtOfs:L=@.TxtLen]
+   TEXT: struc
+     PLblTextStr TxtOfs
+     word TxtLen
+     word Alignment // just./spacing/arrow
+     int nAngle // Tenths of degree
+     TFontStyle FontStyle
+     TColor TextColor
+     TColor BGColor
+     TPoint Pos // Label line end point
+     long TextH
+     byte FontId
+     TRect MBR // MBR after rotation
+     byte hPen //Pen type number from Resource Block
+    ends:[@.TxtOfs:L=@.TxtLen]
+  endc D
+  raw[] Rest
+ends:[@:Size=((ObjDefRecSize[@.Tag]and 0x7F) when (ObjDefRecSize[@.Tag]>0)) exc 1]
+
+TObjRecTbl(Sz) array of TObjDefRec:[@:Size=@:Sz]
+
+TMapToolKind enum byte (
+  PEN = 1,
+  BRUSH = 2,
+  FONT = 3,
+  SYMBOL = 4
+)
+
+TMapToolRec struc
+  TMapToolKind Kind
+  long RefCount
+  case @.Kind of
+   PEN: struc
+     byte PixelWidth
+     byte LinePattern
+     byte PointWidth
+     TColor Color
+    ends
+   BRUSH: struc
+     byte FillPattern
+     byte TransparentFill
+     TColor FGColor
+     TColor BGColor
+    ends
+   FONT: struc
+     array[32]of Char,<0; Name
+    ends
+   SYMBOL: struc
+     int SymbolNo
+     int PointSize
+     byte Unknown
+     TColor Color
+    ends
+  endc D
+ends
+
+TMapToolTbl(Sz) array of TMapToolRec?not((@.Kind>0)and(@.Kind<=4))!void;:[@:Size=@:Sz]
+
+

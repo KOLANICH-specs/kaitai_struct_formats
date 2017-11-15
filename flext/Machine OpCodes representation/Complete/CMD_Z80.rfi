@@ -1,0 +1,132 @@
+% Opcode of Z-80 microprocessor as data type(CMD_Z80.rfi):Class: Machine OpCodes representation, Status: Complete, Last change: 11.04.2011 6:31:36
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type bit
+
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+TRN enum TBit3 (B,C,D,E,H,L,M,A)
+TRNp enum TBit2 (BC,DE,HL,SP)
+TRNw enum TBit2 (BC,DE,HL,PSW)
+TRN1 enum TBit (BC,DE)
+
+TOpAr enum TBit3 (add,adc,sub,sbb,ana,xra,ora,cmp)
+TOpArI enum TBit3 (adi,aci,sui,sbi,ani,xri,ori,cpi)
+TOpJmpCond enum TBit3 (jnz,jz,jnc,jc,jpo,jpe,jp,jm)
+TOpCallCond enum TBit3 (cnz,cz,cnc,cc,cpo,cpe,cp,cm)
+TOpRetCond enum TBit3 (rnz,rz,rnc,rc,rpo,rpe,rp,rm)
+
+TOpRot enum TBit2 (rlc,rrc,ral,rar)
+TOpFlag enum TBit2 (daa,cma,stc,cmc)
+TOpSLD enum TBit2 (shld,lhld,sta,lda)
+
+
+TBit8 num+(8)
+
+type
+POpZ80Seq ^TOpZ80Seq near=word
+
+type bit
+PRst ^TOpZ80Seq near=TBit3, REF=@*8;
+
+type
+TByteOpCode enum TBit8 /*byte*/ fields (
+  Nd: TRN @3.3,
+  Ns: TRN @0.3,
+  Np: TRNp @4.2,
+  N:  TRN1 @4.1,
+  Fs: TOpRot @3.2,
+  Fm: TOpFlag @3.2,
+  Fa: TOpAr @3.3,
+  Nw: TRNw @4.2,
+  Fr: TOpRetCond @3.3,
+  Na: TBit3 @3.3,
+//  Na: PRst @3.3,
+  Fi: TOpArI @3.3,
+  Fd: TOpSLD @3.2,
+  Fj: TOpJmpCond @3.3,
+  Fc: TOpCallCond @3.3
+) of (
+ // 1-byte
+  nop =          0b00000000,
+  inr(Nd) =      0b00___100,
+  dcr(Nd) =      0b00___101,
+  hlt =          0b01110110,
+  mov(Nd,Ns) =   0b01______,
+  inx(Np) =      0b00__0011,
+  dcx(Np) =      0b00__1011,
+  dad(Np) =      0b00__1001,
+  stax(N) =      0b000_0010,
+  ldax(N) =      0b000_1010,
+  ROT_OP(Fs) =   0b000__111,
+  FLAG_OP(Fm) =  0b001__111,
+  AR_OP(Fa,Ns) = 0b10______,
+  push(Nw) =     0b11__0101,
+  pop(Nw) =      0b11__0001,
+  ret =          0b11001001,
+  RETC_OP(Fr) =  0b11___000,
+  rst(Na) =      0b11___111,
+  pchl =         0b11101001,
+  xchg =         0b11101011,
+  xthl =         0b11100011,
+  sphl =         0b11111001,
+  di =           0b11110011,
+  ei =           0b11111011,
+
+// 2-byte
+  mvi(Nd) =      0b00___110,
+  ARI_OP(Fi) =   0b11___110,
+  in =           0b11011011,
+  out =          0b11010011,
+
+// 3-byte
+  lxi(Np) =      0b00__0001,
+  SLD_OP(Fd) =   0b001__010,
+  jmp =          0b11000011,
+  JC_OP(Fj) =    0b11___010,
+  call =         0b11001101,
+  CC_OP(Fc) =    0b11___100
+)
+
+TADDR num+(2):displ=(HEX(@,4),' ',addrname(@))
+
+TOpZ80 struc pas
+  Op: TByteOpCode
+  Arg: case @.Op of
+    mvi, ARI_OP: byte
+    in, out: byte
+    LXI: TADDR
+    SLD_OP: TADDR
+    jmp,JC_OP,call,CC_OP: POpZ80Seq
+   endc
+ends:let isCall=(@.Op=TByteOpCode.call);:displ=(
+  case @.Op of
+   nop,hlt,ret,pchl,xchg,xthl,sphl,di,ei: (valname(@.Op))
+   inr,dcr: (valname(@.Op),' ',valname(@.Op.Nd))
+   mov: (valname(@.Op),' ',valname(@.Op.Nd),',',valname(@.Op.Ns))
+   inx,dcx,dad: (valname(@.Op),' ',valname(@.Op.Np))
+   stax,ldax: (valname(@.Op),' ',valname(@.Op.N))
+   ROT_OP: (valname(@.Op.Fs))
+   FLAG_OP: (valname(@.Op.Fm))
+   AR_OP: (valname(@.Op.Fa),' ',valname(@.Op.Ns))
+   push,pop: (valname(@.Op),' ',valname(@.Op.Nw))
+   RETC_OP: (valname(@.Op.Fr))
+   rst: (valname(@.Op),' ',valname(@.Op.Na))
+  // 2-byte
+   mvi: (valname(@.Op),' ',valname(@.Op.Nd),',',@.Arg)
+   ARI_OP: (valname(@.Op.Fi),' ',@.Arg)
+   in,out: (valname(@.Op),' ',@.Arg)
+  // 3-byte
+   lxi: (valname(@.Op),' ',valname(@.Op.Np),',',@.Arg)
+   SLD_OP:(valname(@.Op.Fd),' ',@.Arg)
+   jmp,call: (valname(@.Op),' ',@.Arg)
+   JC_OP: (valname(@.Op.Fj),' ',@.Arg)
+   CC_OP: (valname(@.Op.Fc),' ',@.Arg)
+  else (@.Op)
+  endc)
+
+TOpZ80Seq codes of TOpZ80 ?(@.Op=TByteOpCode.ret)or(@.Op=TByteOpCode.jmp)
+  or(@.Op=TByteOpCode.hlt)or(@.Op=TByteOpCode.pchl); : displ=('(',
+  ShowArray(@,(NL,HEX(&@ /*-&@:@*/ ,4),': ',@)),NL,')')
+

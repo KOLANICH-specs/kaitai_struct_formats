@@ -1,0 +1,107 @@
+% PNG (Portable Network Graphics) files(PNG.rfh):Class: Graphics and Sounds, Status: Headers only, Last change: 24.01.2008 14:22:56
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder rev
+
+type
+TPNGHdr array[8] of Char
+
+data
+0 TPNGHdr Hdr
+
+assert Hdr=''#137'PNG'#13#10#26#10;
+
+descr ('PNG (Portable Network Graphics).',NL)
+descr ('Info Source: PNG (Portable Network Graphics) Specification by T. Boutell at www.wotsit.org',NL)
+
+type
+
+u1 num+(1)
+u2 num+(2)
+u4 num+(4)
+d1 num+(1):displ=(INT(@))
+d2 num+(2):displ=(INT(@))
+d4 num+(4):displ=(INT(@))
+i1 num-(1)
+i2 num-(2)
+i4 num-(4)
+
+TChunkType array[4]of char:displ=(@,
+  '[aux=',INT(@[0]and 0x20<>0), //ancillary - ignore if unknown
+  ',priv=',INT(@[1]and 0x20<>0), //private - nonstandard
+  ',copy=',INT(@[3]and 0x20<>0), //safe to copy - (if unknown, to edited file)
+  ']')
+
+TColorType set 8 of (
+  PaletteUsed ^ 0x1,
+  ColorUsed ^ 0x2,
+  AlphaUsed ^ 0x4
+)
+
+TInterlace enum d1 (
+  No=0,
+  Adam7=1
+)
+
+TIHDR struc
+  d4 Width
+  d4 Height
+  d1 Depth //Bit depth
+  TColorType Color //Color type
+  d1 Compr //Compression method (always 0 => Deflate)
+  d1 Filter //Filter method (always 0 => selection of 5 filter)
+  TInterlace Interlace //Interlace method
+ends
+
+TRGB struc
+  d1 R
+  d1 G
+  d1 B
+ends
+
+TResUnit enum d1 (unknown=0,meter=1)
+
+TpHYs struc //Physical Pixel Dimensions
+  d4 xRes //Pixels per unit, X axis
+  d4 yRes //Pixels per unit, Y axis
+  TResUnit Unit //Unit specifier
+ends
+
+TtEXt(Sz) struc
+  PChar Keyword
+  array of Char Val
+ends:[@:Size=@:Sz]
+
+TtIME struc
+  d2 Y
+  d1 Mon
+  d1 Day
+  d1 H
+  d1 M
+  d1 S
+ends
+
+TChunk struc
+  u4 Length
+  TChunkType Typ
+  struc
+    case @@.Typ of
+     'IHDR': TIHDR
+     'PLTE': array of TRGB:[@:Size=@@@@.Length]
+     //'IDAT': compressed data
+     //'IEND': void - the last record
+     'sBIT': array[@@@.Length] of d1 //original depth of color channels (depends on IHDR.Color)
+     'pHYs': TpHYs
+     'tEXt': TtEXt(@@@.Length)
+     'gAMA': d4 //gamma times 100000
+     'tIME': TtIME
+    endc D
+    raw[] Rest
+  ends:[@:Size=@@.Length] Data
+  u4 CRC //of Typ and Data
+ends
+
+data
+
+0x8 array of TChunk?@.Typ='IEND';/*:[@:Size=FileSize-8]*/ Chunks
+

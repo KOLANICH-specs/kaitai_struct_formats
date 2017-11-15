@@ -1,0 +1,12 @@
+% COFF Object (*.obj) File Format (Used by Microsoft Visual C).(COFF_OBJ.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 16.06.1999 8:59:26
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+TIMAGE_HEADERS forward
+
+data
+0 TIMAGE_HEADERS COFFHdr
+
+include COFF.rfi
+
+

@@ -1,0 +1,475 @@
+% MapBasic eXecutable (for MapInfo) file opcodes as data types(MBX_CMD.rfi):Class: Machine OpCodes representation, Status: Partial, Last change: 09.04.2009 18:28:50
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+fail void():assert[0]
+
+TExprOpCode enum byte (
+  SetArg0=0x00,
+  SetArg1=0x01,
+  SetArg2=0x02,
+  SetArg3=0x03,
+  SetArg4=0x04,
+  SetArg5=0x05,
+  SetArg6=0x06,
+  SetArg7=0x07,
+  SetArg8=0x08,
+
+//Arithmetic
+  Div=0x0A, //int division
+  Mod=0x0B,
+  Add=0x0C, //takes 2 args from stack
+  Sub=0x0D,
+  Mul=0x0E,
+  DivF=0x0F, //Float division
+  Neg=0x10,
+
+  Or=0x11,
+  And=0x12,
+  Not=0x13,
+  cmpEQ=0x14,
+  cmpNE=0x15,
+  cmpLE=0x16,
+  cmpGE=0x17,
+  cmpLT=0x18,
+  cmpGT=0x19,
+
+  RemoveMenuItem=0x1A,
+  SetCtlID=0x1B,
+  AddMenuItem=0x1C,
+
+  Pwr=0x1E, //Power: x^y
+
+//Dialog commands
+//  Button=0x1D,
+//  StaticText=0x23,
+  _SomeFileOp=0x28,
+  _TitleFromVar=0x2A,
+  _MenuItemByName=0x2F, //Was observed in Alter Menu Item
+  _SetMenuItemTitle=0x31,
+  SetCtlInto=0x32,
+  SetTitle=0x40,
+  _FOpenTableType=0x41,
+  _FOpenType=0x44,
+  SetMenuTitle=0x49,
+  Control=0x51,
+  _EnableMenuItem=0x52,
+  _DisableMenuItem=0x53,
+  _SetControlPos=0x5B,
+  _ControlX=0x5D,
+  _FOpenX=0x62,
+  UnitByName=0x70,
+  SetHeight=0x78,
+  SetWidth=0x79,
+
+  LoadLocal=0xE1,
+  End_OnError=0xE2,
+  End_Program=0xE3,
+  CallDLLF=0xE5,
+  CallDLLP=0xE6,
+  SetFuncRes=0xE7,
+  CallUserF=0xE8,
+  CallUserPRel=0xEE,
+  CallUserP=0xED,
+  Resume=0xE9,
+  OnError=0xEA,
+  SetValue=0xEB, //Set Variable Value (Variable is selected by the next command)
+  LoadField=0xEC, //Word hFld (1-based, takes rec. from stack)
+  CaseJmp=0xEF,
+  LoadLocConst=0xF1, //Byte DT,Word Ofs
+  LoadArg=0xF2, //ulong Ofs
+  LoadGlobal=0xF3, //Byte=0x21,Word hGlobVar (0-based), Byte X
+  CallUserFRel=0xF4,
+  CallStd=0xF5,
+
+  jump=0xF6,
+  jNCond=0xF7,
+
+  Exit_Sub=0xF8,
+  CaseBr=0xF9,
+  SrcLine=0xFA, //Word - Source line number
+  CallStd1=0xFC, //Word hProc
+  StartExpr=0xFD, //Expr inside expr like in array el refs
+  SetStd1=0xFE,
+  ExprEnd=0xFF //End Of Expression
+)
+
+TMBXOpCode enum byte (
+ //== TDTCodeB - Set actual argument of called proc with DT=@
+  SetArg0=0x00,
+  SetArgString=0x01, //Ok
+  SetArgVal=0x02, //any numeric value represented by double
+  SetArgInteger=0x03,
+  SetArgSmallInt=0x04, //Ok
+  SetArgDate=0x05,
+  SetArgLogical=0x06,
+
+  SetArgFloat=0x08, //Ok
+
+  SetArgPChar=0x0A,
+  SetArgPen=0x0B,
+  SetArgBrush=0x0C,
+  SetArgObject=0x0D,
+  SetArgSymbol=0x0E,
+  SetArgFont=0x0F,
+  SetArgStringL=0x10,
+  SetArg11=0x11,
+
+  SetArgAlias=0x15,
+
+  SetArgProcName=0x18,
+
+  RemoveMenuItem=0x1A,
+  SetCtlID=0x1B,
+  AddMenuItem=0x1C,
+  SetArgObject1=0x1D, //Ok
+
+//Dialog commands
+//  Button=0x1D,
+//  StaticText=0x23,
+  _SomeFileOp=0x28,
+  _TitleFromVar=0x2A,
+  _MenuItemByName=0x2F, //Was observed in Alter Menu Item
+  _SetMenuItemTitle=0x31,
+  SetCtlInto=0x32,
+  SetTitle=0x40,
+  _FOpenTableType=0x41,
+  _FOpenType=0x44,
+  SetMenuTitle=0x49,
+  _CoordSys50=0x50,
+  Control=0x51,
+  _EnableMenuItem=0x52,
+  _DisableMenuItem=0x53,
+  _CoordSys54=0x54,
+  _CoordSys55=0x55,
+  _SetControlPos=0x5B,
+  _ControlX=0x5D,
+  _FOpenX=0x62,
+  UnitByName=0x70,
+  SetHeight=0x78,
+  SetWidth=0x79,
+
+  LoadLocal=0xE1,
+  End_OnError=0xE2,
+  End_Program=0xE3,
+  CallDLLF=0xE5,
+  CallDLLP=0xE6,
+  SetFuncRes=0xE7,
+  CallUserPRel=0xEE,
+  CallUserP=0xED,
+  Resume=0xE9,
+  OnError=0xEA,
+  SetValue=0xEB, //Set Variable Value (Variable is selected by the next command)
+  LoadField=0xEC, //Word hFld (1-based, takes rec. from stack)
+  CaseJmp=0xEF,
+  LoadLocConst=0xF1, //Byte DT,Word Ofs
+  LoadArg=0xF2, //ulong Ofs
+  LoadGlobal=0xF3, //Byte=0x21,Word hGlobVar (0-based), Byte X
+  CallUserFRel=0xF4,
+  CallStd=0xF5,
+
+  jump=0xF6,
+  jNCond=0xF7,
+
+  Exit_Sub=0xF8,
+  CaseBr=0xF9,
+  SrcLine=0xFA, //Word - Source line number
+  CallStd1=0xFC, //Word hProc
+  StartExpr=0xFD, //
+  SetStd1=0xFE,
+  ExprEnd=0xFF //takes result from stack
+)
+
+TGlobVarID enum Word=Hdr.Vars^.GlobNames^[@];
+
+TGlobalInf struc
+  Byte OpC1
+  TGlobVarID hGlobVar //(0-based)
+  Byte X //0 or 1
+ends:assert[(@.OpC1=0x21)or(@.OpC1=0x22)] //Only these values were observed, 0x22-By Addr
+
+TLocalVarID(hProc) Word():displ=(Hdr.Vars^.Frms^[@:hProc].Locals[@],'{',
+  INT(@),'}')
+
+TLocalInf(hProc) struc
+  Byte OpC1
+  TLocalVarID(@:hProc) hArg //(0-based)
+  Byte X //0 or 1
+ends:assert[(@.OpC1=0x21)or(@.OpC1=0x22)] //Only these values were observed, 0x22-By Addr
+
+TProcNum enum Word (
+  Sin=0x01,
+  Cos=0x02,
+  ASin=0x03,
+  ACos=0x04,
+  ATn=0x05,
+  Exp=0x06,
+  Log=0x07,
+  Rnd=0x08,
+  Sqr=0x09,
+  Tan=0x0A,
+  Sgn=0x0B,
+  Fix=0x0C,
+  Int=0x0D,
+  Minimum=0x0E,
+  Maximum=0x0F,
+ // =0x10,
+  Round=0x11,
+  Err=0x12,
+  Error_=0x13,
+  ReadControlValue=0x18,
+  UBound=0x1C, //Upper bound of array
+  UCase_=0x22,
+  LTrim_=0x24,
+  RTrim_=0x25,
+  Chr_=0x27,
+  Left_=0x28,
+  Right_=0x2A,
+  InStr=0x2C,
+  DDEInitiate=0x44,
+  DDERequest_=0x45,
+  SystemInfo=0x46,
+  MakePen=0x48,
+  MakeBrush=0x49,
+  StyleAttr=0x54,
+  ProgramDirectory_=0x58,
+  HomeDirectory_=0x59,
+  SetArrayElVal=0x5B, //A,i,V=>
+  Len=0x61,
+  ApplicationDirectory_=0x66,
+  FileExists=0x70
+)
+
+TStd1Proc enum Word (
+//  SetToolsMenu=0x0148,
+  Alter_Menu_Item=0x041B,
+  CloseFile=0x041F,
+  Menu=0x0420,
+  OpenFile=0x0438,
+  SetCoordSys=0x043F,
+  Note=0x044B,
+  Dialog=0x054E,
+  ReDim=0x0564,
+  Error=0x057C,
+  DDETerminate=0x0629,
+  DDETerminateAll=0x062A,
+  Print=0x0647
+)
+
+TCallInf struc
+  TProcNum hProc
+  Byte NArgs //Procedure arity
+ends
+
+TProcOfs ulong():displ=(HEX(@),'{',ADDRNAME(@),'}')
+TProcOfsRel(Base) ulong():displ=(HEX(@:Base+@),'(',
+  HEX(@:Base),'+',HEX(@),')','{',ADDRNAME(@:Base+@),'}')
+
+TCallUserFInf struc
+  TProcOfs ProcOfs //start addr of the called proc
+  usint Arity
+  TDTCodeB ResT
+  array[@.Arity]of TDTCodeB ArgT
+//  Word W2
+//  Word W3
+ends
+
+TCallUserFRelInf(Base) struc
+  TProcOfsRel(@:Base) ProcOfs //Offset from the start addr of the current proc, Long
+  usint Arity
+  TDTCodeB ResT
+  array[@.Arity]of TDTCodeB ArgT
+//  Word W2
+//  Word W3
+ends
+
+TCallUserPInf struc
+  TProcOfs ProcOfs //start addr of the called proc
+  uint Arity
+//  Byte B
+ends
+
+TCallUserPRelInf(Base) struc
+  TProcOfsRel(@:Base) ProcOfs //Offset from the start addr of the current proc,  Long
+  uint Arity
+//  Byte B
+ends
+
+T_FOpenXInfo struc
+  usint Arity
+  array[@.Arity]of TDTCodeB ArgT
+ends
+
+TDllProcRef struc
+  word hDll
+  word hProc
+ends:displ=(Hdr.DLLTbl^[@.hDLL].Proc[@.hProc],'{',@.hProc,
+  '} in ', Hdr.DLLTbl^[@.hDLL].Name,'{',@.hDLL,'}')
+
+TCallDLLFInf struc
+  TDllProcRef Ref
+  usint Arity
+  TDTCodeB ResT
+  array[@.Arity]of TDTCodeB ArgT
+ends
+
+TCallDLLPInf struc
+  TDllProcRef Ref
+  usint Arity
+  array[@.Arity]of TDTCodeB ArgT
+ends
+
+TControlKind enum byte (
+  StaticText=0x23,
+  EditText=0x24,
+  ListBox=0x25,
+  Button=0x1D
+)
+
+TControlInf struc
+  Byte ID
+  TControlKind Kind
+  Byte ID1
+ends
+
+T_ControlXInf struc
+  Byte ID
+  TControlKind Kind
+  Byte ID1
+ends
+
+TResumeKind enum usint (
+  Next=1,
+  Zero=2,
+  Lbl=3
+)
+
+TResumeInf struc
+  TResumeKind K
+  case @.K of
+    Next,Zero: void
+    Lbl: Word //Addr in proc
+  else fail
+  endc D
+ends: assert[@.D.*:assert]
+
+//********************************************************************
+
+TMBXExprSeq(hProc,MaxSz,Base,BaseC,BaseD) forward
+TMBXExprSeq1(hProc,MaxSz,Base,BaseC,BaseD) forward
+
+TExprOp(hProc,MaxSz,Base,BaseD) struc
+  TExprOpCode Op
+  case @.Op of
+    Div,Mod,Add,Sub,Mul,DivF,Neg,Pwr: void
+    cmpEQ,cmpLT,cmpGT,cmpNE,cmpLE,cmpGE: void
+    And,Or,Not: void
+
+    Control: TControlInf
+    _ControlX: T_ControlXInf
+    _FOpenX: T_FOpenXInfo
+    UnitByName: void 
+    SetArg0,SetArg1,SetArg2,SetArg3,SetArg4,SetArg5,SetArg6,SetArg7,SetArg8:void
+
+    /*SetY,SetCalling,*/AddMenuItem,RemoveMenuItem,SetTitle,SetMenuTitle,
+    _SetControlPos,SetHeight,SetWidth,SetCtlID,SetCtlInto,_SomeFileOp,_MenuItemByName,
+    _SetMenuItemTitle,_EnableMenuItem,_DisableMenuItem,_FOpenTableType,
+    _FOpenType,_TitleFromVar: Byte //ID
+  //  Button,StaticText: Byte
+
+    End_OnError,End_Program: void
+    SetFuncRes: void
+    OnError: void //jump follows
+    Resume: TResumeInf
+    SetValue: void
+    LoadLocal: TLocalInf(@@:hProc) //Что-то другое
+    LoadField: Word //Word hFld (1-based, takes rec. from stack)
+    LoadLocConst: TLocConstInf(@@:BaseD)
+    LoadArg: TLocalInf(@@:hProc)
+    LoadGlobal: TGlobalInf
+    CallDLLF: TCallDLLFInf
+    CallDLLP: TCallDLLPInf
+    CallUserF: TCallUserFInf
+    CallUserFRel: TCallUserFRelInf(@@:Base)
+    CallUserP: TCallUserPInf
+    CallUserPRel: TCallUserPRelInf(@@:Base)
+    CallStd: TCallInf
+    jump,jNCond: word //Jump target ofs
+    Exit_Sub,CaseBr: void
+    CaseJmp: word //Jump addr in proc
+    SrcLine: uint
+    CallStd1: TStd1Proc
+//    StartExpr: void
+    StartExpr: TMBXExprSeq1(@@:hProc,@@:MaxSz,@@:Base,(@@:@ as TMBXExprSeq):BaseC,@@:BaseD)
+    SetStd1: void
+//    ExprEnd: void //takes result from stack
+  else fail
+  endc:assert[@.*:assert] D
+ends:assert[@.D:assert]:displ=(@.Op,' ',@.D)
+
+TMBXExprSeq(hProc,MaxSz,Base,BaseC,BaseD) array of TExprOp(@:hProc,@:MaxSz,@:Base,@:BaseD) ?
+    /*(@.Op=TExprOpCode.ExprEnd)
+  or*/((@:@ as TMBXExprSeq):MaxSz<=&@-(@:@ as TMBXExprSeq):BaseC/*+@:Size*/)
+  or(not @:assert)!void;: displ=('(', ShowArray(@,(NL,HEX(&@-
+    (@:@ as TMBXExprSeq):BaseC,4), ': ',@)),NL,')')
+
+TExprStop() TMBXOpCode():assert[@=TMBXOpCode.ExprEnd]
+
+TMBXExprSeq1(hProc,MaxSz,Base,BaseC,BaseD) struc
+  TMBXExprSeq(@:hProc,@:MaxSz,@:Base,@:BaseC,@:BaseD) E
+  try
+    Stop: TExprStop
+    Err: void
+  endt Stop
+ends: assert[@.Stop.Stop exc 0]
+
+//********************************************************************
+
+TMBXOp(hProc,MaxSz,Base,BaseD) struc
+  TMBXOpCode Op
+  case @.Op of
+    Control: TControlInf
+    _ControlX: T_ControlXInf
+    _FOpenX: T_FOpenXInfo
+    UnitByName: void 
+    SetArg0, SetArgString, SetArgVal, SetArgInteger, SetArgSmallInt,
+    SetArgDate, SetArgLogical, SetArgFloat,  
+    SetArgPChar, SetArgPen, SetArgBrush, SetArgObject, SetArgSymbol,
+    SetArgFont, SetArgStringL, SetArg11, SetArgAlias,  SetArgProcName,
+    SetArgObject1: void
+
+    /*SetY,SetCalling,*/AddMenuItem,RemoveMenuItem,SetTitle,SetMenuTitle,
+    _SetControlPos,SetHeight,SetWidth,SetCtlID,SetCtlInto,_SomeFileOp,_MenuItemByName,
+    _SetMenuItemTitle,_EnableMenuItem,_DisableMenuItem,_FOpenTableType,
+    _FOpenType,_CoordSys50,_CoordSys54,_CoordSys55,_TitleFromVar: Byte //ID
+  //  Button,StaticText: Byte
+
+    End_OnError,End_Program: void
+    SetFuncRes: void
+    OnError: void //jump follows
+    Resume: TResumeInf
+    SetValue: void
+    LoadLocal: TLocalInf(@@:hProc) //Что-то другое
+    LoadField: Word //Word hFld (1-based, takes rec. from stack)
+    LoadLocConst: TLocConstInf(@@:BaseD)
+    LoadArg: TLocalInf(@@:hProc)
+    LoadGlobal: TGlobalInf
+    CallDLLF: TCallDLLFInf
+    CallDLLP: TCallDLLPInf
+    CallUserFRel: TCallUserFRelInf(@@:Base)
+    CallUserP: TCallUserPInf
+    CallUserPRel: TCallUserPRelInf(@@:Base)
+    CallStd: TCallInf
+    jump,jNCond: word //Jump target ofs
+    Exit_Sub,CaseBr: void
+    CaseJmp: word //Jump addr in proc
+    SrcLine: uint
+    CallStd1: TStd1Proc
+    StartExpr: TMBXExprSeq1(@@:hProc,@@:MaxSz,@@:Base,&@@:@,@@:BaseD)
+    SetStd1: void
+    ExprEnd: void //takes result from stack
+  else fail
+  endc:assert[@.*:assert] D
+ends:assert[@.D:assert]:displ=(@.Op,' ',@.D)
+

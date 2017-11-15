@@ -1,0 +1,132 @@
+% DirectX mesh file(x.rfh):Class: Graphics and Sounds, Status: Complete, Last change: 16.04.2007 12:07:08
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TChar2 array[2] of Char
+TChar4 array[4] of Char
+
+TXHdr struc
+  TChar4 Magic
+  TChar2 verMajor
+  TChar2 verMin
+  TChar4 Fmt
+  TChar4 FloatSz
+ends:assert[@.Magic='xof ',@.verMajor='03',
+  (@.FloatSz='0032')or(@.FloatSz='0064')]
+
+data
+0 TXHdr Hdr
+
+assert Hdr:assert;
+
+
+%$IF Hdr.Fmt='txt ';
+
+descr ('DirectX Text mesh file.')
+
+data
+0x10 array[FileSize-0x10]of Char Txt
+
+%$ELSIF Hdr.Fmt='bin ';
+descr ('DirectX binary mesh file.')
+
+include Float.rfi
+
+type
+%$IF Hdr.FloatSz='0032';
+  TFloat TSingle
+%$ELSE
+  TFloat TDouble
+%$END
+
+TToken enum word (
+ TOKEN_NAME=1,
+ TOKEN_STRING=2,
+ TOKEN_INTEGER=3,
+ TOKEN_GUID=5,
+ TOKEN_INTEGER_LIST=6,
+ TOKEN_FLOAT_LIST=7,
+
+//The stand-alone tokens are defined as follows.
+
+ TOKEN_OBRACE=10,
+ TOKEN_CBRACE=11,
+ TOKEN_OPAREN=12,
+ TOKEN_CPAREN=13,
+ TOKEN_OBRACKET=14,
+ TOKEN_CBRACKET=15,
+ TOKEN_OANGLE=16,
+ TOKEN_CANGLE=17,
+ TOKEN_DOT=18,
+ TOKEN_COMMA=19,
+ TOKEN_SEMICOLON=20,
+ TOKEN_TEMPLATE=31,
+ TOKEN_WORD=40,
+ TOKEN_DWORD=41,
+ TOKEN_FLOAT=42,
+ TOKEN_DOUBLE=43,
+ TOKEN_CHAR=44,
+ TOKEN_UCHAR=45,
+ TOKEN_SWORD=46,
+ TOKEN_SDWORD=47,
+ TOKEN_VOID=48,
+ TOKEN_LPSTR=49,
+ TOKEN_UNICODE=50,
+ TOKEN_CSTRING=51,
+ TOKEN_ARRAY=52
+)
+
+DWORD num+(4):displ=(INT(@))
+
+TTOKEN_STRING struc
+  DWORD count
+  array[@.count]of Char Txt
+ends
+
+TTOKEN_INTEGER_LIST struc
+  DWORD count
+  array[@.count]of DWORD list
+ends
+
+TTOKEN_FLOAT_LIST struc
+  DWORD count
+  array[@.count]of TFLOAT list
+ends
+
+
+
+include GUID.rfi
+
+TTokenRec struc
+  TToken Token
+  case @.Token of
+    TOKEN_NAME,
+    TOKEN_STRING: TTOKEN_STRING
+    TOKEN_INTEGER: DWORD
+    TOKEN_GUID: TGUID
+    TOKEN_INTEGER_LIST: TTOKEN_INTEGER_LIST
+    TOKEN_FLOAT_LIST: TTOKEN_FLOAT_LIST
+  endc V
+ends
+
+data
+0x10 array of TTokenRec:[@:Size=FileSize-0x10] Tokens
+
+%$ELSIF Hdr.Fmt='tzip';
+descr ('DirectX MSZip compressed text mesh file - not supported.')
+
+%$ELSIF Hdr.Fmt='bzip';
+descr ('DirectX MSZip compressed binary mesh file - not supported.')
+
+%$ELSE
+descr ('DirectX Unknown mesh file encoding.')
+
+%$END
+
+descr (NL,
+  'Info Src: Microsoft Platform SDK, November 2001 Edition.',NL,
+  '          Graphics and Multimedia Services\DirectX\....\.X Files',NL)
+
+
+

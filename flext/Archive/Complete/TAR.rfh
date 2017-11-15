@@ -1,0 +1,142 @@
+% TAR Archive Format(TAR.rfh):Class: Archive, Status: Complete, Last change: 29.09.2000 17:10:12
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+
+/*
+ * Standard Archive Format - Standard TAR - USTAR
+ */
+const
+  RECORDSIZE = 512;
+  NAMSIZ = 100;
+  TUNMLEN = 32;
+  TGNMLEN = 32;
+
+type
+
+TChar8  array[8] of Char
+TNumChar8 struc
+  array[6] of Char S
+  Char Space
+  Char Z
+ends:assert[@.Space=0x20/*' '*/,@.Z=0]:displ=(@.S)
+
+TChar12 struc
+  array of Char ?@<>32!void; Space0
+  array of Char S
+  Char Space
+ends:[@:Size=12]:assert[@.Space=0x20/*' '*/]:displ=(@.S)
+
+const
+  Days1970=DateToDays(1970,1,1);
+  DaySec=24*60*60;
+
+type
+TTime12  struc
+  array of Char ?@<>32!void; Space0
+  array of Char S
+  Char Space
+ends:[@:Size=12]:assert[@.Space=32/*' '*/]:displ=(
+  INT(DaysToDay(Days1970+StrToInt(@.S,8) div DaySec)),'.',
+  INT(DaysToMonth(Days1970+StrToInt(@.S,8) div DaySec)),'.',
+  INT(DaysToYear(Days1970+StrToInt(@.S,8) div DaySec)),' ',
+  INT((StrToInt(@.S,8) div (60*60))mod 24),':',
+  INT((StrToInt(@.S,8) div 60)mod 60),'''',
+  INT(StrToInt(@.S,8) mod 60),'"')
+
+
+TName   array[NAMSIZ] of Char,<0;
+TUName  array[TUNMLEN] of Char,<0;
+TGName  array[TGNMLEN] of Char,<0;
+TMagic  array[8] of Char,<0;
+
+/* The linkflag defines the type of file */
+TLinkFlag enum char (
+  LF_OLDNORMAL = 0,  /* Normal disk file, Unix compatible */
+  LF_NORMAL  = '0',  /* Normal disk file */
+  LF_LINK    = '1',  /* Link to previously dumped file */
+  LF_SYMLINK = '2',  /* Symbolic link */
+  LF_CHR     = '3',  /* Character special file */
+  LF_BLK     = '4',  /* Block special file */
+  LF_DIR     = '5',  /* Directory */
+  LF_FIFO    = '6',  /* FIFO special file */
+  LF_CONTIG  = '7',  /* Contiguous file */
+/* Further link types may be defined later. */
+// GNU Extensions to the Archive Format:
+  LF_DUMPDIR='D', /*directory and a list of files created by the -G option*/
+                 //Each filename is preceded by either
+                 //a 'Y' (the file should be in this archive) or
+                 //an 'N' (The file is a directory, or is not stored in the archive).
+                 //Each filename is terminated by a null.  There is an additional null
+                 //after the last filename.
+  LF_MULTIVOL='M', /*a file continued from another volume of a
+                   multi-volume archive created with the-M option.*/
+  LF_VOLHDR='V'  /*volume header that was given with the -V option*/
+)
+
+THeader struc
+  TName   name;
+  TNumChar8  mode;
+  TNumChar8 uid;
+  TNumChar8 gid;
+  TChar12 size;
+  TTime12 mtime;
+  TChar8  chksum;
+  TLinkFlag linkflag;
+  TName   linkname;
+  TMagic  magic;
+  TUName  uname;
+  TGName  gname;
+  TChar8  devmajor;
+  TChar8  devminor;
+  align RECORDSIZE at &@; Rest
+ends
+
+TFileRec struc
+  THeader Hdr
+  raw[StrToInt(@.Hdr.size.S,8)] FData
+  align RECORDSIZE at &@; Rest
+ends
+
+data
+
+0 array of TFileRec:[@:Size=FileSize] Files
+
+//assert Hdr:assert;
+
+descr ('TAR Archive File Format.',NL,
+  'Info Source: TAR Format',NL,
+  '  Information from File Format List 2.0 by Max Maischein.', NL,
+  '  (tar.zip at www.wotsit.org)',NL)
+
+/*
+@example
+
+/* The checksum field is filled with this while the checksum is computed. */
+#define    CHKBLANKS    "        "        /* 8 blanks, no null */
+
+/* The magic field is filled with this if uname and gname are valid. */
+#define    TMAGIC    "ustar  "        /* 7 chars and a null */
+
+/* The magic field is filled with this if this is a GNU format dump entry */
+#define    GNUMAGIC  "GNUtar "        /* 7 chars and a null */
+
+
+/* Bits used in the mode field - values in octal */
+#define  TSUID    04000        /* Set UID on execution */
+#define  TSGID    02000        /* Set GID on execution */
+#define  TSVTX    01000        /* Save text (sticky bit) */
+
+/* File permissions */
+#define  TUREAD   00400        /* read by owner */
+#define  TUWRITE  00200        /* write by owner */
+#define  TUEXEC   00100        /* execute/search by owner */
+#define  TGREAD   00040        /* read by group */
+#define  TGWRITE  00020        /* write by group */
+#define  TGEXEC   00010        /* execute/search by group */
+#define  TOREAD   00004        /* read by other */
+#define  TOWRITE  00002        /* write by other */
+#define  TOEXEC   00001        /* execute/search by other */
+@end example
+*/
+

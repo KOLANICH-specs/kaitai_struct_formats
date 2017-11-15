@@ -1,0 +1,165 @@
+% MBR and Partition header data structures(PARTTION.rfi):Class: OS Specific, Status: Complete, Last change: 13.08.2003 10:05:32
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include dir.rfi
+
+type bit
+TSecCyl struc
+  num+(6) sec
+  num+(2) cylHi
+  num+(8) cylLo
+ends
+
+type bit
+
+HCLU12 num+(12)
+TFat12(Cnt) array[@:Cnt] of HCLU12
+
+type
+HCLU16 word
+TFat16(Cnt) array[@:Cnt] of HCLU16
+
+TFat(Cnt) case @:Cnt>0x1000 of
+  0: TFat12(@:Cnt)
+else TFat16(@:Cnt)
+endc
+
+type
+LCN struc
+  ulong L
+  ulong H
+ends
+
+XLONG LCN
+
+type
+PPartitionHdr ^TPartitionHdr *0x200 near=ulong
+TPartitionHdr void
+
+PBootSectorRec ^TBootSectorRec *0x200 near=ulong
+TBootSectorRec struc
+  raw[3] abJmpCode         //JMP opcode to start of boot code
+  array[8] of char abOem   //e.g., "MSDOS6.0" or "IBM  4.0"
+  word wSectSize           //bytes per sector (usually 512; 200H)
+  byte bClustSects         //sectors per allocation unit (cluster)
+  word wResSects           //boot and reserved sectors
+  byte bFatCnt             //number of File Allocation Tables.
+  word wRootEntries        //max number of 32-byte DirEntryRecs in root
+  word wTotSects           //total number of sectors in media
+                           //0000H means >32 MB, so use lBigTotSects
+  byte bMedia              //media descriptor (same as 1st byte in FAT)
+  word wFatSects           //number of sectors in one FAT
+  word wSectsPerTrk        //sectors per track
+//DOS 2.x: the formatted part of the record ended at offset 18H.
+  word wHeads              //number of read/write heads
+  ulong lHidSects          //hidden sectors (ignore hiword in pre-DOS 4.0)
+//DOS 3.x: the formatted part of the record ended at offset 1eH.
+  case @.wResSects=0 of
+    0: struc //FAT
+      ulong lBigTotSects       //32-bit TotSects in volume (partitions > 32M)
+      byte bDrvNo              //80H=first hard disk (used internally by DOS)
+      byte res1                //(reserved)
+      byte bExtBootSig         //Extended boot record signature (always 29H)
+      ulong lSerNo             //Volume Serial Number (based on when formatted)
+      array[11]of char abVolLabel //Volume Label (11-character, blank padded)
+      array[8]of char abFileSysID //contains 'FAT12   ' or 'FAT16   ')
+     ends
+  else /*NTFS*/ struc
+     ulong Rsrv0
+     ulong Rsrv00800080
+     XLONG TotSects
+     XLONG pMFT
+     XLONG pMFTMirr
+     ulong CluPerRecSeg //Clusters per file record segment.
+     ulong CluPerNDXBlk //Clusters per index block.
+     XLONG SerNo //Volume Serial Number.
+     ulong Checksum
+   ends
+  endc Ext
+  (raw[]at &@;) BootRest
+ends:[@:Size=(@.wResSects when(@.wResSects>0) exc 1)*@.wSectSize]
+
+TFatData(CluCnt,FatSize) struc
+  TFat(@:CluCnt) Tbl
+  (raw[]at &@;) FatRest
+ends:[@:Size=@:FatSize]
+
+TFats(FatCnt,CluCnt,FatSize) array[@:FatCnt] of TFatData(@:CluCnt,@:FatSize)
+
+TBootSectorRecWithFat struc
+  TBootSectorRec Boot
+  TFats(@.Boot.bFatCnt,((@.Boot.wTotSects when (@.Boot.wTotSects<>0)) exc
+      (@.Boot.Ext.0.lBigTotSects when (@.Boot.Ext.0.bExtBootSig=0x29))
+      exc 0)div @.Boot.bClustSects,
+      @.Boot.wFatSects*@.Boot.wSectSize) Fat
+  TDirectoryTbl(@.Boot.wRootEntries*32) Root
+ends
+
+type
+TFileSysCode enum byte (
+  Unknown=0x00, //unknown file system type
+  DOS12=0x01, //DOS 12-bit FAT; partition smaller than 10 MB
+  XENIX_root=0x02,
+  XENIX_usr=0x03,
+  DOS16=0x04, //DOS 16-bit FAT; partition smaller than 32 MB
+  Extended=0x05, //Extended DOS Partition
+  BIGDOS16=0x06, //DOS 16-bit FAT; partition larger than or exactly 32 MB
+  OS2_HPFS=0x07, //Windows NT NTFS (and some other - exact type is detected by Boot Rec)
+  AIX=0x08, //
+  AIX_boot=0x09, //AIX bootable
+  OS2_BootMgr=0x0a, //OS/2 Boot Manag
+  Win95_FAT32=0x0b,
+  Win95_FAT32LBA=0x0c, //with extended INT13 ctl
+  BIGDOS16LBA=0x0e, //LBA VFAT (like 06h but with extended INT13 ctl)
+  ExtendedLBA=0x0f, //Extended DOS Partition LBA VFAT (like 06h but with extended INT13 ctl)
+  NTFSHidden=0x17, //Hidden NTFS partition
+  Win95_FAT32Hidden=0x1B, //Hidded FAT32 (like 0Bh)
+  Win95_FAT32LBAHidden=0x1C, //Hidded FAT32 with extended INT13 ctl (like 0Ch)
+  BIGDOS16LBAHidden=0x1E, //Hidden LBA VFAT (like 0Eh)
+  Venix80286=0x40,
+  Novell=0x51, //Novell?
+  Microport=0x52,
+  GNU_HURD=0x63,
+  Netware=0x64, //Novell Netware
+  Netware1=0x65, //Novell Netware
+  PC_IX=0x75, //PC/IX
+  Old_MINIX=0x80, //Old MINIX
+  Linux_MINIX=0x81, //Linux/MINIX
+  Linux_swap=0x82,
+  Linux_native=0x83, //Linux native
+  FAT16Stripe=0x86, //FAT-16 stripe-array partition of Windows NT
+  NTFSStripe=0x87, //NTFS stripe-array partition of Windows NT
+  Amoeba=0x93, //Amoeba
+  Amoeba_BBT=0x94, //Amoeba BBT
+  BSD386=0xa5, //BSD/386
+  BSDI_fs=0xb7, //BSDI fs
+  BSDI_swap=0xb8, //BSDI swap
+  Syrinx=0xc7, //Syrinx
+  CP_M=0xdb, //CP/M
+  DOS_access=0xe1, //DOS access
+  DOS_RO=0xe3, //DOS R/O
+  DOS_sec=0xf2, //DOS secondary
+  BBT=0xff  //
+)
+
+TPartitionInfo struc
+  byte bBootFlag //0=not active, 80H = active (boot this partition)
+  byte bBeginHead //partition begins at this head...
+  TSecCyl rBeginSecCyl //...and this sector and cylinder (see below)
+  TFileSysCode bFileSysCode //file system type
+  byte bEndHead     //partition ends at this head...
+  TSecCyl rEndSecCyl  //...and this sector and cylinder (see below)
+  case @.bFileSysCode of
+    DOS12,DOS16,BIGDOS16,OS2_HPFS,Win95_FAT32/*?*/: PBootSectorRec
+  else PPartitionHdr
+  endc lBeginAbsSec //partition begins at this absolute sector #
+  ulong lTotalSects  //total sectors in this partition
+ends
+
+TMasterBootRec struc
+  raw[0x1be] abBootCode   //master boot executable code
+  array[4] of TPartitionInfo PrtnTbl
+  word wPrtnTblSig
+ends:assert[@.wPrtnTblSig=0xAA55]
+
+

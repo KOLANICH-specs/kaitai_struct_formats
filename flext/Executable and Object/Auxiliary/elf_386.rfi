@@ -1,0 +1,37 @@
+% ELF Intel 386 specific(elf_386.rfi):Class: Executable and Object, Status: Auxiliary, Last change: 03.01.2018 21:52:40
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+descr ('ELF i386 extension',NL,
+  'Info Source: ELF.PS in (ELF11G.ZIP, www.wotsit.org).',NL,
+  'Info Source: sys/elf_386.h in SunOS.',NL)
+type
+
+TE_Machine_Flags set 32 of () //EWord
+
+TE_R_TYPE enum ER_TYPE (
+                     // field  calculation
+  R_386_NONE = 0,    // none   none
+  R_386_32 = 1,      // w32    S+A
+  R_386_PC32 = 2,    // w32    S+A-P
+  R_386_GOT32 = 3,   // w32    G+A-P
+  R_386_PLT32 = 4,   // w32    L+A-P
+  R_386_COPY = 5,    // none   none
+  R_386_GLOB_DAT = 6,// w32    S
+  R_386_JMP_SLOT = 7,// w32    S
+  R_386_REALTIVE = 8,// w32    B+A
+  R_386_GOTOff = 9,  // w32    S+A-GOT
+  R_386_GOTPC = 10,  // w32    GOT+A-P
+  R_386_32PLT = 11,
+  R_386_NUM = 12
+)
+
+/*
+#define ELF_386_MAXPGSZ         0x1000  /* maximum page size */
+
+#define SHF_ORDERED     0x40000000
+#define SHF_EXCLUDE     0x80000000
+
+#define SHN_BEFORE      0xff00
+#define SHN_AFTER       0xff01
+*/
+

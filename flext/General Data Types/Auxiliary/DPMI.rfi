@@ -1,0 +1,26 @@
+% DPMI call registers(DPMI.rfi):Class: General Data Types, Status: Auxiliary, Last change: 28.10.1996 17:00:08
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TRealRegs struc
+  long RealEDI
+  long RealESI
+  long RealEBP
+  long Reserved
+  long RealEBX
+  long RealEDX
+  long RealECX
+  long RealEAX
+  word RealFlags
+  word RealES
+  word RealDS
+  word RealFS
+  word RealGS
+  word RealIP
+  word RealCS
+  word RealSP
+  word RealSS
+ends
+
+

@@ -1,0 +1,101 @@
+% EXE (DOS,WINDOWS (NE,PE,LE),OS/2(LX))(EXE.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 29.09.2000 20:05:10
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+SET ENCODING OEM
+
+const
+  MZ=0x5a4d;
+data
+
+0 word wSignature   %5a4dH .EXE file signature ('MZ')
+
+%$IF wSignature=MZ;
+
+type
+  TPtr struc
+    word Ofs
+    word Seg
+  ends
+
+  PReloTbl ^TReloTbl near
+  PEXEImage ^TEXEImage *16 near=word
+
+// PNewHdr ^TNewHdr near=ulong
+
+  PIMAGE_DOS_HEADER ^IMAGE_DOS_HEADER;
+  IMAGE_DOS_HEADER struc      %{ DOS .EXE header }
+    word wPartPage    %length of partial page at end (generally ignored)
+    word wPageCnt     %length of image in 512-byte pages, incl. header
+    word wReloCnt     %number of items in relocation table
+    PEXEImage wHdrSize     %size of header in 16-byte paragraphs
+%    word wHdrSize     %size of header in 16-byte paragraphs
+    word wMinAlloc    %minimum RAM needed above end of prog (paragraphs)
+    word wMaxAlloc    %maximum RAM needed above end of prog (paragraphs)
+    word wInitSS      %segment offset of stack segment (for setting SS)
+    word wInitSP      %value for SP register when started
+    word wChkSum      %file checksum (negative sum of all words in file)
+    word wInitIP      %value for IP register when started
+    word wInitCS      %segment offset of code segment (for setting CS)
+    PReloTbl wTablOff     %file-offset of first relo item (often 001cH)
+    word wOverlayNo   %overlay number (0 for base module)
+    case @.wTablOff >= 0x40 of
+      1: struc
+        array[4] of Word Rsrv1
+        Word OEM_ID
+        Word OEM_Info
+        array[10] of Word Rsrv1
+       //PNewHdr NewHdr
+        ulong NewHdr
+       ends
+    endc Rest
+  ends
+
+data
+0002 IMAGE_DOS_HEADER Hdr
+
+const
+  NewHdrOfs = Hdr.Rest.1.NewHdr exc 0x10000000;
+
+type
+  TReloTbl array[Hdr.wReloCnt] of TPtr
+  TEXEImage raw[(((Hdr.wPageCnt-1)*512+Hdr.wPartPage)
+    min NewHdrOfs)-
+    Hdr.wHdrSize*16]
+
+%$IF Hdr.wTablOff >= 0x40;
+
+SET ENCODING ANSI
+
+type
+TNewSign enum word (NE = 0x454E, LE = 0x454c, LX = 0x584c, PE = 0x4550)
+
+data
+NewHdrOfs TNewSign wNewSignature   % .EXE file signature ('NE','PE','LE')
+
+%$IF wNewSignature=TNewSign.LE;
+
+include LE.RFI
+
+%$ELSIF wNewSignature=TNewSign.NE;
+
+include NE.RFI
+
+%$ELSIF wNewSignature=TNewSign.PE;
+data
+NewHdrOfs+2 word PEz
+assert PEz=0;
+
+type
+TIMAGE_HEADERS forward
+
+data
+NewHdrOfs+4 TIMAGE_HEADERS COFFHdr
+
+include COFF.RFI
+
+%$END TNewSign.LE
+
+%$END wTablOff
+
+%$END MZ
+

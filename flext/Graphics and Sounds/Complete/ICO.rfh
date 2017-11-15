@@ -1,0 +1,8 @@
+% Windows Icon or Cursor(ICO.rfh):Class: Graphics and Sounds, Status: Complete, Last change: 02.12.1998 12:42:32
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include ICO.RFI
+
+data
+0 TIconHeader Hdr
+

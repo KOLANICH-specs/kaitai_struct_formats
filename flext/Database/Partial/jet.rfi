@@ -1,0 +1,313 @@
+% Microsoft Jet 4 DB file(jet.rfi):Class: Database, Status: Partial, Last change: 18.11.2004 16:20:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+0x0000 ulong MD
+
+assert MD=0x100;
+type
+
+TSign array[0x10] of char
+
+data
+0x0004 TSign Sign
+
+assert Sign='Standard Jet DB'#0;
+//assert (Sign='Standard Jet DB'#0)or(Sign='Jet System DB  '#0);
+
+data
+0x0014 ulong hdrVer
+
+%$IF hdrVer=0;
+const
+  Ver=3;
+  pg_size=2048;
+  row_count_offset=0x08; 
+  X3Size=25-16;
+  //tab_num_cols_offset=25;
+  tab_num_idxs_offset=27;
+  tab_num_ridxs_offset=31;
+  tab_usage_map_offset=35;
+  tab_first_dpg_offset=36;
+  tab_cols_start_offset=43;
+  tab_ridx_entry_size=8;
+  col_fixed_offset=13;
+  col_size_offset=16;
+  col_num_offset=1;
+  tab_col_entry_size=18;
+
+descr ('Microsoft Jet 3 DB file.')
+
+%$ELSIF hdrVer=1;
+const
+  Ver=4;
+  pg_size=4096;
+  row_count_offset=0x0c; 
+  X3Size=45-16;
+  //tab_num_cols_offset=45;
+  tab_num_idxs_offset=47;
+  tab_num_ridxs_offset=51;
+  tab_usage_map_offset=55;
+  tab_first_dpg_offset=56;
+  tab_cols_start_offset=63;
+  tab_ridx_entry_size=12;
+  col_fixed_offset=15;
+  col_size_offset=23;
+  col_num_offset=5;
+  tab_col_entry_size=25;
+
+descr ('Microsoft Jet 4 DB file.')
+
+%$ELSE
+  assert 0; //fail
+%$END
+
+descr (NL,
+  'Info Src: mdbtools version 0.4 (http://mdbtools.sourceforge.net)',NL)
+
+type
+TCryptKey num+(4):displ=(hex(@ xor 0xe15e01b9))
+TDBPassword array[14] of byte
+ //XORed with 0x86, 0xfb, 0xec, 0x37, 0x5d, 0x44, 0x9c, 0xfa, 0xc6, 0x5e, 0x28, 0xe6, 0x13, 0xb6
+
+data
+0x3e TCryptKey db_key
+0x42 TDBPassword db_passwd
+
+type
+int24 num+(3):displ=(INT(@))
+
+TPageKind enum byte (
+  MDB_PAGE_DB = 0,
+  MDB_PAGE_DATA,
+  MDB_PAGE_TABLE,
+  MDB_PAGE_INDEX,
+  MDB_PAGE_LEAF,
+  MDB_PAGE_MAP
+)
+
+TColType enum byte (
+  MDB_BOOL = 0x01,
+  MDB_BYTE = 0x02,
+  MDB_INT = 0x03,
+  MDB_LONGINT = 0x04,
+  MDB_MONEY = 0x05,
+  MDB_FLOAT = 0x06,
+  MDB_DOUBLE = 0x07,
+  MDB_SDATETIME = 0x08,
+  MDB_TEXT = 0x0a,
+  MDB_OLE = 0x0b,
+  MDB_MEMO = 0x0c,
+  MDB_REPID = 0x0f,
+  MDB_NUMERIC = 0x10
+)
+
+TColFlags set 8 of (
+  FIXED ^ 0x1
+)
+
+%$IF Ver=3;
+
+TColInfo struc
+  TColType col_type
+  byte col_num
+  raw[9] X1
+  byte prec
+  byte scale
+  TColFlags F
+  raw[2] X2
+  word col_size
+ends
+
+TColName str
+TColNum num+(1): displ=(INT(@))
+
+%$ELSE
+TColInfo struc
+  TColType col_type
+  ulong X0
+  byte col_num
+  raw[5] X1
+  byte prec
+  byte scale
+  word X2
+  TColFlags F
+  raw[7] X3
+  word col_size
+ends
+
+TWCharTbl(Sz) array of (WChar):[@:Size=@:Sz]
+
+wstr struc
+  word Sz
+  TWCharTbl(@.Sz) S
+ends:displ=(@.S)
+
+TColName wstr
+TColNum num+(2): displ=(INT(@))
+%$END
+
+//TUsageMap forward
+
+TDataPage forward
+TUMDataPage forward
+TDataRow(Sz,hTblPg) forward
+
+type bit
+
+TRowInfo(Base,hTblPg) forward
+
+type
+
+TRowInfoTbl(Cnt,Base,hTblPg) array[@:Cnt] of TRowInfo(@:Base,@:hTblPg)
+
+type bit
+
+bit num+(1)
+bit12 num+(12)
+
+TRowOfs(Base,hTblPg,Sz,isDel) ^TDataRow(@:Sz,@:hTblPg) Nil:@:isDel near=bit12 REF=@+@:Base;:displ=(@,'[',
+  HEX(@:Sz),']')
+//TUsageMapOfs(Base) ^TUsageMap near=bit12 REF=@+@:Base;
+
+TRowFlags set 4 of (
+  rfDel=2,
+  rfLookup=3
+)
+
+TRowInfo(Base,hTblPg) struc
+  TRowOfs(@:Base,@:hTblPg) Ofs
+  TRowFlags F
+ends:[@.Ofs:Sz=((((@:@ as TRowInfoTbl)[@:#-1].Ofs)when(@:#>0))exc pg_size)-
+  @.Ofs,@.Ofs:isDel=@.F and TRowFlags.rfDel<>0]
+
+TUMRowInfo(Base) struc
+  bit12/*TRowOfs(@:Base)*/ Ofs
+  TRowFlags F
+ends
+
+PDataPageUsageMapBit(base) ^TDataPage NIL=0 NEAR=bit REF=(@:base+@:#)*
+  pg_size;:displ=(HEX(((@:base+@:#)when(@>0))exc 0))
+
+TDataPageUsageMapBits(base,Sz) array of PDataPageUsageMapBit(@:base):
+  [@:Size=@:Sz]
+
+TNullFlags(Cnt) array[@:Cnt] of bit
+
+type
+
+TPageHdr struc
+  TPageKind pgKind
+  raw[3] X1
+  long hParent
+ends
+
+TDataPage struc
+  TPageHdr H
+  raw[row_count_offset-8] X
+  Word RC
+  TRowInfoTbl(@.RC,&@,@.H.hParent) rowOfs
+ends
+
+PDataPage ^TDataPage NEAR=int24 REF=@*pg_size;
+
+TUMDataPage struc
+  TPageHdr H
+  raw[row_count_offset-8] X
+  Word RC
+  array[@.RC] of TUMRowInfo(&@@) rowOfs
+ends
+
+PUMDataPage ^TUMDataPage NEAR=int24 REF=@*pg_size;
+
+TUsageMap0(Sz) struc
+  ulong StartPg
+  TDataPageUsageMapBits(@.StartPg,(@:Sz-4)*8) Refs
+ends
+
+TUsageMap1(Sz) struc
+  raw[] rest1
+ends:[@:Size=@:Sz]
+
+TUsageMap(Sz) struc
+  byte kind
+  case @.Kind of
+   0: TUsageMap0(@@:Sz-1)
+   1: TUsageMap1(@@:Sz-1)
+  endc M
+  raw[] rest
+ends:[@:Size=@:Sz]:displ=('Size:',HEX(@:Sz),'|',@)
+
+PUsageMap(hPg) forward
+
+TTableInfo struc
+  TPageHdr H
+  word len
+  word X2
+  long num_rows
+  raw[X3Size] X3
+  int num_cols
+  long num_idxs
+  long num_real_idxs
+  PUsageMap usage_map_rownum
+  PUMDataPage usage_map_page
+  ulong X4
+  array[@.num_real_idxs]of raw[tab_ridx_entry_size] idxs
+  array[@.num_cols]of TColInfo cols 
+  array[@.num_cols]of TColName colNames
+   //Perhaps, all that stuff can go to the next page
+ends:[@.usage_map_rownum:hPg=@.usage_map_page]
+
+PTableInfo0(hPg) ^TTableInfo NEAR=void REF=@:hPg*pg_size; :displ=(HEX(@:hPg))
+
+PUsageMap(hPg) ^TUsageMap NIL- NEAR=byte REF=(
+   @:@ as TTableInfo).usage_map_page^.rowOfs[@].Ofs+@:hPg*pg_size;:[
+  @^:Sz=(((@:@ as TTableInfo).usage_map_page^.rowOfs[@-1].Ofs when (@>0))exc pg_size)-
+   (@:@ as TTableInfo).usage_map_page^.rowOfs[@].Ofs]
+  //:displ=(@,'(',(@:@ as TTableInfo).usage_map_page^.rowOfs[@-1].Ofs,')')
+  //:displ=(@,'(',HEX(@:hPg),':',((@:@ as TTableInfo).usage_map_page^.rowOfs[@])exc pg_size,')')
+
+/*
+  TColType col_type
+  ulong X0
+  byte col_num
+  raw[5] X1
+  byte prec
+  byte scale
+  word X2
+  TColFlags F
+  raw[7] X3
+  word col_size
+*/
+
+/*
+TFixedValC(hTblPg,N) forward
+
+TFixedValS(hTblPg,N) struc
+  PTableInfo0(@:hTblPg) pTbl
+  TFixedValC(@:hTblPg,@.pTbl^.cols[?(@.col_num=@:N+1)and 
+    (@.F and TColFlags.FIXED<>0)]:# exc -1) C
+ends: displ=(@.C)
+
+TFixedValC(hTblPg,N) case @:N>=0 of
+  0: void
+else 
+  raw[(@:@ as TFixedValS).pTbl^.cols[@:N].col_size]:displ=(
+   (@:@ as TFixedValS).pTbl^.colNames[@:N])
+endc
+
+TFixedVal(hTblPg) TFixedValS(@:hTblPg,@:#)
+*/
+
+TDataRow(Sz,hTblPg) struc
+  TColNum ColCnt
+  //array[@.ColCnt] of TFixedVal(hTblPg) FixedVals
+  raw[] rest 
+  TNullFlags(@.ColCnt) isNull
+ends:[@:Size=@:Sz,@.rest:Size=@:Sz-@.ColCnt:size-(@.ColCnt+7)div 8]:
+  displ=('Sz:',Hex(@:Sz),'|',Hex(@.isNull:Size),'|',@)
+
+data
+2*pg_size TTableInfo SysTbl
+3*pg_size TTableInfo xTbl
+

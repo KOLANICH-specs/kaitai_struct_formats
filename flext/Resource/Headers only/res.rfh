@@ -1,0 +1,93 @@
+% Windows 32-Bit Binary Resource Files(res.rfh):Class: Resource, Status: Headers only, Last change: 09.04.2019 13:47:22
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+DWORD ulong
+
+TOrd struc
+  word Mrk
+  word Ord
+ends:assert[@.Mrk=0xFFFF]
+
+PWChar array of wchar ?@=0!Word;
+
+TOrdOrName try
+  Ord: TOrd
+  Name: PWChar
+endt
+
+const
+  DIFFERENCE = 11;
+
+type
+TResType enum word (
+ //Predefined Resource Types
+  RT_CURSOR       = 1,
+  RT_BITMAP       = 2,
+  RT_ICON         = 3,
+  RT_MENU         = 4,
+  RT_DIALOG       = 5,
+  RT_STRING       = 6,
+  RT_FONTDIR      = 7,
+  RT_FONT         = 8,
+  RT_ACCELERATOR  = 9,
+  RT_RCDATA       = 10,
+  RT_MESSAGETABLE = 11,
+  RT_GROUP_CURSOR = 1 + DIFFERENCE,
+  RT_GROUP_ICON   = 3 + DIFFERENCE,
+  RT_VERSION      = 16,
+  RT_DLGINCLUDE   = 17,
+  RT_PLUGPLAY     = 19,
+  RT_VXD          = 20,
+  RT_ANICURSOR    = 21,
+  RT_ANIICON      = 22
+)
+
+TResTypeOrName TOrdOrName():displ=(COND(@.Ord exc -1<0,(@.Name),(VALNAME(@.Ord.Ord,TResType))))
+
+TResourceHeader struc
+  DWORD     DataSize;           // Size of data without header
+  DWORD     HeaderSize;         // Length of the additional header
+  TResTypeOrName TYP        // Type identifier, id or string
+  TOrdOrName NAME        // Name identifier, id or string
+  align 4 Al
+  DWORD     DataVersion;        // Predefined resource data version
+  WORD      MemoryFlags;        // State of the resource
+  WORD      LanguageId;         // Unicode support for NLS
+  DWORD     Version;            // Version of the resource data
+  DWORD     Characteristics;    // Characteristics of the data
+  raw[] rest
+ends:[@:Size=@.HeaderSize]:displ=('[',HEX(&@),']:',@)
+
+TResourceItem struc
+  TResourceHeader Hdr
+  case TResType @.Hdr.TYP.Ord.Ord exc 0 of
+   RT_ICON: subfile[@@.Hdr.DataSize] spec 'ICO_RES.RFI'
+   RT_BITMAP: subfile[@@.Hdr.DataSize] spec 'BMP_RES.RFI'
+   else raw[@@.Hdr.DataSize]
+  endc Data
+  //raw[@.Hdr.DataSize] Data
+  align 4 Al
+ends
+
+/*
+TRes32Marker struc
+  DWORD dwZ
+  DWORD dw20
+ends:assert[@.dwZ=0,@.dw20=0x20]
+*/
+
+data
+//0 TRes32Marker Marker
+0 TResourceHeader Hdr
+
+assert (Hdr.DataSize=0)and(Hdr.HeaderSize=0x20); //The Res32 marker - a record to distinguish the 32-bit resoursec from the 16-bit files
+
+descr ('Windows 32-Bit Binary Resource Files.',NL,
+  'Info Src: MSDN\Specifications\Win32 Binary Resource Formats',NL)
+
+data
+0x20 array of TResourceItem:[@:Size=FileSize-0x20] Tbl
+
+

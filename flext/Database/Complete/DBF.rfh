@@ -1,0 +1,149 @@
+% xBase DBMS data file(DBF.rfh):Class: Database, Status: Complete, Last change: 08.12.2007 8:05:56
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+descr ('xBase table file.')
+descr (NL,
+  'Info Src: "General Format of .dbf files in Xbase languages" by multisoft Datentechnik GmbH (http://www.fship.com)',NL,
+  'Info Src: MSDN: Visual FoxPro Documentation/Using Visual FoxPro/Programmer`s Guide/Appendix/Table File Structure',NL)
+
+type
+  ub num+(1):displ=(INT(@))
+  TBinDate struc
+    ub Y
+    ub M
+    ub D
+  ends //Дата в двоичном формате (ГГММДД)
+
+  TDBF3FldKind enum Char (
+    fkChar='C',      //all
+    fkDate = 'D',    //all
+    fkFloat = 'F',   //FS, D4, D5, Fp
+    fkNumeric = 'N', //all
+    fkLog = 'L',     //all
+    fkMemo = 'M',    //all
+    fkVariable = 'V',//FS
+    fkPicture = 'P', //Fp binary data in .ftp
+    fkBinary = 'B',  //D5 binary data in .dbt
+    fkGeneral = 'G', //D5, Fp OLE objects
+    fkShort = '2',   //FS binary int max +/- 32767
+    fkLong = '4',    //FS binary int max +/- 2147483647
+    fkDouble = '8'   //FS binary signed double IEEE
+  )
+
+  TDBF3FldDsc struc
+    array[11] of Char,0; Name //Имя - ASCIIZ строка
+    TDBF3FldKind hType
+    ulong DataP     //D3 - fld address in memory, Fp - offset from record begin
+    Byte Len        //all Field length
+    Byte DecNum     //all decimal count
+    Word MUsrRsrv1  //all Зарезерв. для многопольз. систем
+    Byte WorkID     //D4, D5 Work area ID
+    Word MUsrRsrv2  //D3, D4, D5 multi-user dBase
+    Byte SetFldData //D3, D4, D5 used by the command SET FIELDS
+    array[7] of Byte Reserved
+    Byte InMDX      //D4, D5 Field is in .mdx index
+  ends
+
+  PDataArray ^TDataArray near
+
+ /* 
+  * Applies for / supported by:
+  *  FS = FlagShip       D3 = dBaseIII+
+  *  Fb = FoxBase        D4 = dBaseIV
+  *  Fp = FoxPro         D5 = dBaseV
+  *  CL = Clipper
+  */
+
+  TDBFVer enum byte (
+    dBase_II=0x02,                //FS, D3, D4, D5, Fb, Fp, CL
+    dBase_III=0x03,               //D4, D5  (FS)
+    Visual_FoxPro=0x30,           //D5, Fp  (FS)
+    dBASE_IV_SQL_table=0x43,      //FS no memo
+    dBASE_IV_SQL_system=0x63,     // no memo
+    dBase_III_Memo=0x83,          //FS, D3, D4, D5, Fb, Fp, CL dBase III with .dbt Memo
+    dBASE_IV_memo=0x8B,           //D4, D5
+    dBASE_IV_SQL_table_memo=0xCB, //with  .dbt memo in D4 format
+    FoxPro_2_memo=0xF5,           //FP with with .fmp memo
+    FoxBASE=0xFB
+  )
+
+  TIndexFlags set 8 of (
+    hasCdx ^ 0x01,    //Fp, D4, D5 file has a structural .cdx 
+    hasMemo ^ 0x02,   //Fp file has a Memo field
+    isDatabase ^ 0x04 //Fp file is a database (.dbc)
+  )
+
+  TCodePageFp enum byte (
+    cp437 = 0x01, //codepage  437 DOS USA        Fp
+    cp850 = 0x02, //codepage  850 DOS Multi ling Fp
+    cp1252= 0x03, //codepage 1252 Windows ANSI   Fp
+    cp10000= 0x04, //codepage 10000 Standard Macintosh Fp
+    cp620 = 0x69, //codepage 620 * Mazovia (Polish) MS-DOS Fp
+    cp737 = 0x6A, //codepage 737 * Greek MS-DOS (437G) Fp
+    cp852 = 0x64, //codepage 852 Eastern European MS-DOS Fp
+    cp861 = 0x67, //codepage 861 Icelandic MS-DOS Fp
+    cp865 = 0x66, //codepage 865 Nordic MS-DOS Fp
+    cp866 = 0x65, //codepage 866 Russian MS-DOS Fp
+    cp895 = 0x68, //codepage 895 * Kamenicky (Czech) MS-DOS Fp
+    cp857 = 0x6B, //codepage 857 Turkish MS-DOS Fp
+    cp1250= 0xC8, //codepage 1250 Eastern European Windows Fp
+    cp1251= 0xC9, //codepage 1251 Russian Windows Fp
+    cp1253= 0xCB, //codepage 1253 Greek Windows Fp
+    cp1254= 0xCA, //codepage 1254 Turkish Windows Fp
+    cp10006= 0x98, //codepage 10006 Greek Macintosh Fp
+    cp10007= 0x96, //codepage 10007 * Russian Macintosh Fp
+    cp10029= 0x97, //codepage 10029 Macintosh EE Fp
+    ignored=0x00  //ignored                      FS, D3, Fb, Fp, CL
+  )
+
+  TDBF3Hdr struc                                 
+    TDBFVer Ver 
+    TBinDate LastChangeDate    //all
+    ulong RecCnt               //all Number of records in file
+    PDataArray HdrLen          //all Header size in bytes
+    Word RecLen                //all Record size in bytes
+    //(array[20]of Byte) Reserved
+    Word Reserved              //all
+    Byte InTransaction         //D4, D5, else 0 => ignored
+    Byte IsEncrypted           //D4, D5, else 0 => normal visible
+    array[12]of Byte MultiUser //D4, D5 multi-user environment use
+    TIndexFlags NDXFlags       //Fp, D4, D5
+    TCodePageFp CodePg         //Fp - Code page mark; D4, D5 - language driver ID; else - ignored
+    word Res1                  //Reserved
+  ends
+
+  TDBF3HdrWithFields struc
+    TDBF3Hdr H
+    //array[(@.H.HdrLen-@.H:Size-1) div 32] of TDBF3FldDsc Fields
+    array of TDBF3FldDsc ?@.Name[0]=0x0D!byte; Fields
+  ends
+
+data
+0x0000 TDBF3HdrWithFields Hdr
+
+type
+%  TRecData array[Hdr.H.RecLen] of Char
+/*
+  TRecData struc
+    Char F
+    (array of(array[Hdr.Fields[#].Len]of Char,<' ';)) D
+  ends:[D:Size=Hdr.H.RecLen-1]
+*/
+  TFieldData array[Hdr.Fields[#].Len]of Char
+
+/*
+  TFieldsData array of TFieldData
+  TRecData struc
+    Char F
+    TFieldsData D
+  ends :[D:Size=Hdr.H.RecLen-1]
+*/
+  TFieldsData array of TFieldData :[@:Size=Hdr.H.RecLen-1]
+  TRecData struc
+    Char F
+    TFieldsData D
+  ends
+
+  TDataArray array[Hdr.H.RecCnt] of TRecData
+
+

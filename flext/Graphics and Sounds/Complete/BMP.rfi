@@ -1,0 +1,27 @@
+% Bitmap file data structures(BMP.rfi):Class: Graphics and Sounds, Status: Complete, Last change: 26.01.1999 14:31:08
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include bmp_dat.rfi
+type
+
+TBitmapInfoHeader struc
+  DWORD biSize
+  long biWidth
+  long biHeight
+  Word biPlanes
+  Word biBitCount
+  DWORD biCompression
+  DWORD biSizeImage
+  long biXPelsPerMeter
+  long biYPelsPerMeter
+  DWORD biClrUsed
+  DWORD biClrImportant
+  raw[] rest
+ends:[@:Size = @.biSize]
+
+TBitmapInfo struc
+  TBitmapInfoHeader Hdr
+  TWinPal(@.Hdr.biBitCount,@.Hdr.biClrUsed) Pal
+ends
+
+

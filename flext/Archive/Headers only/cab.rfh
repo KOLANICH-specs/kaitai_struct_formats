@@ -1,0 +1,147 @@
+% CAB Archive Format(cab.rfh):Class: Archive, Status: Headers only, Last change: 16.04.2002 10:00:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TMagic array[4]of Char
+
+data
+
+0 TMagic Magic
+
+assert Magic='MSCF';
+
+type
+
+DWORD ulong
+
+TCAB_FLAGS set 16 of (
+  HASPREV ^ 0x0001,
+  HASNEXT ^ 0x0002,
+  RESERVE ^ 0x0004
+)
+
+// =================================================================
+// CABINET STRUCTURES
+// =================================================================
+TCAB_HEADER struc
+//    DWORD sig             // file signature 'MSCF' (CAB_SIGNATURE)
+  DWORD csumHeader       // header checksum (0 if not used)
+  DWORD cbCabinet        // cabinet file size
+  DWORD csumFolders      // folders checksum (0 if not used)
+  DWORD coffFiles        // offset of first CAB_ENTRY
+  DWORD csumFiles        // files checksum (0 if not used)
+  WORD  version          // cabinet version (CAB_VERSION)
+  WORD  cFolders         // number of folders
+  WORD  cFiles           // number of files
+  TCAB_FLAGS  flags      // cabinet flags (CAB_FLAG_*)
+  WORD  setID            // cabinet set id
+  WORD  iCabinet         // zero-based cabinet number
+ends
+
+data
+  0x0004 TCAB_HEADER Hdr
+
+assert Hdr.version=0x103;
+
+descr ('Microsoft CAB Archive File Format.',NL,
+  'Info Source: Inside Windows Cabinet Files by Sven B. Schreiber',NL,
+  '  (CAB.ZIP at www.wotsit.org)',NL)
+
+type
+
+TCabInfo struc
+  PChar CabName
+  PChar DiskName
+ends
+
+TReserveInfo struc
+  DWORD Size
+  raw[@.Size] D
+ends
+
+TCAB_FOLDER struc
+  DWORD coffCabStart     // offset of folder data
+  WORD  cCFData          // ???
+  WORD  typeCompress     // compression type (tcomp* in FDI.h)
+ends
+
+//-----------------------------------------------------------------
+
+TCAB_ATTRIB set 16 of (
+  READONLY ^ 0x0001,
+  HIDDEN ^ 0x0002,
+  SYSTEM ^ 0x0004,
+  VOLUME ^ 0x0008,
+  DIRECTORY ^ 0x0010,
+  ARCHIVE ^ 0x0020
+)
+
+type bit
+
+TFileDate struc pas
+  D: num+(5)
+  Mon: num+(4)
+  Y: num+(7)
+ends:displ=(INT(@.D),'.',INT(@.Mon),'.',INT(@.Y+1980))
+
+TFileTime struc pas
+  S: num+(5)
+  M: num+(6)
+  H: num+(5)
+ends:displ=(INT(@.H),':',INT(@.M),':',INT(@.S*2))
+
+type
+TCabControl enum word (
+  FIRST     = 0x0000,
+  NEXT      = 0x0001,
+  SPLIT     = 0xFFFE,
+  CONTINUED = 0xFFFD
+)
+
+TCAB_ENTRY struc
+  DWORD cbFile           // uncompressed file size
+  DWORD uoffFolderStart  // file offset after decompression
+  TCabControl iFolder    // file control id (CAB_FILE_*)
+  TFileDate date         // file date stamp, as used by DOS
+  TFileTime time         // file time stamp, as used by DOS
+  TCAB_ATTRIB attribs    // file attributes (CAB_ATTRIB_*)
+  PChar FName
+ends
+
+
+TCabData struc
+  case (Hdr.flags and TCAB_FLAGS.RESERVE)<>0 of
+    1: TReserveInfo
+  endc RsrvInfo
+  case (Hdr.flags and TCAB_FLAGS.HasPrev)<>0 of
+    1: TCabInfo
+  endc PrevCab
+  case (Hdr.flags and TCAB_FLAGS.HasNext)<>0 of
+    1: TCabInfo
+  endc NextCab
+  array[Hdr.cFolders] of TCAB_FOLDER Folders
+  array[Hdr.cFiles] of TCAB_ENTRY Entries
+ends
+
+data
+  0x0004+Hdr:Size; TCabData CabData
+/*
+Listing One
+// =================================================================
+// CAB FILE LAYOUT
+// =================================================================
+/*
+(1) CAB_HEADER structure
+(2) Reserved area, if CAB_HEADER.flags & CAB_FLAG_RESERVE
+(3) Previous cabinet name, if CAB_HEADER.flags & CAB_FLAG_HASPREV
+(4) Previous disk name, if CAB_HEADER.flags & CAB_FLAG_HASPREV
+(5) Next cabinet name, if CAB_HEADER.flags & CAB_FLAG_HASNEXT
+(6) Next disk name, if CAB_HEADER.flags & CAB_FLAG_HASNEXT
+(7) CAB_FOLDER structures (n = CAB_HEADER.cFolders)
+(8) CAB_ENTRY structures / file names (n = CAB_HEADER.cFiles)
+(9) File data (offset = CAB_FOLDER.coffCabStart)
+*/
+*/
+
+

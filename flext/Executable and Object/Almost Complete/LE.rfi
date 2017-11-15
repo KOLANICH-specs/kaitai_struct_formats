@@ -1,0 +1,301 @@
+% Linear Executable (Windows-95 VXD - drivers)(LE.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 07.03.2008 9:28:00
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TCPUType enum word (
+  cpu_i286 = 0x01,
+  cpu_i386 = 0x02,
+  cpu_i486 = 0x03,
+  cpu_i586 = 0x04,
+  cpu_i860_N10 = 0x20,
+  cpu_N11 = 0x21,
+  cpu_MIPS_MARK_I = 0x40,
+  cpu_MIPS_MARK_II = 0x41,
+  cpu_MIPS_MARK_III = 0x42
+)
+
+TOSType enum word (
+  os_OS2 = 0x01,
+  os_Windows = 0x02,
+  os_DOS = 0x03,
+  os_Windows_386 = 0x04
+)
+
+TLE_Object_Table(Cnt)  forward
+PLE_Object_Table(Cnt) ^TLE_Object_Table(@:Cnt) - NewHdrOfs near=ulong
+%PLE_Object_Table ulong
+
+TNON_RES_NAME_TBL(Sz)  forward
+PNON_RES_NAME_TBL(Sz) ^TNON_RES_NAME_TBL(@:Sz) near=ulong
+%PNON_RES_NAME_TBL ulong
+
+PRES_NAME_TBL ^TRES_NAME_TBL  - NewHdrOfs near=ulong
+
+TIMPORT_MODULE_TBL(Cnt) array[@:Cnt] of Str
+PIMPORT_MODULE_TBL(Cnt) ^TIMPORT_MODULE_TBL(@:Cnt) - NewHdrOfs near=ulong
+
+TRESOURCE_TBL(Cnt) forward
+PRESOURCE_TBL(Cnt) ^TRESOURCE_TBL(@:Cnt) - NewHdrOfs near=ulong
+
+PENTRY_TABLE ^TENTRY_TABLE - NewHdrOfs near=ulong
+
+TOBJECT_PAGE_TABLE(Cnt,LastSz) forward
+POBJECT_PAGE_TABLE(Cnt,LastSz) ^TOBJECT_PAGE_TABLE(@:Cnt,@:LastSz) -
+  NewHdrOfs near=ulong
+
+TFIXUP_PAGE_TABLE(Cnt) forward
+PFIXUP_PAGE_TABLE(Cnt) ^TFIXUP_PAGE_TABLE(@:Cnt) - NewHdrOfs near=ulong
+
+TLEHdr struc
+  byte B_ORD
+  byte W_ORD
+  long FORMAT_LEVEL
+  TCPUType CPU_TYPE
+  TOSType OS_TYPE
+  long MODULE_VERSION
+  ulong MODULE_FLAGS
+  long MODULE_N_OF_PAGES
+  long EIP_OBJECT_N
+  ulong EIP
+  long ESP_OBJECT_N
+  ulong ESP
+  ulong PAGE_SIZE
+  ulong LAST_PG_SIZE % PAGE_OFFSET_SHIFT - LX
+  ulong FIXUP_SECTION_SIZE
+  ulong FIXUP_SECTION_CHECKSUM
+  ulong LOADER_SECTION_SIZE
+  ulong LOADER_SECTION_CHECKSUM
+  PLE_Object_Table OBJECT_TABLE_OFF
+  long N_OBJECTS_IN_MODULE
+  POBJECT_PAGE_TABLE(@.MODULE_N_OF_PAGES,@.LAST_PG_SIZE) OBJECT_PAGE_TABLE_OFF
+  ulong OBJECT_ITER_PAGES_OFF
+  PRESOURCE_TBL RESOURCE_TABLE_OFFSET
+  long N_RESOURCE_TABLE_ENTRIES
+  PRES_NAME_TBL RESIDENT_NAME_TBL_OFF
+  PENTRY_TABLE ENTRY_TABLE_OFFSET
+  ulong MODULE_DIRECTIVES_OFF
+  long N_MODULE_DIRECTIVES
+  PFIXUP_PAGE_TABLE(Cnt=@.MODULE_N_OF_PAGES+1) FIXUP_PAGE_TABLE_OFF
+  ulong FIXUP_RECORD_TABLE_OFF
+  PIMPORT_MODULE_TBL IMPORT_MODULE_TBL_OFF
+  long N_IMPORT_MOD_ENTRIES
+  ulong IMPORT_PROC_TBL_OFF
+  ulong PER_PAGE_CHECKSUM_OFF
+  ulong DATA_PAGES_OFFSET
+  long N_PRELOAD_PAGES
+  PNON_RES_NAME_TBL NON_RES_NAME_TBL_OFF
+  ulong NON_RES_NAME_TBL_LEN
+  ulong NON_RES_NAME_TBL_CKSM
+  long AUTO_DS_OBJECT_N
+  ulong DEBUG_INFO_OFF
+  ulong DEBUG_INFO_LEN
+  long N_INSTANCE_PRELOAD
+  long N_INSTANCE_DEMAND
+  ulong HEAPSIZE
+ends : [
+  @.OBJECT_TABLE_OFF:Cnt=@.N_OBJECTS_IN_MODULE,
+  @.RESOURCE_TABLE_OFFSET:Cnt=@.N_RESOURCE_TABLE_ENTRIES,
+  @.IMPORT_MODULE_TBL_OFF:Cnt=@.N_IMPORT_MOD_ENTRIES,
+  @.NON_RES_NAME_TBL_OFF:Sz=@.NON_RES_NAME_TBL_LEN
+]
+
+data
+
+NewHdrOfs+2 TLEHdr LEHdr
+
+type
+
+TLE_Object_Rec STRUC
+  ulong LE_OBJ_Virtual_Segment_Size
+  ulong LE_OBJ_Relocation_Base_Address
+  ulong LE_OBJ_FLAGS
+  long LE_OBJ_Page_MAP_Index
+  long LE_OBJ_Page_MAP_Entries
+  array[4] of Char LE_OBJ_Reserved
+% ulong LE_OBJ_Reserved
+ENDS
+
+TLE_Object_Table(Cnt) array[@:Cnt] of TLE_Object_Rec
+
+TNameIndexRec struc
+  str Name
+  int NDX
+ends
+
+TRES_NAME_TBL array of TNameIndexRec ? @.Name[0]=0!Byte;
+
+TNON_RES_NAME_TBL(Sz) array of TNameIndexRec :[@:Size=@:Sz]
+
+TResourceEntry struc
+  int TYPE_ID
+  int NAME_ID
+  ulong RESOURCE_SIZE
+  int OBJECT
+  ulong OFFSET
+ends
+
+/*
+BTMP = Bitmap
+EMSG = Error message string
+FONT = Fonts
+*/
+
+TRESOURCE_TBL(Cnt) array[@:Cnt] of TResourceEntry
+
+TENTRY_TABLE_ITEM(Is32) struc
+  byte Flags
+  case @:Is32 of
+    0: Word
+  else
+    ulong
+  endc Ofs
+ends
+
+TENTRY_TABLE_TBL(N,Is32) array[@:N] of TENTRY_TABLE_ITEM(@:Is32)
+
+TENTRY_TABLE_BUNDLE struc
+  sint Cnt
+  Byte Flags
+  int Index
+  TENTRY_TABLE_TBL(N=@.Cnt,Is32=@.Flags and 2) TBL
+ends
+
+TENTRY_TABLE array of TENTRY_TABLE_BUNDLE ? @.Cnt=0 !SInt;
+
+
+/*** Pages ***/
+const
+  ModulePgSize = LEHdr.PAGE_SIZE;
+  ModuleFirstPgOfs = LEHdr.DATA_PAGES_OFFSET;
+
+type
+
+PModulePg(Sz) ^raw[@:Sz] *ModulePgSize, -
+  ModuleFirstPgOfs-ModulePgSize/*as 1 based*/ near=byte /* in fact + HighPg*/
+
+TObjectPgRec(Cnt,LastSz) struc
+  word HighPg
+  PModulePg(ModulePgSize when @:#<@:Cnt-1 exc @:LastSz) LowPg
+  byte Flags
+ends
+
+TOBJECT_PAGE_TABLE(Cnt,LastSz) array[@:Cnt] of TObjectPgRec(@:Cnt,@:LastSz)
+
+
+////////////
+/* Fixups */
+////////////
+const
+  FixupTblOfs = LEHdr.FIXUP_RECORD_TABLE_OFF+NewHdrOfs;
+type
+
+TFixupOrdinal(Rtp) case @:Rtp and 0x40 of
+  0: byte
+else word
+endc
+
+TFixupTgtOfs0(Rtp) case @:Rtp and 0x10 of
+0: word
+else ulong
+endc
+
+TFixupTgtOfs(Rtp,Atp) case @:Atp and 0xF of
+2: void
+else TFixupTgtOfs0(@:Rtp)
+endc
+
+TFixupImpOrd(Rtp) case @:Rtp and 0x90 of
+0: word
+0x10: ulong
+else byte
+endc
+
+TOrdinalAddInfo (Rtp) case @:Rtp and 0x24 of
+  0x04: word
+  0x24: ulong
+endc
+
+TInternalRefInfo(Rtp,Atp) struc
+  TFixupOrdinal(@:Rtp) hObj
+  TFixupTgtOfs(@:Rtp,@:Atp) Ofs
+ends
+
+/*
+TOrdinalAddInfo (Rtp) struc
+  case @:Rtp and 0x14 of
+    0x04: word
+    0x14: ulong
+  endc V
+  case @:Rtp and 0x10 of
+  0: void
+  else word
+  endc Extra
+ends
+*/
+
+TImportedOrdinal(Rtp) struc
+  TFixupOrdinal(@:Rtp) hMod %Imported module-name index.
+  TFixupImpOrd(@:Rtp) hOrd %Imported ordinal number
+  TOrdinalAddInfo(@:Rtp) AddVal
+ends
+
+TImportedName(Rtp) struc
+  TFixupOrdinal(@:Rtp) hMod %Imported module-name index.
+  TFixupTgtOfs(@:Rtp) NameOfs % in LE_Imported_Proc_Name_Table
+  TOrdinalAddInfo(@:Rtp) AddVal
+ends
+
+TInternalTblRefInfo (Rtp) struc
+  TFixupOrdinal(@:Rtp) hObj
+  TOrdinalAddInfo(@:Rtp) AddVal
+ends
+
+TFixupTgtInf(Rtp,Atp) case @:Rtp and 0x3 of
+  0 /*Internal reference*/: TInternalRefInfo(@:Rtp,@:Atp)
+  1 /*Imported ordinal*/: TImportedOrdinal(@:Rtp)
+  2 /*Imported Name*/: TImportedName(@:Rtp)
+else /*Internal reference via entry table*/ TInternalTblRefInfo(@:Rtp)
+endc
+
+TSingleFixup(Rtp,Atp) struc
+  word RelOfs
+  TFixupTgtInf(@:Rtp,@:Atp) Ref
+ends
+
+TListFixup(Rtp,Atp) struc
+  byte Cnt
+  TFixupTgtInf(@:Rtp,@:Atp) Ref
+  array[@.Cnt] of word RelOfs
+ends
+
+TFixupItem struc
+  Byte Atp %relocation addres type
+  Byte Rtp %relocation type
+  case @.Atp and 0x20 of
+   0: TSingleFixup(@@.Rtp,@@.Atp)
+  else TListFixup(@@.Rtp,@@.Atp)
+  endc Inf
+ends
+
+%TFixupPageRecTbl void
+%TFixupPageRecTbl(Sz) raw[@:Sz]
+TFixupPageRecTbl(Sz) array of(TFixupItem):[@:Size=@:Sz]
+
+/*
+PFixupPageRecTbl forward
+TFIXUP_PAGE_TABLE(Cnt) array[@:Cnt] of PFixupPageRecTbl
+PFixupPageRecTbl ^TFixupPageRecTbl(((@:@ as TFIXUP_PAGE_TABLE)[#+1]-
+  (@:@ as TFIXUP_PAGE_TABLE)[#])exc 0) -
+  FixupTblOfs nil- near=ulong
+*/
+PFixupPageRecTbl forward
+TFIXUP_PAGE_TABLE(Cnt) array[@:Cnt] of PFixupPageRecTbl
+PFixupPageRecTbl ^TFixupPageRecTbl - FixupTblOfs nil- near=ulong :
+  [@^:Sz=((@:@ as TFIXUP_PAGE_TABLE)[#+1]-@) exc 0]
+
+%PFixupPageRecTbl(Sz) ^TFixupPageRecTbl(@:Sz) - FixupTblOfs near=ulong
+%TFIXUP_PAGE_TABLE(Cnt) array[@:Cnt] of
+%  (PFixupPageRecTbl):[@[]:Sz = 0] % (@[#+1]-@[#])exc 0]
+
+

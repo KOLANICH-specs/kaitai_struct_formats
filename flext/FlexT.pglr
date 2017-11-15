@@ -1,0 +1,302 @@
+/*
+COMPILER FlexT
+LANGUAGE FlexT
+File references (*.ref)|*.ref
+Other FlexT files *.rfi;*.rfh
+*/
+
+/*
+LAYOUT: LayoutItem | LAYOUT LayoutItem;
+LayoutItem: WS | Comment | EMPTY;
+WS: /\s+/;
+Comment: CommentLine | CommentBlock;
+CommentLine: /(?:\/\/|%).*?(?=>\r?\n)/;
+CommentBlock: /\/\*.*?\*\//;
+*/
+
+FlexT: TopInfoOrCodeSec* someShit* EOF;
+
+
+/*cBigLetter: /[A-Z_]/;
+cSmallLetter: /[a-z]/;
+cLetter: cBigLetter | cSmallLetter;*/
+cLetter: /[A-Z_a-z]/;
+cNonzeroDigit: /[1-9]/;
+cDigit: '0' | cNonzeroDigit;
+cOctDigit: /[0-7]/;
+cBinDigit: /[01]/;
+cHexDigit: /[0-9A-Fa-f]/;
+cSpecChar: /[\/=<>*+-]/;
+comma: ',';
+cr: '\r';
+lf: '\n';
+tab: '\t';
+cNL: cr | lf;
+cNoNL: /[^\r\n]/;
+cPadding: ' ' | tab;
+cSpace: cPadding | cNL;
+cNoEolSpace: cPadding;
+cNoQuote: /[^']/;
+cSign: /[+-]/;
+ANY: /./;
+
+cMskDigit: cDigit | '_';
+cMskOctDigit: cOctDigit | '_';
+cMskBinDigit: cBinDigit | '_';
+cMskHexDigit: cHexDigit | '_';
+
+
+cLetterDigit: cLetter | cDigit;
+ident: cLetter cLetterDigit*;
+
+mskDecimalConstant: cMskDigit+ ;
+mskBinaryConstant: "0b" cMskBinDigit+ ;
+mskOctalConstant: "0o" cMskOctDigit+ ;
+mskHexConstant: "0x" cMskHexDigit+ ;
+mskIntConst: mskHexConstant | mskOctalConstant | mskBinaryConstant | mskDecimalConstant ;
+
+decimalConstant: cDigit+;
+binaryConstant: "0b" cDigit+;
+octalConstant: "0o" cOctDigit+;
+hexConstant: "0x" cHexDigit+;
+intConst: hexConstant | octalConstant | binaryConstant | decimalConstant;
+
+strElement: cNoQuote | "''" ;
+str: "'" strElement* "'" ;
+
+literal: str | '#' intConst;
+string: literal* ;
+
+sign: cSign ;
+
+// @num = cDigit+.
+// @fractional_constant = (cDigit* '.' num)|(num '.').
+// @exponent_part = ("e"|"E") sign? num.
+
+// floating_constant = (fractional_constant exponent_part?)| (num exponent_part).
+
+
+number: cDigit+;
+cmp_op: "=" | "<=" | ">=" | "<>" | "<" | ">" ;
+
+// _noeol: noeol;
+// @NoEolSpace: cNoEolSpace;
+
+_NL: cr? lf;
+SpecChars: cSpecChar+;
+linerest: cNoNL* {left};
+identNoKw: ident; //пользуемся тем, что для вспом. лексемы не проверяются ключевые слова
+other: ANY;
+
+// KEYWORD: /AUTONAME|CONST|INCLUDE|ASSERT|DATA|CODE|TYPE|DESCR|SET|OF|ENDS|ENDC|ENDT|ELSE|STRUC|CODES|RAW|ALIGN|CASE|TRY|ARRAY|ENUM|NUM|BIT|BYTEORDER|REV|NORM|ENCODING|FORWARD|NEAR|/i; //- somewhere used as field names
+KEYWORD: /AUTONAME|CONST|INCLUDE|ASSERT|DATA|CODE|TYPE|DESCR|SET|OF|ENDS|ENDC|ENDT|ELSE|STRUC|PAS|CODES|RAW|ALIGN|CASE|TRY|ARRAY|ENUM|FIELDS|NUM|BIT|BYTEORDER|REV|NORM|ENCODING|FORWARD|NEAR|HIDEREF|SHOWARRAY|COND|FLOAT|INT|WCHR|CHR|ADDRNAME|HEX|TAKES|AT|FIXUP|NIL|OFF|ON|DISPL|LET|DEFINED|autoname|const|include|assert|data|code|type|descr|set|of|ends|endc|endt|else|struc|pas|codes|raw|align|case|try|array|enum|fields|num|bit|byteorder|rev|norm|encoding|forward|near|hideref|showarray|cond|float|int|wchr|chr|addrname|hex|takes|at|fixup|nil|off|on|displ|let|defined/; //- somewhere used as 
+
+TopInfoOrCodeSec: TopInfo | codeSec ;
+TopInfoOrAutonameSec: TopInfo | autonameSec ;
+TopInfoOrConstSec: TopInfo | constSec ;
+TopInfoOrTypeSec: TopInfo | typeSec ;
+TopInfoOrDataSec: TopInfo | dataSec ;
+parenthesedTypeCall: '(' opType=typeCall ')' ;
+
+someShit: "AUTONAME" NL autonames=TopInfoOrAutonameSec* |
+   "CONST" NL constants=TopInfoOrConstSec* |
+   'TYPE' 'BIT'? NL types=TopInfoOrTypeSec* |
+   'CODE' parenthesedTypeCall? blockName=ident? NL codes=TopInfoOrCodeSec* |
+   'DATA' blockName=ident? NL vars=TopInfoOrDataSec*
+;
+
+//Top level definitions, which can appear in any section
+byteOrderVal: 'REV' | 'NORM';
+TopInfo: "INCLUDE" file=linerest |
+FileAssert ';' NL |
+"DESCR" descr=DTDisplInfo NL |
+"SET" 'BYTEORDER' val=byteOrderVal cond=eqExpr? | 'ENCODING' enc=ident NL |
+NL;
+
+prefixVal: ident|string;
+autonameSec: typename=ident QualifierExprAN prefix=prefixVal? NL;
+constSec: name=ident '=' ValExpr ';'? NL;
+typeSec: name=ident typeFormParms? TypeDef ';'? NL;
+dataSec: at=ValExpr ';'? typ=TypeDef varname=fldname NL ;
+someCodeSecShit: '<-' manualFrom=ValExpr+[comma] ';';
+
+codeSec: at=ValExpr ';'?  codeend='-' | someCodeSecShit? desc=linerest  ;
+
+DTShit: DTCallParms DTProps;
+TypeDef: TypeBrace | 'FORWARD' | NewTypeDef DTProps | DTName=ident DTShit?;
+DTProps: DTProp* {left};
+
+typeCall: DTName=ident DTCallParms?;
+
+PasFieldDefWithNL: PasFieldDef NLS;
+FieldDefWithNL: FieldDef NLS;
+StrucDefBody: 'PAS' NLS PasFieldDefWithNL* | NLS FieldDefWithNL*;
+StrucDef: 'STRUC' StrucDefBody "ENDS";
+
+FieldDef: typ=TypeDef name=fldname? ';'?;
+
+ArrayDef: ArrayDefBase ArrayDefTakes?;
+
+RawDef: RawBase RawAt?;
+AlignDef: AlignBase RawAt?;
+
+CaseClause: dtname=ident e=Expr|e=Expr;
+CaseCaseWithNL: CaseCase NLS;
+CaseElseWithNL: CaseELSE NLS;
+CaseDef: 'CASE' CaseClause "OF" NLS CaseCaseWithNL* CaseElseWithNL? "ENDC";
+
+TryCaseWithNL: TryCase NLS;
+TryDef: 'TRY' NLS TryCaseWithNL* "ENDT";
+
+PtrDef: PtrBase PtrShiftCoeff? 'HIDEREF'? PtrFixup? PtrNil? 'NEAR'? PtrDT? PtrRef? ';'?;
+
+// linerest: ANY* NL.
+
+NL: _=_NL {left}; //To mark the complex token as aux
+NLS: NL+ {left};
+
+FileAssert: 'ASSERT' assert=ValExpr;
+DTDisplInfo: '(' DTDisplItem*[comma] ')';
+
+ValExprWithComma: ',' Prec=ValExpr;
+DTDisplItem: string | 'NL' ValExpr? |
+   'SHOWARRAY' '(' V=Expr ',' ElD=DTDisplInfo ')'|
+   'COND' '(' C=Expr ',' T=DTDisplInfo  ',' F=DTDisplInfo ')'|
+   'FLOAT' '(' M=Expr ',' Pwr=Expr ',' Sign=Expr ')'|
+   'INT' DTDisplItemIntArg | 'CHR' DTDisplItemIntArg | 
+   'WCHR' DTDisplItemIntArg | 'ADDRNAME' DTDisplItemIntArg | 
+   'HEX' '(' V=Expr ValExprWithComma? ')'| Expr; // Addr
+DTDisplItemIntArg: '(' Expr ')';
+QualifierPart: '[' elcond='?'? ndx=Expr ']' |'.' field=fldname|'.' any_lbl='*' |'.' case_lbl=ValExpr | ptr='^' | parent='@';
+QualifierExpr: QualifierPart+;
+QualifierExprAN: field=fldname? QualifierPart*;
+QualifierExprPShitShit: propname=fldname | owner='@' | ndx='#';
+QualifierExprPShit: ':' QualifierExprPShitShit;
+QualifierExprP: QualifierPart* QualifierExprPShit?;
+QualifierExprNoP: QualifierPart*;
+typeFormParms: '(' prm=typeFormParm*[comma] ')';
+typeFormParm: addr='&'? fldname;
+TypeBrace: '('TypeDef')';
+NewTypeDef: 'NUM' sign=sign? '(' ValExpr ')' | StrucDef | ArrayDef | CodesDef | RawDef | AlignDef |CaseDef | TryDef | EnumDef | SetDef | PtrDef ;
+
+PasFieldDef: name=fldname ':'? typ=TypeDef ';'? ;
+ArrayCountExpr: '[' Cnt=ValExpr ']';
+ArrayStopCondSpecShit: '!' stopDT=TypeDef;
+ArrayStopCondSpec: '?' stopCond=Expr ArrayStopCondSpecShit? ';';
+ArrayStopValueSpec: ',' '<'? stopVal=TypeConst ';';
+ArrayDefBase: 'ARRAY' ArrayCountExpr? 'OF'? baseDT=TypeDef ArrayStopCondSpec? ArrayStopValueSpec? ;
+ArrayDefTakes: 'TAKES' takesExpr=ValExpr ';';
+
+CodesDefShit: '!' TypeDef;
+CodesDef: 'CODES' 'OF'? TypeDef '?' Expr CodesDefShit? ';';
+
+RawBase: 'RAW' '[' ValExpr? ']';
+RawAt: 'AT' Expr ';';
+
+AlignBase: 'ALIGN' ValExpr ';'?;
+
+TryCase: name=fldname ':' TypeDef;
+
+//Надо развести эти случаи на более высоком уровне, чтобы не смешивались в одном типе
+StrCaseLabels: string+[comma];
+IntCaseLabelsShit1: '.' '.' to=TypeConst;
+IntCaseLabelsShit2: from=TypeConst IntCaseLabelsShit1?;
+IntCaseLabels: IntCaseLabelsShit2+[comma];
+TermEnumCaseLabels: ident+[comma] ;
+
+CaseLabels: StrCaseLabels|IntCaseLabels|TermEnumCaseLabels;
+CaseCase: CaseLabels ':' TypeDef;
+CaseELSE: "ELSE" TypeDef;
+
+EnumDefShit: 'FIELDS' TermEnum | '(' EnumConstDef*[comma] ')' | '='? Expr ';';
+EnumDef: 'ENUM' DTBase=ident? EnumDefShit;
+
+SetDef: 'SET' ValExpr? OF '(' SetConstDef*[comma] ')';
+
+
+PtrBase: '^' TypeDef;
+PtrShiftCoeffShit: '*' ValExpr ','?;
+PtrShiftCoeffShit2: sign ValExpr;
+PtrShiftCoeff: PtrShiftCoeffShit? PtrShiftCoeffShit2?;
+PtrFixupONOFF: 'ON' | 'OFF';
+PtrFixup: 'FIXUP' PtrFixupONOFF;
+PtrNilShit: '=' NilVal=ValExpr | ':' NilE=Expr | '-';
+PtrNil: 'NIL' PtrNilShit;
+PtrDT: '=' DTName=ident;
+PtrRefShit: 'REF' '=' RefExpr=Expr;
+PtrRef: ','? PtrRefShit?;
+DTCallParms: '(' DTCallParm*[comma] ')';
+DTCallParmShit: parmName=ident'=';
+DTCallParm: DTCallParmShit? Expr;
+
+EnumConstDefShit1: skip='?'|name=fldname;
+EnumConstDefShit2: eq='=' | pwr='^';
+EnumConstDefShit3: EnumConstDefShit2 val=TypeConst;
+EnumConstDef: EnumConstDefShit1 EnumConstDefShit3?;
+Neg: Neg='~';
+SetConstDef: Neg? EnumConstDef;
+TermEnum: '(' TermEnumFieldDef+[comma] ')' 'OF' '(' TermEnumTermDef+[comma]  ')'; /*Temp*/
+
+TermEnumFieldDefAt: '@' at=ValExpr;
+TermEnumFieldSizeOrEnd: '.' size=ValExpr | ':' end=ValExpr | EMPTY;
+TermEnumFieldDef: name=fldname ':'? Typ=TypeDef TermEnumFieldDefAt? TermEnumFieldSizeOrEnd;
+
+TermEnumTermDefShit: '(' field=fldname+[comma] ')';
+TermEnumTermDef: name=fldname TermEnumTermDefShit? '=' mask=mskIntConst;
+DTPropShitEl: '.' fldname=fldname | arr='[' ']' | ptr='^'| EMPTY;
+DTPropShitBracesList: '@'? el=DTPropShitEl ':' propname=fldname '=' val=Expr;
+DTPropShit: 'DISPL' '=' DTDisplInfo |
+   'AUTONAME' '=' DTDisplInfo |
+   'ASSERT' '[' exprlist ']' |
+   'LET' name=ident '=' expr=Expr ';' |
+   '[' DTPropShitBracesList+[comma] ']';
+
+DTProp: ':' DTPropShit;
+
+exprlist: Expr+[comma] ;
+
+eqExpr: '=' ValExpr ';';
+
+ValExpr: Expr;
+TypeConst: ConstExpr | ident; // ValExpr; /*На случай совпадения с операторами*/
+
+UnaryAnd: '&' x=Expr {670, right};
+UnaryIsFixup: 'IsFixup' y=Expr {670, right};
+UnaryMinus: '-' x=Expr {660, right};
+UnaryNot: "not" x=Expr {660, right};
+BinaryMul: y=Expr '*' x=Expr {560, left};
+BinaryDiv: y=Expr 'DIV' x=Expr {560, left};
+BinaryMod: y=Expr 'MOD' x=Expr {560, left};
+BinaryAnd: y=Expr 'and' x=Expr {560, left};
+BinaryShl: y=Expr 'shl' x=Expr {460, left};
+BinaryShr: y=Expr 'shr' x=Expr {460, left};
+BinaryMinus: y=Expr '-' x=Expr {360, left};
+BinaryPlus: y=Expr '+' x=Expr {360, left};
+BinaryOr: y=Expr 'or' x=Expr {360, left};
+BinaryXor: y=Expr 'xor' x=Expr {360, left};
+BinaryMin: y=Expr 'MIN' x=Expr {260, left};
+BinaryMax: y=Expr 'MAX' x=Expr {260, left};
+BinaryEq: y=Expr '=' x=Expr {160, right};
+BinaryLess: y=Expr '<' x=Expr {160, left};
+BinaryMore: y=Expr '>' x=Expr {160, left};
+BinaryNEq: y=Expr '<>' x=Expr {160, left};
+BinaryLEq: y=Expr '<=' x=Expr {160, left};
+BinaryGEq: y=Expr '>=' x=Expr {160, left};
+BinaryAs: y=Expr 'as' x=Expr {90, left};
+BinaryWhen: y=Expr 'when' x=Expr {60, left};
+BinaryExc: y=Expr 'exc' x=Expr {20, left};
+
+Expr: UnaryAnd | UnaryIsFixup | UnaryNot | UnaryMinus | BinaryAnd | BinaryMod | BinaryDiv | BinaryMul | BinaryShr | BinaryShl | BinaryMinus | BinaryPlus | BinaryOr | BinaryXor | BinaryMin | BinaryMax | BinaryEq | BinaryLess | BinaryMore | BinaryNEq | BinaryLEq | BinaryGEq | BinaryAs | BinaryWhen | BinaryExc | ExprBase;
+
+//ConstExpr: CUnaryAnd | CUnaryIsFixup | CUnaryNot | CUnaryMinus | CBinaryAnd | CBinaryMod | CBinaryDiv | CBinaryMul | CBinaryShr | CBinaryShl | CBinaryMinus | CBinaryPlus | CBinaryOr | CBinaryXor | CBinaryMin | CBinaryMax | CBinaryEq | CBinaryLess | CBinaryMore | CBinaryNEq | CBinaryLEq | CBinaryGEq | CBinaryAs | CBinaryWhen | CBinaryExc;
+ConstExpr: Expr;
+
+ExprBaseArgs: '(' args=exprlist ')';
+
+//ConstExprBase: intConst| string | 'defined' ident | name=ident ExprBaseArgs? QualifierExprNoP | '(' ConstExpr ')' QualifierExprNoP;
+ExprBase: intConst | self='@' QualifierExprP | num='#' | string | 'defined' ident | name=ident ExprBaseArgs? QualifierExprP | '(' Expr ')' QualifierExprP;
+
+
+
+fldname: identNoKw;
+//fldname: any of ident with keywords but(ENDS,ENDT,ENDC);

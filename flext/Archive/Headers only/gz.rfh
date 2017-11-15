@@ -1,0 +1,93 @@
+% GZIP Archive Format(gz.rfh):Class: Archive, Status: Headers only, Last change: 09.09.1999 18:51:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+include UNIXTime.rfi
+type
+
+TComprMethod enum byte (
+  deflate=8 //all other values are reserved
+)
+
+TMemberFlags set 8 of (
+  FTEXT=0,
+  FHCRC=1,
+  FEXTRA=2,
+  FNAME=3,
+  FCOMMENT=4,
+  FENCRYPTED=5
+)
+
+TDeflateExtraFlags enum byte (
+  Max=2,  // compressor used maximum compression,
+          // slowest algorithm
+  Fast=4 // compressor used fastest algorithm
+)
+
+TExtraFlags(CM) case TComprMethod @:CM of
+  deflate: TDeflateExtraFlags
+else Byte
+endc
+
+TOSCode enum byte (
+  FAT=0, // FAT filesystem (MS-DOS, OS/2, NT/Win32)
+  Amiga=1, // Amiga
+  VMS=2, // VMS (or OpenVMS)
+  Unix=3, // Unix
+  VM_CMS=4, // VM/CMS
+  Atari_TOS=5, // Atari TOS
+  HPFS=6, // HPFS filesystem (OS/2, NT)
+  Mac=7, // Macintosh
+  Z=8, // Z-System
+  CP_M=9, // CP/M
+  TOPS20=10, // TOPS-20
+  NTFS=11, // NTFS filesystem (NT)
+  QDOS=12,
+  RISCOS=13, // Acorn RISCOS
+  unknown=255
+)
+
+TExtraField struc
+  word XLEN //eXtra LENgth
+  raw[@.XLEN] D
+ends
+
+TGZMember struc
+  word ID //IDentification (Magic)
+  TComprMethod CM //Compression Method
+  TMemberFlags FLG //FLaGs
+  TTimeStamp MTIME //Modification TIME
+  TExtraFlags(@.CM) XFL //eXtra FLags
+  TOSCode OS //Operating System
+  case @.Flg and TMemberFlags.FEXTRA=0 of
+    0: TExtraField
+  endc Extra
+  case @.Flg and TMemberFlags.FNAME=0 of
+    0: pchar
+  endc FName
+  case @.Flg and TMemberFlags.FCOMMENT=0 of
+    0: pchar
+  endc FComment
+  case @.Flg and TMemberFlags.FHCRC=0 of
+    0: word
+  endc CRC16
+ends:assert[@.ID=0x8B1F]
+
+TGZEndRec struc //Can't use it without decompression
+  ulong CRC32
+  ulong ISize
+ends
+
+data
+
+0 TGZMember Hdr
+
+assert Hdr:assert;
+
+data
+FileSize-8; TGZEndRec EndRec
+
+descr ('GZIP Archive File Format.',NL,
+  'Info Source: GZIP file format specification version 4.3',NL,
+  '  (gzip.zip at www.wotsit.org)',NL,
+  'ftp://ftp.uu.net/graphics/png/documents/zlib/zdoc-index.html',NL)
+

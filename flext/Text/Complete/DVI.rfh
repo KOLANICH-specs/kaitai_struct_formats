@@ -1,0 +1,219 @@
+% TeX output file(DVI.rfh):Class: Text, Status: Complete, Last change: 29.09.2000 20:34:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder rev
+type
+
+TCh1 char
+TCh2 num+(2)
+TCh3 num+(3)
+TCh4 num-(4)
+
+int1 num-(1)
+int2 num-(2)
+int3 num-(3)
+int4 num-(4)
+
+uint1 num+(1)
+uint2 num+(2)
+uint3 num+(3)
+uint4 num+(4)
+
+TFOfs uint4
+
+TChars7 array of Char ?@>127!void;
+
+TDVIOpCode enum uint1 (
+//  op_set_char_0=0,
+//  op_set_char_1..op_set_char_127.
+
+  op_set1=128, //c[1]
+  op_set2=129, //c[2]
+  op_set3=130, //c[3]
+  op_set4=131, //c[4],
+  op_set_rule=132, //a[4],b[4],
+
+  op_put1=133, //c[1]
+  op_put2=134, //c[2]
+  op_put3=135, //c[3]
+  op_put4=136, //c[4]
+  op_put_rule=137, //a[4],b[4]
+
+  op_nop=138,
+
+  op_bop=139, //c_0[4],c_1[4]..c_9[4], p[4]. Beginning of a page
+  op_eop=140, //End of page
+
+  op_push=141, //Push the current values of h,v,w,x,y,z
+  op_pop=142, //Pop the top six values off of the stack
+
+  op_right1=143, //b[1]. Set h=h+b, i.e., move right b units.
+  op_right2=144, //b[2]
+  op_right3=145, //b[3]
+  op_right4=146, //b[4]
+
+  op_w0=147, //h=h+w; i.e., move right w units.
+  op_w1=148, //b[1]. w=b and h=h+b.
+  op_w2=149, //b[2]
+  op_w3=150, //b[3]
+  op_w4=151, //b[4]
+
+  op_x0=152, //h=h+x; i.e., move right x units.
+  op_x1=153, //b[1]
+  op_x2=154, //b[2]
+  op_x3=155, //b[3]
+  op_x4=156, //b[4]
+
+  op_down1=157, //a[1]. Set v=v+a, i.e., move down a units.
+  op_down2=158, //a[2]
+  op_down3=159, //a[3]
+  op_down4=160, //a[4]
+
+  op_y0=161, //v=v+y; i.e., move down y units.
+  op_y1=162, //a[1]. Set y=a and v=v+a.
+  op_y2=163, //a[2]
+  op_y3=164, //a[3]
+  op_y4=165, //a[4]
+
+  op_z0=166, //v=v+z; i.e., move down z units.
+  op_z1=167, //a[1]. Set z=a and v=v+a.
+  op_z2=168, //a[2]
+  op_z3=169, //a[3]
+  op_z4=170, //a[4]
+
+  op_fnt_num_0=171, //f=0. Font 0 must previously have been
+    //defined by a fnt_def instruction, as explained below.
+  op_fnt_num_63=234,
+//op_fnt_num_1..op_fnt_num_63, // (opcodes 172 to 234).
+
+  op_fnt1=235, //k[1]. Set f=k.
+  op_fnt2=236, //k[2]
+  op_fnt3=237, //k[3]
+  op_fnt4=238, //k[4]
+
+  op_xxx1=239, //k[1],x[k]. This command is undefined in
+  //general; it functions as a (k+2)-byte nop unless special DVI-reading
+  //programs are being used.
+  op_xxx2=240, //k[2],x[k]
+  op_xxx3=241, //k[3],x[k]
+  op_xxx4=242, //k[4],x[k]
+
+  op_fnt_def1=243, //k[1],c[4],s[4],d[4],a[1],l[1],n[a+l]. Define font k
+  op_fnt_def2=244,
+  op_fnt_def3=245,
+  op_fnt_def4=246,
+
+  op_pre=247, //i[1],num[4],den[4],mag[4],k[1],x[k].
+    //Beginning of the preamble; this must come at the very
+    //beginning of the file.
+  op_post=248, // p[4],num[4],den[4],mag[4],l[4],u[4],s[2],t[2].
+    //Beginning of the postamble.
+
+  op_post_post=249 //q[4],i[1] Ending of the postamble.
+)
+
+TFntInf struc
+  uint4 c //Check sum of font file
+  int4 s
+  int4 d
+  uint1 a
+  uint1 b
+  array[@.a] of Char na
+  array[@.b] of Char nb
+ends
+
+TDVIOp struc
+  TDVIOpCode Op
+  case @.Op of
+    op_set1,op_put1: TCh1
+    op_set2,op_put2: TCh2
+    op_set3,op_put3: TCh3
+    op_set4,op_put4: TCh4
+    op_set_rule,op_put_rule: struc
+        int4 a
+        int4 b
+      ends
+    op_bop: struc
+        array[10] of int4 C
+        TFOfs P
+      ends
+    op_right1,op_w1,op_down1,op_x1,op_y1,op_z1: int1
+    op_right2,op_w2,op_down2,op_x2,op_y2,op_z2: int2
+    op_right3,op_w3,op_down3,op_x3,op_y3,op_z3: int3
+    op_right4,op_w4,op_down4,op_x4,op_y4,op_z4: int4
+    op_fnt1: uint1
+    op_fnt2: uint2
+    op_fnt3: uint3
+    op_fnt4: int4
+    op_xxx1: struc
+        uint1 cnt
+        raw[@.cnt] X
+      ends
+    op_xxx2: struc
+        uint2 cnt
+        raw[@.cnt] X
+      ends
+    op_xxx3: struc
+        uint3 cnt
+        raw[@.cnt] X
+      ends
+    op_xxx4: struc
+        uint4 cnt
+        raw[@.cnt] X
+      ends
+    op_fnt_def1: struc
+        uint1 K
+        TFntInf FI
+      ends
+    op_fnt_def2: struc
+        uint2 K
+        TFntInf FI
+      ends
+    op_fnt_def3: struc
+        uint3 K
+        TFntInf FI
+      ends
+    op_fnt_def4: struc
+        int4 K
+        TFntInf FI
+      ends
+    op_pre: struc
+        int1 i
+        int4 num
+        int4 den
+        int4 mag
+        uint1 k
+        array[@.k]of char x
+      ends
+    op_post: struc
+        TFOfs P
+        int4 num
+        int4 den
+        int4 mag
+        int4 l
+        int4 u
+        int2 s //Max Stack depth
+        int2 t //Total N of pages
+      ends
+    op_post_post: struc
+      TFOfs Q
+      int1 i
+    ends
+  endc Prm
+ // TChars7 C
+ends: assert[@.Op>=0x80]
+
+TFntNum enum uint1 @-TDVIOpCode.op_fnt_num_0; :
+  assert[@>=TDVIOpCode.op_fnt_num_0,@<=TDVIOpCode.op_fnt_num_63]
+
+TDVIRec try
+  FN: TFntNum
+  Op: TDVIOp
+  S: TChars7
+endt
+
+TDVIOps array of TDVIRec:[@:Size=FileSize]
+
+data
+  0 TDVIOps Ops
+

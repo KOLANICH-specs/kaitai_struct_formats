@@ -1,0 +1,169 @@
+% Type Library SLTG signature(tlb_SLTG.rfi):Class: Resource, Status: Partial, Last change: 08.03.2008 17:59:52
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+  0 array[4] of char Sign
+
+assert (Sign='SLTG');
+
+include GUID.rfi
+
+type
+
+DWORD ulong
+
+TSLTG_BlkEntry struc
+/*00*/  DWORD len;
+/*04*/	WORD index_string; /* offs from start of SLTG_Magic to index string */
+/*06*/  WORD next;
+ends
+
+TSLTG_Index array[11]of Char,<0;
+
+TSLTG_Header struc
+///*00*/	DWORD SLTG_magic	/* 0x47544c53  == "SLTG" */
+/*04*/	WORD nrOfFileBlks	/* no of SLTG_BlkEntry's + 1 */
+/*06*/  WORD res06		/* ?? always 9 */
+/*08*/  WORD res08             /* some kind of len/offset ?? */
+/*0a*/	WORD first_blk		/* 1 based index into blk entries that
+				   corresponds to first block in file */
+/*0c*/	TGUID guid
+/*
+/*0c*/	DWORD res0c		/* always 0x000204ff */
+/*10*/  DWORD res10		/* always 0x00000000 */
+/*14*/	DWORD res14		/* always 0x000000c0 */
+/*18*/	DWORD res18		/* always 0x46000000 */
+*/
+/*1c*/	DWORD res1c		/* always 0x00000044 */
+/*20*/	DWORD res20		/* always 0xffff0000 */
+  array[@.nrOfFileBlks-1]of TSLTG_BlkEntry BlkEntries
+//SLTG_Magic:
+/*00*/ BYTE res00;		/* always 0x01 */
+/*01*/ array[8]of char,<0; CompObj_magic;	/* always "CompObj" */
+/*09*/ array[4]of char,<0; dir_magic;	/* always "dir" */
+  array[@.nrOfFileBlks-2]of TSLTG_Index SLTG_Index
+  array[9] of Byte SLTG_pad9
+ends: assert[@.nrOfFileBlks>2,@.CompObj_magic='CompObj',@.dir_magic='dir']
+
+
+data
+  4 TSLTG_Header FHdr
+
+assert FHdr:Assert;
+
+type
+TSLTG_Name struc
+  WORD L
+  array[@.L when(@.L<>0xFFFF) exc 0]of Char S
+ends
+
+TLIBFLAGS set 16 of (
+  LIBFLAG_FRESTRICTED ^ 0x01,
+  LIBFLAG_FCONTROL ^ 0x02,
+  LIBFLAG_FHIDDEN ^ 0x04
+)
+
+TTYPEKIND enum byte (
+      TKIND_ENUM = 0
+    , TKIND_RECORD
+    , TKIND_MODULE
+    , TKIND_INTERFACE
+    , TKIND_DISPATCH
+    , TKIND_COCLASS
+    , TKIND_ALIAS
+    , TKIND_UNION
+    , TKIND_MAX
+)
+ 
+
+TSLTG_OtherTypeInfo struc
+  WORD small_no;
+  TSLTG_Name index_name; /* This refers to a name in the directory */
+  TSLTG_Name other_name; /* Another one of these weird names */
+  WORD res1a;	      /* 0xffff */
+  WORD name_offs;	      /* offset to name in name table */
+  WORD more_bytes;      /* if this is non-zero we get this many
+			 bytes before the next element, which seem
+			 to reference the docstring of the type ? */
+  raw[@.more_bytes] more_bytesD
+  WORD res20;	      /* 0xffff */
+  DWORD helpcontext;
+  WORD res26;	      /* 0xffff */
+  TGUID uuid;
+ends
+
+
+TSLTG_LibBlk struc
+///*00*/	WORD magic;		/* 0x51cc */
+/*02*/  WORD res02;		/* 0x0003, 0x0004 */
+/*04*/  WORD name;              /* offset to name in name table */
+/*06*/  TSLTG_Name res06;	/* maybe this is just WORD == 0xffff */
+	TSLTG_Name helpstring;
+	TSLTG_Name helpfile;
+	DWORD helpcontext;
+	WORD syskind;		/* == 1 for win32, 0 for win16 */
+	WORD lcid;		/* == 0x409, 0x809 etc */
+	DWORD res12;		/* == 0 */
+ 	TLIBFLAGS libflags;		/* LIBFLAG_* */
+	WORD maj_vers;
+	WORD min_vers;
+	TGUID uuid;
+        array[0x20]of INT Hash //May be - AX
+        array[FHdr.nrOfFileBlks-2] of TSLTG_OtherTypeInfo OtherTypeInfo
+        WORD SomeCnt /* Next we get WORD 0x0003 */
+        DWORD NameTblOfs  /* followed by a DWORD which if we add to
+           0x216 gives the offset to the name table from the start of the LibBlk
+           struct */
+        raw[@.NameTblOfs-(&@.NameTblOfs-&@+6)] D0
+        WORD X
+        case @.X of
+         -1: void
+         0x200: raw[0x20]
+        endc DX
+        raw[0x216] D1
+ends
+
+
+TSLTG_TypeInfoHeader struc
+///*00*/	WORD magic;		/* 0x0501 */
+/*02*/	DWORD href_table;	/* if not 0xffffffff, then byte offset from
+				   beginning of struct to href table */
+/*06*/	DWORD res06;		/* 0xffffffff */
+/*0a*/	DWORD elem_table;	/* offset to members */
+/*0e*/	DWORD res0e;		/* 0xffffffff */
+/*12*/	WORD major_version;	/* major version number */
+/*14*/  WORD minor_version;	/* minor version number */
+/*16*/	DWORD res16;	/* 0xfffe0000 */
+/*1a*/	BYTE typeflags1;/* 0x02 | top 5 bits hold l5sbs of TYPEFLAGS */
+/*1b*/	BYTE typeflags2;/* TYPEFLAGS >> 5 */
+/*1c*/	BYTE typeflags3;/* 0x02*/
+/*1d*/	TTYPEKIND typekind;	/* 0x03 == TKIND_INTERFACE etc. */
+/*1e*/  DWORD res1e;	/* 0x00000000 or 0xffffffff */
+ends
+
+
+type
+  TSLTG_Block(Base,ndx) forward
+  PSLTG_Block(Base,ndx) ^TSLTG_Block(@:Base,@:ndx) Nil:@:ndx<0 near=void, 
+    REF=@:Base;: displ=(HEX(@:Base))
+
+  TSLTG_Block(Base,ndx) struc
+    PSLTG_Block(@:Base+FHdr.BlkEntries[@:ndx].len,
+      FHdr.BlkEntries[@:ndx].next-1) next
+    WORD Magic
+    case @.Magic of
+      0x51CC: TSLTG_LibBlk
+      0x0501: TSLTG_TypeInfoHeader
+    endc D
+    raw[] at &@; rest
+  ends:[@:Size=FHdr.BlkEntries[@:ndx].len]:autoname=('Block_',INT(@:ndx))
+
+data
+  4+FHdr:Size; PSLTG_Block(4+FHdr:Size,FHdr.first_blk-1) Bl
+
+descr ('SLTG typelibs. These are created with ICreateTypeLib.',NL,
+  'Info Source: WINe <http://www.winehq.org> /dlls/oleaut32/typelib.*',NL,
+  '             by Rein KLazes.',NL)
+
+
+

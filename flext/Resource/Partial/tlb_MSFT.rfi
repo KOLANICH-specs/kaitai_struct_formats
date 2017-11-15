@@ -1,0 +1,441 @@
+% Type Library MSFT signature(tlb_MSFT.rfi):Class: Resource, Status: Partial, Last change: 08.03.2008 17:58:46
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+  0 array[4] of char Sign
+
+assert (Sign='MSFT');
+
+const
+  HELPDLLFLAG=0x0100;
+  WORDS_BIGENDIAN=0;
+
+type
+
+int16 int
+DWORD ulong
+
+TMSFT_Header struc
+/*0x00*/ //long magic1;       /* 0x5446534D "MSFT" */
+        ulong   magic2;       /* 0x00010002 version nr? */
+        ulong   posguid;      /* position of libid in guid table  */
+                            /* (should be,  else -1) */
+        long   lcid;         /* locale id */
+/*0x10*/long   lcid2;
+        long   varflags;     /* (largely) unknown flags ,seems to be always 41 */
+                            /* becomes 0x51 with a helpfile defined */
+                            /* if help dll defined it's 0x151 */
+                            /* update : the lower nibble is syskind */
+        ulong   version;      /* set with SetVersion() */
+        long   flags;        /* set with SetFlags() */
+/*0x20*/long   nrtypeinfos;  /* number of typeinfo's (till so far) */
+        long   helpstring;   /* position of help string in stringtable */
+        long   helpstringcontext;
+        long   helpcontext;
+/*0x30*/long   nametablecount;   /* number of names in name table */
+        long   nametablechars;   /* nr of characters in name table */
+        long   NameOffset;       /* offset of name in name table */
+        long   helpfile;         /* position of helpfile in stringtable */
+/*0x40*/long   CustomDataOffset; /* if -1 no custom data, else it is offset */
+                                /* in customer data/guid offset table */
+        long   res44;            /* unknown always: 0x20 */
+        long   res48;            /* unknown always: 0x80 */
+        long   dispatchpos;      /* gets a value (1+n*0x0c) with Idispatch interfaces */
+/*0x50*/long   res50;            /* is zero becomes one when an interface is derived */
+ends: assert[@.magic2=0x00010002]
+
+
+data
+  4 TMSFT_Header FHdr
+
+assert FHdr:Assert;
+
+descr ('MSFT typelibs. These are TypeLibs created with ICreateTypeLib2.',NL,
+  'Info Source: WINe <http://www.winehq.org> /dlls/oleaut32/typelib.*',NL,
+  '             by Rein KLazes.',NL)
+
+include guid.rfi
+
+
+type
+  TMSFTSeg(Sz) raw[@:Sz]
+  PMSFTSeg(Sz) ^TMSFTSeg(@:Sz) near=ulong
+
+  TMSFT_pSeg struc
+    PMSFTSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTTypeInfoTabSeg(Sz) forward
+
+  PMSFTTypeInfoTabSeg(Sz) ^TMSFTTypeInfoTabSeg(@:Sz) near=ulong
+
+  TMSFT_pTypeInfoTabSeg struc
+    PMSFTTypeInfoTabSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTNameTabSeg(Sz) forward
+
+  PMSFTNameTabSeg(Sz) ^TMSFTNameTabSeg(@:Sz) near=ulong
+
+  TMSFT_pNameTabSeg struc
+    PMSFTNameTabSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTGuidTabSeg(Sz) forward
+
+  PMSFTGuidTabSeg(Sz) ^TMSFTGuidTabSeg(@:Sz) near=ulong
+
+  TMSFT_pGuidTabSeg struc
+    PMSFTGuidTabSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTImpInfoSeg(Sz) forward
+
+  PMSFTImpInfoSeg(Sz) ^TMSFTImpInfoSeg(@:Sz) near=ulong
+
+  TMSFT_pImpInfoSeg struc
+    PMSFTImpInfoSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTImpFilesSeg(Sz) forward
+
+  PMSFTImpFilesSeg(Sz) ^TMSFTImpFilesSeg(@:Sz) near=ulong
+
+  TMSFT_pImpFilesSeg struc
+    PMSFTImpFilesSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTTypdescTabSeg(Sz) forward
+
+  PMSFTTypdescTabSeg(Sz) ^TMSFTTypdescTabSeg(@:Sz) near=ulong
+
+  TMSFT_pTypdescTabSeg struc
+    PMSFTTypdescTabSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+  TMSFTStringTabSeg(Sz) forward
+
+  PMSFTStringTabSeg(Sz) ^TMSFTStringTabSeg(@:Sz) near=ulong
+
+  TMSFT_pStringTabSeg struc
+    PMSFTStringTabSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+
+  TMSFTNameHashSeg(Sz) forward
+
+  PMSFTNameHashSeg(Sz) ^TMSFTNameHashSeg(@:Sz) near=ulong
+
+  TMSFT_pNameHashSeg struc
+    PMSFTNameHashSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+
+  TMSFTRefTabSeg(Sz) forward
+
+  PMSFTRefTabSeg(Sz) ^TMSFTRefTabSeg(@:Sz) near=ulong
+
+  TMSFT_pRefTabSeg struc
+    PMSFTRefTabSeg offset;     /* absolute offset in file */
+    ulong    length;     /* length of segment */
+    long     res08;      /* unknown always -1 */
+    long     res0c;      /* unknown always 0x0f in the header */
+                         /* 0x03 in the typeinfo_data */
+  ends:[@.offset:Sz=@.length]
+
+/* layout of the main segment directory */
+TMSFT_SegDir struc
+/*1*/TMSFT_pTypeInfoTabSeg pTypeInfoTab; /* each type info get an entry of 0x64 bytes */
+                              /* (25 ints) */
+/*2*/TMSFT_pImpInfoSeg pImpInfo;     /* table with info for imported types */
+/*3*/TMSFT_pImpFilesSeg pImpFiles;    /* import libaries */
+/*4*/TMSFT_pRefTabSeg pRefTab;      /* References table */
+/*5*/TMSFT_pSeg pLibtab;      /* always exists, alway same size (0x80) */
+                             /* hash table w offsets to guid????? */
+/*6*/TMSFT_pGuidTabSeg pGuidTab;     /* all guids are stored here together with  */
+                             /* offset in some table???? */
+/*7*/TMSFT_pNameHashSeg pNameHash;   /* always created, alway same size (0x200) */
+                             /* purpose largely unknown */
+                             /* AX: Name hash table */
+/*8*/TMSFT_pNameTabSeg pNametab;     /* name tables */
+/*9*/TMSFT_pStringtabSeg pStringtab;   /* string table */
+/*A*/TMSFT_pTypdescTabSeg pTypdescTab;  /* table with type descriptors */
+/*B*/TMSFT_pSeg pArrayDescriptions;
+/*C*/TMSFT_pSeg pCustData;    /* data table, used for custom data and default */
+                             /* parameter values */
+/*D*/TMSFT_pSeg pCDGuids;     /* table with offsets for the guids and into */
+                             /* the customer data table */
+/*E*/TMSFT_pSeg res0e;        /* unknown */
+/*F*/TMSFT_pSeg res0f;        /* unknown  */
+ends
+
+
+  TMSFT_Data struc
+    array[FHdr.nrtypeinfos] of ulong typeinfos
+    case FHdr.varflags and HELPDLLFLAG of
+      HELPDLLFLAG: ulong
+    endc HELPDLLInfo //?
+    TMSFT_SegDir SegDir
+  ends
+
+data
+  4+FHdr:Size; TMSFT_Data Dat
+
+type bit
+  TBit4 num+(4)
+  TBit12 num+(12)
+
+  TTYPEKIND enum TBit4 (
+    TKIND_ENUM = 0,
+    TKIND_RECORD,
+    TKIND_MODULE,
+    TKIND_INTERFACE,
+    TKIND_DISPATCH,
+    TKIND_COCLASS,
+    TKIND_ALIAS,
+    TKIND_UNION,
+    TKIND_MAX
+  )
+
+  TTYPEKINDFlags struc
+    TTYPEKIND Kind
+    num+(7) X
+    num+(5) cbAlignment
+    num+(16) X1
+  ends
+
+  TVARENUM enum TBit12 (
+    VT_EMPTY = 0,
+    VT_NULL = 1,
+    VT_I2 = 2,
+    VT_I4 = 3,
+    VT_R4 = 4,
+    VT_R8 = 5,
+    VT_CY = 6,
+    VT_DATE = 7,
+    VT_BSTR = 8,
+    VT_DISPATCH = 9,
+    VT_ERROR = 10,
+    VT_BOOL = 11,
+    VT_VARIANT = 12,
+    VT_UNKNOWN = 13,
+    VT_DECIMAL = 14,
+    VT_I1 = 16,
+    VT_UI1 = 17,
+    VT_UI2 = 18,
+    VT_UI4 = 19,
+    VT_I8 = 20,
+    VT_UI8 = 21,
+    VT_INT = 22,
+    VT_UINT = 23,
+    VT_VOID = 24,
+    VT_HRESULT = 25,
+    VT_PTR = 26,
+    VT_SAFEARRAY = 27,
+    VT_CARRAY = 28,
+    VT_USERDEFINED = 29,
+    VT_LPSTR = 30,
+    VT_LPWSTR = 31,
+    VT_RECORD = 36,
+    VT_INT_PTR = 37,
+    VT_UINT_PTR = 38,
+    VT_FILETIME = 64,
+    VT_BLOB = 65,
+    VT_STREAM = 66,
+    VT_STORAGE = 67,
+    VT_STREAMED_OBJECT = 68,
+    VT_STORED_OBJECT = 69,
+    VT_BLOB_OBJECT = 70,
+    VT_CF = 71,
+    VT_CLSID = 72,
+    VT_BSTR_BLOB = 0xfff
+  /*
+    VT_VECTOR = 0x1000,
+    VT_ARRAY = 0x2000,
+    VT_BYREF = 0x4000,
+    VT_RESERVED = 0x8000,
+    VT_ILLEGAL = 0xffff,
+    VT_ILLEGALMASKED = 0xfff,
+    VT_TYPEMASK = 0xfff
+  */
+  )
+
+  TVARFlags set 4 of (
+    VT_VECTOR ^ 0x1,
+    VT_ARRAY ^ 0x2,
+    VT_BYREF ^ 0x4,
+    VT_RESERVED ^ 0x8
+  )
+
+  TVARTYPE struc
+    TVARENUM T
+    TVARFlags F
+  ends
+
+
+type
+ 
+TMSFT_NameInfo struc
+  long unk00;        /* sometimes -1 (lib, parameter) ,
+                           sometimes 0 (interface, func) */
+//  ulong unk10;        /* sometimes -1 (lib) , sometimes 0 (interface, func),
+//                           sometimes 0x10 (par) */
+  ulong HashNextName; /* AX: Next name in the same hash bucket */
+
+  ulong namelen;      /* only lower 8 bits are valid */
+  array[@.namelen and 0xFF] of Char Name
+  align 4 al
+ends:displ=('{',HEX(&@-&@:@),'}',@)
+
+  TNameOfs ^TMSFT_NameInfo hideref NIL=0xFFFFFFFF near=ulong,ref=@+
+    Dat.SegDir.pNametab.offset;:displ=(@^.Name,'{',@,'}')
+
+TMSFT_StringDesc struc
+  word L
+  array[@.L]of Char V
+  align 4 al
+ends:displ=('{',HEX(&@-&@:@),'}',@)
+
+  TStringOfs ^TMSFT_StringDesc hideref NIL=0xFFFFFFFF near=ulong,ref=@+
+    Dat.SegDir.pStringTab.offset;:displ=(@^.V,'{',@,'}')
+
+
+  TMSFT_TypeInfoBase struc
+/*000*/ TTYPEKINDFlags typekind;     /*  it is the TKIND_xxx */
+                                     /* some byte alignment stuf */
+        ulong     memoffset;         /* points past the file, if no elements */
+        long     res2;               /* zero if no element, N*0x40 */
+        long     res3;               /* -1 if no element, (N-1)*0x38 */
+/*010*/ long     res4;               /* always? 3 */
+        long     res5;               /* always? zero */
+        long     cElement;           /* counts elements, HI=cVars, LO=cFuncs */
+        long     res7;               /* always? zero */
+/*020*/ long     res8;               /* always? zero */
+        long     res9;               /* always? zero */
+        long     resA;               /* always? zero */
+        ulong    posguid;            /* position in guid table */
+/*030*/ ulong    flags;              /* Typeflags */
+        TNameOfs NameOffset;         /* offset in name table */
+        ulong    version;            /* element version */
+        TStringOfs docstringoffs;      /* offset of docstring in string tab */
+/*040*/ ulong    helpstringcontext;  /*  */
+        long     helpcontext;    /* */
+        ulong     oCustData;          /* offset in customer data table */
+%$IF WORDS_BIGENDIAN;
+        int16   cbSizeVft;      /* virtual table size, not including inherits */
+        int16   cImplTypes;     /* nr of implemented interfaces */
+%$ELSE
+        int16   cImplTypes;     /* nr of implemented interfaces */
+        int16   cbSizeVft;      /* virtual table size, not including inherits */
+%$END
+/*050*/ ulong    size;          /* size in bytes, at least for structures */
+        /* FIXME: name of this field */
+        ulong    datatype1;     /* position in type description table */
+                                /* or in base intefaces */
+                                /* if coclass: offset in reftable */
+                                /* if interface: reference to inherited if */
+        ulong    datatype2;      /* if 0x8000, entry above is valid */
+                                /* actually dunno */
+                                /* else it is zero? */
+        long     res18;          /* always? 0 */
+/*060*/ long     res19;          /* always? -1 */
+  ends
+
+  TMSFTTypeInfoTabSeg(Sz) array of TMSFT_TypeInfoBase:[@:Size=@:Sz]
+
+
+
+/* this is how a guid is stored */
+TMSFT_GuidEntry struc
+    TGUID guid;
+    ulong unk10;        /* differntiate with libid, classid etc? */
+                        /* it's -2 for a libary */
+                        /* it's 0 for an interface */
+    ulong unk14;        /* always? -1 */
+ends
+
+TMSFTGuidTabSeg(Sz) array of TMSFT_GuidEntry:[@:Size=@:Sz]
+
+TMSFTNameTabSeg(Sz) array of TMSFT_NameInfo:[@:Size=@:Sz]
+
+TMSFT_ImpInfo struc
+  long     res0;           /* unknown */
+  ulong    oImpFile;       /* offset inthe Import File table */
+  ulong    oGuid;          /* offset in Guid table */
+ends
+
+TMSFTImpInfoSeg(Sz) array of TMSFT_ImpInfo:[@:Size=@:Sz]
+
+
+TMSFT_ImpFile struc
+  ulong oGuid
+  long lcid
+  ulong version
+  word size
+  array[@.size shr 2]of Char Name
+  align 4 al
+ends
+
+TMSFTImpFilesSeg(Sz) array of TMSFT_ImpFile:[@:Size=@:Sz]
+
+TMSFT_Typedesc struc
+  TVARTYPE TD //TypeKind
+  word W1
+  ulong ofs
+ends
+
+
+TMSFTTypdescTabSeg(Sz) array of TMSFT_Typedesc:[@:Size=@:Sz]
+
+TMSFTStringTabSeg(Sz) array of TMSFT_StringDesc:[@:Size=@:Sz]
+
+TMSFTNameHashSeg(Sz) array of TNameOfs:[@:Size=@:Sz]
+
+TMSFT_RefRecord struc
+  ulong reftype;  /* either offset in type info table, then it's */
+                  /* a multiple of 64 */
+                  /* or offset in the external reference table */
+                  /* with an offset of 1 */
+  ulong flags;
+  ulong oCustData;    /* custom data */
+  ulong onext;    /* next offset, -1 if last */
+ends
+
+TMSFTRefTabSeg(Sz) array of TMSFT_RefRecord:[@:Size=@:Sz]
+

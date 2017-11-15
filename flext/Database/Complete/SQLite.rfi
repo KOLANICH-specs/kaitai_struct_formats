@@ -1,0 +1,228 @@
+% SQLite format 3 database file(SQLite.rfi):Class: Database, Status: Complete, Last change: 08.09.2016 17:29:56
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+data
+0 array[16]of Char Sign
+
+assert Sign='SQLite format 3'#0;
+
+descr ('SQLite format 3 database file.',NL,
+  'Info Source: The SQLite Database File Format, https://sqlite.org/fileformat.html',NL)
+
+set byteorder rev
+
+type
+  u1 num+(1)
+  u2 num+(2)
+  u4 num+(4)
+  i1 num-(1)
+  i2 num-(2)
+  i3 num-(3)
+  i4 num-(4)
+  i6 num-(6)
+  i8 num-(8)
+  n4 num+(4):displ=(INT(@))
+
+  TPageSize forward
+  TFileFmt enum u1 (Legacy=1,WAL=2) //1 for legacy; 2 for WAL.
+  TPageNum forward
+  TTextEnc enum u4 (UTF8=1, UTF16le=2, UTF16be=3)
+
+  TSQLiteAppID enum u4 ( //from magic.txt
+    FossilCheckout = 0x0f055112, //Fossil checkout
+    FossilGlobal = 0x0f055113, //Fossil global configuration
+    FossilRepository = 0x0f055111, //Fossil repository
+    BeSQLite = 0x42654462, //Bentley Systems BeSQLite Database
+    BentleyLoc = 0x42654c6e, //Bentley Systems Localization File
+    Monotone = 0x5f4d544e, //Monotone source repository
+    OGCGeoPackage = 0x47504b47, //OGC GeoPackage file
+    OGCGeoPackage10 = 0x47503130, //OGC GeoPackage version 1.0 file
+    Esri = 0x45737269, //Esri Spatially-Enabled Database
+    MBTiles = 0x4d504258 //MBTiles tileset -
+    SQLite = 0 //SQLite3 database
+  )
+
+  PFreePageTrunk forward
+
+  TSQLiteHdr struc
+    TPageSize PgSize  //The database page size in bytes. Must be a power of two between 512 and 32768 inclusive, or the value 1 representing a page size of 65536.
+    TFileFmt FmtWrite //File format write version.
+    TFileFmt FmtRead //File format read version.
+    u1 PgReserve //Bytes of unused "reserved" space at the end of each page. Usually 0.
+    u1 MaxEmbFrac //Maximum embedded payload fraction. Must be 64.
+    u1 MinEmbFrac //Minimum embedded payload fraction. Must be 32.
+    u1 LeafFrac //Leaf payload fraction. Must be 32.
+    n4 ChangeCount //File change counter.
+    n4 PageCnt //Size of the database file in pages. The "in-header database size".
+    PFreePageTrunk FreeLst //Page number of the first freelist trunk page.
+    n4 FreeCnt //Total number of freelist pages.
+    u4 SchemaCookie //The schema cookie.
+    n4 SchemaFmt //The schema format number. Supported schema formats are 1, 2, 3, and 4.
+    u4 DeftPgCacheSz //Default page cache size.
+    TPageNum LargestRootPg //The page number of the largest root b-tree page when in auto-vacuum or incremental-vacuum modes, or zero otherwise.
+    TTextEnc TextEnc //The database text encoding.
+    u4 UserVer //The "user version" as read and set by the user_version pragma.
+    u4 IncVacuum //True (non-zero) for incremental-vacuum mode. False (zero) otherwise.
+    TSQLiteAppID AppID //The "Application ID" set by PRAGMA application_id.
+    array[5] of u4 Reserved //Reserved for expansion. Must be zero.
+    n4 VerValidFor //The version-valid-for number.
+    n4 SQLiteVer //SQLITE_VERSION_NUMBER
+  ends
+
+data
+16 TSQLiteHdr Hdr
+
+include utf-8.rfi
+
+type
+  TTextVal(Sz) case Hdr.TextEnc of
+    UTF8: TUtf8Array(@:Sz)
+    UTF16le: array of WChar:[@:Size=@@:Sz]//The UTF16 incoding == Unicode almost always
+    UTF16be: array of WCharR:[@:Size=@@:Sz]
+  else
+    raw[@:Sz]
+  endc
+
+type
+  TPageSize u2():let Val=@ when (@<>1)or(Hdr.SQLiteVer<=0x3007001) exc 0x10000;
+  TPageNum u4()
+
+  PFreePage ^TFreePage NIL=0 near=n4, REF=(@-1)*Hdr.PgSize:Val;
+  TFreePage raw[Hdr.PgSize:Val]
+
+  PFreePageTrunk ^TFreePageTrunk NIL=0 near=n4, REF=(@-1)*Hdr.PgSize:Val;
+  TFreePageTrunk struc
+    PFreePageTrunk Next
+    n4 Cnt
+    array[@.Cnt]of PFreePage Leafs
+    raw[] Rest
+  ends:[@:Size=Hdr.PgSize:Val]
+
+  TPageType enum byte (
+    InteriorIndex=2, //the page is an interior index b-tree page
+    InteriorTable=5, //the page is an interior table b-tree page
+    LeafIndex=10, //the page is a leaf index b-tree page
+    LeafTable=13 //the page is a leaf table b-tree page
+  )
+
+  TVarInt array of byte?(@ and 0x80=0)or(@:#=8);:let Val=@[0] when(@[0]<0x80) exc
+    ((@[0]and 0x7F)shl 7)or @[1] when(@[1]<0x80) exc
+    ((((@[0]and 0x7F)shl 7)or(@[1]and 0x7F))shl 7)or @[2] when(@[2]<0x80) exc
+    ((((((@[0]and 0x7F)shl 7)or(@[1]and 0x7F))shl 7)or(@[2]and 0x7F))shl 7)or @[3] when(@[3]<0x80) exc
+    0x7FFFFFFF/*!!!Too big values are not supported by this spec*/;:displ=(case @:Size>4 of
+       0: ('#',Int(@:Val))
+      else (@)
+      endc)
+
+  TPageFreeBlock(Base) forward
+  PPageFreeBlock(Base) ^TPageFreeBlock(@:Base) nil=0 NEAR=u2, REF=@+@:Base;
+  TPageFreeBlock(Base) struc
+    PPageFreeBlock(@:Base) Next
+    u2 Sz
+  ends:[@:Size=@.Sz]
+
+  TPageHdr(Base,IsMeta) forward
+  PPageHdr(IsMeta) ^TPageHdr(0,@:IsMeta) NIL=0 near=n4, REF=(@-1)*Hdr.PgSize:Val;
+
+  TSerialTypeHlp enum u1 (
+    fvNull=0, //Value is a NULL
+    fvI1=1, //Value is an 8-bit twos-complement integer.
+    fvI2=2, //        Value is a big-endian 16-bit twos-complement integer.
+    fvI3=3, //Value is a big-endian 24-bit twos-complement integer.
+    fvI4=4, //Value is a big-endian 32-bit twos-complement integer.
+    fvI6=5, //Value is a big-endian 48-bit twos-complement integer.
+    fvI8=6, //Value is a big-endian 64-bit twos-complement integer.
+    fvDouble=7, //Value is a big-endian IEEE 754-2008 64-bit floating point number.
+    fv0=8, //Value is the integer 0. (Only available for schema format 4 and higher.)
+    fv1=9  //Value is the integer 1. (Only available for schema format 4 and higher.)  )
+  )
+
+  TSerialType TVarInt():displ=(case @[0]<=9 of
+     0: (case @.@:Val and 0x1 of
+        0: ('BLOB[',INT((@.@:Val-12)div 2),']')
+       else ('TEXT[',INT((@.@:Val-13)div 2),']')
+       endc)
+    else (VALNAME(@.@:Val,TSerialTypeHlp))
+    endc)
+
+  TPayloadHdr struc
+    TVarInt Sz
+    array of TSerialType FT //Serial types of fields
+    //raw[] rest //just in case
+  ends:[@:Size=@.Sz:Val]
+
+  PPageHdrI1 ^TPageHdr(0,0) NIL=0 near=i1, REF=(@-1)*Hdr.PgSize:Val;
+  PPageHdrI2 ^TPageHdr(0,0) NIL=0 near=i2, REF=(@-1)*Hdr.PgSize:Val;
+  PPageHdrI3 ^TPageHdr(0,0) NIL=0 near=i3, REF=(@-1)*Hdr.PgSize:Val;
+
+  TFldVal(ST,IsMeta) case TSerialTypeHlp @:ST of
+   fvNull,10,11: void
+   fvI1: case @:IsMeta of
+     1: PPageHdrI1
+     else i1
+     endc
+   fvI2: case @:IsMeta of
+     1: PPageHdrI2
+     else i2
+     endc
+   fvI3: case @:IsMeta of
+     1: PPageHdrI3
+     else i3
+     endc
+   fvI4: i4
+   fvI6: i6
+   fvI8: i8
+   fvDouble: array[8]of u1
+  else case @:ST and 0x1 of
+     0: raw[(@@:ST-12)div 2]
+    else
+      TTextVal((@@:ST-13)div 2)
+    endc
+  endc
+
+  TPayload(Sz,IsMeta) struc
+    TPayloadHdr Hdr
+    array of struc
+      TFldVal(@@@.Hdr.FT[@:#].@:Val,@@@:IsMeta) V
+     ends FldVals //!!!Valid for the pages without overflow only
+    //raw[] FldVals
+  ends:[@:Size=@:Sz]
+
+  TPageCell(Typ,IsMeta) forward
+  PPageCell(Base,Typ,IsMeta) ^TPageCell(@:Typ,@:IsMeta) nil=0 NEAR=u2, REF=@+@:Base;
+  TPageCell(Typ,IsMeta) struc
+    case TPageType @:Typ of
+     InteriorIndex,InteriorTable: PPageHdr(@@:IsMeta)
+    endc LeftPtr //Page number of left child
+    case TPageType @:Typ of
+     InteriorIndex,LeafIndex,LeafTable: TVarInt
+    endc SzPayload //Number of bytes of payload
+    case TPageType @:Typ of
+     InteriorTable,LeafTable: TVarInt
+    endc RowId
+    case TPageType @:Typ of
+     InteriorIndex,LeafIndex,LeafTable: TPayload(@@.SzPayload.InteriorIndex:Val,@@:IsMeta)
+    endc Payload
+   // case TPageType @:Typ of
+   //  InteriorIndex,LeafIndex,LeafTable: u4
+   // endc OverflowPg //Page number of first overflow page
+  ends
+
+  TPageHdr(Base,IsMeta) struc
+    TPageType Typ
+    PPageFreeBlock(&@-@:Base) FreeBlStart //the start of the first freeblock on the page, or is zero if there are no freeblocks
+    u2 NCells //the number of cells on the page
+    u2 ContentStart //start of the cell content area. A zero value for this integer is interpreted as 65536
+    u1 NFreeBytes //the number of fragmented free bytes within the cell content area
+    case @.Typ of
+      InteriorIndex,InteriorTable: PPageHdr(@@:IsMeta)
+    endc RightMostPtr //the right-most pointer. This value appears in the header of interior b-tree pages only
+    array[@.NCells]of PPageCell(&@@-@@:Base,@@.Typ,@@:IsMeta) Cell
+    //raw[]at &@-@:Base; Rest
+  ends//:[@:Size=Hdr.PgSize:Val-@:Base]
+
+data
+  0x64 TPageHdr(0x64,1) RootPg
+
+
+

@@ -1,0 +1,29 @@
+% ELF M32 specific(elf_M32.rfi):Class: Executable and Object, Status: Auxiliary, Last change: 03.01.2018 21:53:02
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+descr ('ELF AT&T WE 32100 extension',NL,
+  'Info Source: sys/elf_M32.h in SunOS.',NL)
+  '!!! Was not tested yet',NL)
+type
+
+TE_Machine_Flags set 32 of (EF_M32_MAU=0) //EWord
+
+TE_R_TYPE enum ER_TYPE (
+  R_M32_NONE       = 0, /* relocation type */
+  R_M32_32         = 1,
+  R_M32_32_S       = 2,
+  R_M32_PC32_S     = 3,
+  R_M32_GOT32_S    = 4,
+  R_M32_PLT32_S    = 5,
+  R_M32_COPY       = 6,
+  R_M32_GLOB_DAT   = 7,
+  R_M32_JMP_SLOT   = 8,
+  R_M32_RELATIVE   = 9,
+  R_M32_RELATIVE_S = 10,
+  R_M32_NUM        = 11 /* must be >last */
+)
+
+/*
+#define ELF_M32_MAXPGSZ         0x2000  /* maximum page size */
+*/
+

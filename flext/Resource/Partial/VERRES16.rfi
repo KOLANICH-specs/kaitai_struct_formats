@@ -1,0 +1,108 @@
+% Version Resource in 16-bit Windows EXE files(VERRES16.rfi):Class: Resource, Status: Partial, Last change: 10.07.2000 13:38:24
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TVSFileFlags set 32 of (
+  Debug = 0,
+  PreRelease = 1,
+  Patched = 2,
+  PrivateBuild = 3,
+  InfoInferred = 4,
+  SpecialBuild = 5
+)
+
+TVSFileOS enum ulong (
+  UNKNOWN =    0x00000000,
+  DOS =        0x00010000,
+  OS216 =      0x00020000,
+  OS232 =      0x00030000,
+  NT =         0x00040000,
+  WIN16 =      0x00000001,
+  PM16 =       0x00000002,
+  PM32 =       0x00000003,
+  WIN32 =      0x00000004,
+  DOS_WIN16 =  0x00010001,
+  DOS_WIN32 =  0x00010004,
+  OS216_PM16 = 0x00020002,
+  OS232_PM32 = 0x00030003,
+  NT_WIN32 =   0x00040004
+)
+
+TVSFileType enum ulong (
+  UNKNOWN = 0,
+  APP = 1,
+  DLL = 2,
+  DRV = 3,
+  FONT = 4,
+  VXD = 5,
+  STATIC_LIB = 7
+)
+
+TVSFontSubType enum ulong (
+  UNKNOWN = 0, RASTER = 1, VECTOR = 2, TRUETYPE = 3
+)
+
+TVSDrvSubType enum ulong (
+  UNKNOWN = 0,
+  PRINTER = 1,
+  KEYBOARD = 2,
+  LANGUAGE = 3,
+  DISPLAY = 4,
+  MOUSE = 5,
+  NETWORK = 6,
+  SYSTEM = 7,
+  INSTALLABLE = 8,
+  SOUND = 9,
+  COMM = 10
+)
+
+TVSFixedFileInfo struc
+  ulong Signature
+  ulong StructVer
+  ulong FileVerMS
+  ulong FileVerLS
+  ulong ProductVerMS
+  ulong ProductVerLS
+  TVSFileFlags FileFlagsMask
+  TVSFileFlags FileFlags
+  TVSFileOS FileOS
+  TVSFileType FileType
+  case @.FileType of
+    DRV: TVSDrvSubType
+    FONT: TVSFontSubType
+  else ulong
+  endc FileSubType
+  ulong FileDateMS
+  ulong FileDateLS
+ends
+
+TResVersionA forward
+
+TResVersionTbl(Sz) array of (TResVersionA):[@:Size=@:Sz]
+
+TTranslationInf struc
+  word Lang
+  word EnCod
+  raw[] rest
+ends
+
+TResVersion struc
+  word BlSz
+  word ValSz
+  pchar Name
+  align 4 Al
+  case @.Name of
+    'VS_VERSION_INFO': array of TVSFixedFileInfo
+    'Translation': TTranslationInf
+    else array of char
+  endc:[@:Size=@@.ValSz] Val
+ // array of TResVersion Tbl
+  TResVersionTbl Tbl
+ends:[@:Size = @.BlSz]
+
+TResVersionA struc
+  TResVersion V
+  align 4 Al1
+ends
+

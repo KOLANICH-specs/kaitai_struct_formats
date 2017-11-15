@@ -1,0 +1,227 @@
+% TrueType Instructions(op_ttf.rfi):Class: Machine OpCodes representation, Status: Complete, Last change: 02.05.2001 17:42:52
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+set byteorder norm
+
+type bit
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+TBit4 num+(4)
+TBit6 num+(6)
+
+TBit8 num+(8)
+
+TAxisSel enum TBit (y=0,x=1)
+TDirectionSel enum TBit (Par=0,Ort=1)
+TPositionSel enum TBit (Cur=0,Org=1)
+TZoneSel enum TBit (zp1_rp2=0,zp0_rp1=1)
+
+TDistType enum TBit2 (Gray=0, Black=1, White=2)
+
+type
+
+TTTFOpCode enum TBit8 fields (
+  A: TAxisSel @0.1,
+  D: TDirectionSel @0.1,
+  P: TPositionSel @0.1,
+  Z: TZoneSel @0.1,
+  Cnt3: TBit3 @0.3,
+  SetRP0: TBit @0.1,
+  round: TBit @0.1,
+  DT: TDistType  @0.2,
+  round_2: TBit @2.1,
+  KeepMin: TBit @3.1,
+  SetRP0_4: TBit @4.1
+) of (
+//Pushing data onto the interpreter stack
+  NPUSHB = 0x40, //PUSH N Bytes
+  NPUSHW = 0x41, //PUSH N Words
+  PUSHB(Cnt3)= 0xB0, //PUSH Bytes
+  PUSHW(Cnt3)= 0xB8, //PUSH Words
+
+//Managing the Storage Area
+  WS=0x42, //Write Store
+  RS=0x43, //Read Store
+
+//Managing the Control Value Table
+  WCVTP=0x44, //Write Control Value Table in Pixel units
+  WCVTF=0x70, //Write Control Value Table in FUnits
+  RCVT=0x45, //Read Control Value Table
+
+//Managing the Graphics State
+
+  SVTCA(A)=0x00, //Set freedom and projection Vectors To Coordinate Axis
+  SPVTCA(A)=0x02, //Set Projection_Vector To Coordinate Axis
+  SFVTCA(A)=0x04, //Set Freedom_Vector to Coordinate Axis
+  SPVTL(D)=0x06, //Set Projection_Vector To Line
+  SFVTL(D)=0x08, //Set Freedom_Vector To Line
+  SDPVTL(D)=0x86, //Set Dual Projection_Vector To Line
+  SPVFS=0x0A, //Set Projection_Vector From Stack
+  SFVFS=0x0B, //Set Freedom_Vector From Stack
+  GPV=0x0C, //Get Projection_Vector
+  GFV=0x0D, //Get Freedom_Vector
+  SFVTPV=0x0E, //Set Freedom_Vector To Projection Vector
+  SRP0=0x10, //Set Reference Point 0
+  SRP1=0x11, //Set Reference Point 1
+  SRP2=0x12, //Set Reference Point 2
+  SZP0=0x13, //Set Zone Pointer 0
+  SZP1=0x14, //Set Zone Pointer 1
+  SZP2=0x15, //Set Zone Pointer 2
+  SZPS=0x16, //Set Zone PointerS
+  RTG=0x18, //Round To Grid
+  RTHG=0x19, //Round To Half Grid
+  RTDG=0x3D, //Round To Double Grid
+  SROUND=0x76, //Super ROUND
+  S45ROUND=0x77, //Super ROUND 45 degrees
+  ROFF=0x7A, //Round OFF
+  RUTG=0x7C, //Round Up To Grid
+  RDTG=0x7D, //Round Down To Grid
+  SLOOP=0x17, //Set LOOP variable
+  SMD=0x1A, //Set Minimum_ Distance
+  SCVTCI=0x1D, //Set Control Value Table Cut In
+  SSWCI=0x1E, //Set Single_Width_Cut_In
+  SSW=0x1F, //Set Single-width
+  FLIPON=0x4D, //Set the auto_flip Boolean to ON
+  FLIPOFF=0x4E, //Set the auto_flip Boolean to OFF
+  SDB=0x5E, //Set Delta_Base in the graphics state
+  SDS=0x5F, //Set Delta_Shift in the graphics state
+  SANGW=0x7E, //Set Angle _Weight
+  SCANCTRL=0x85, //SCAN conversion ConTRoL
+  SCANTYPE=0x8D,
+  INSTCTRL=0x8E, //INSTRuction execution ConTRoL
+
+//Reading and writing data
+  GC(P)=0x46, //Get Coordinate projected onto the projection_vector
+  SCFS=0x48, //Sets Coordinate From the Stack using projection_vector and freedom_vector
+  MDGrid=0x49, //MD[a] - Measure Distance, 0:	measure distance in grid-fitted outline
+  MDOrg=0x4A,  //MD[a] - Measure Distance, 1:	measure distance in original outline
+  MPPEM=0x4B, //Measure Pixels Per EM
+  MPS=0x4C, //Measure Point Size
+
+//Managing outlines
+  FLIPPT=0x80, //FLIP PoinT
+  FLIPRGON=0x81, //FLIP  RanGe ON
+  FLIPRGOFF=0x82, //FLIP RanGe OFF
+  SHP(Z)=0x32, //SHift Point by the last point
+  SHC(Z)=0x34, //SHift Contour by the last point
+  SHZ(Z)=0x36, //SHift Zone by the last point
+  SHPIX=0x38, //SHift point by a PIXel amount
+  MSIRP(SetRP0)=0x3A, //Move Stack Indirect Relative Point
+  MDAP(round)=0x2E, //Move Direct Absolute Point
+  MIAP(round)=0x3E, //Move Indirect Absolute Point
+  MDRP(SetRP0_4,KeepMin,round_2,DT)=0xC0, //Move Direct Relative Point
+  MIRP(SetRP0_4,KeepMin,round_2,DT)=0xE0, //Move Indirect Relative Point
+  ALIGNRP=0x3C, //ALIGN Relative Point
+  ISECT=0x0F, //moves point p to the InterSECTion of two lines
+  ALIGNPTS=0x27, //ALIGN Points
+  IP=0x39, //Interpolate Point by the last relative stretch
+  UTP=0x29, //UnTouch Point
+  IUP(A)=0x30, //Interpolate Untouched Points through the outline
+
+//Managing exceptions
+  DELTAP1=0x5D, //DELTA exception P1
+  DELTAP2=0x71, //DELTA exception P2
+  DELTAP3=0x72, //DELTA exception P3
+  DELTAC1=0x73, //DELTA exception C1
+  DELTAC2=0x74, //DELTA exception C2
+  DELTAC3=0x75, //DELTA exception C3
+
+//Managing the stack
+  DUP=0x20, //Duplicate top stack element
+  POP=0x21, //POP top stack element
+  CLEAR=0x22, //Clear the entire stack
+  SWAP=0x23, //SWAP the top two elements on the stack
+  DEPTH=0x24, //Returns the DEPTH of the stack
+  CINDEX=0x25, //Copy the INDEXed element to the top of the stack
+  MINDEX=0x26, //Move the INDEXed element to the top of the stack
+  ROLL=0x8a, //ROLL the top three stack elements
+
+//Managing the flow of control
+  IF=0x58, //IF test
+  ELSE=0x1B,
+  EIF=0x59, //End IF
+  JROT=0x78, //Jump Relative On True
+  JMPR=0x1C, //JuMP Relative
+  JROF=0x79, //Jump Relative On False
+
+//Logical functions
+  LT=0x50, //Less Than
+  LTEQ=0x51, //Less Than or Equal
+  GT=0x52, //Greater Than
+  GTEQ=0x53, //Greater Than or Equal
+  EQ=0x54, //EQual
+  NEQ=0x55, //Not EQual
+  ODD=0x56,
+  EVEN=0x57,
+  AND=0x5A, //logical AND
+  OR=0x5B, //logical OR
+  NOT=0x5C, //logical NOT
+
+//Arithmetic and math instructions
+  ADD=0x60,
+  SUB=0x61, //SUBtract
+  DIV=0x62, //DIVide
+  MUL=0x63, //MULtiply
+  ABS=0x64, //ABSolute value
+  NEG=0x65, //NEGate
+  FLOOR=0x66,
+  CEILING=0x67,
+  MAX=0x8B, //MAXimum of top two stack elements
+  MIN=0x8C, //MINimum of top two stack elements
+
+//Compensating for the engine characteristics
+  ROUND(DT)=0x68, //ROUND value
+  NROUND(DT)=0x6C, //No ROUNDing of value
+  
+//Defining and using functions and instructions
+  FDEF=0x2C, //Function DEFinition
+  ENDF=0x2D, //END Function definition
+  CALL=0x2B, //CALL function
+  LOOPCALL=0x2A, //LOOP and CALL function
+  IDEF=0x89, //Instruction DEFinition
+
+//Debugging
+  DEBUG=0x4F, //DEBUG call
+
+//Miscellaneous instructions
+  GETINFO=0x88 //GET INFOrmation
+)
+
+set byteorder rev
+type
+TNPUSHB struc
+  Byte N
+  array[@.N]of Byte D
+ends
+
+TNPUSHW struc
+  Byte N
+  array[@.N]of SHORT D
+ends
+
+TTTFInstr struc pas
+  Op: TTTFOpCode
+  Arg: case @.Op of
+    NPUSHB: TNPUSHB
+    NPUSHW: TNPUSHW
+    PUSHB: array[@@.Op.Cnt3+1]of Byte
+    PUSHW: array[@@.Op.Cnt3+1]of SHORT
+    RS,WS: void
+    WCVTP,WCVTF,RCVT: void
+  endc
+ends: displ=(@.Op,@.Arg)
+
+TTTFInstructions(Sz) array of (TTTFInstr):[@:Size=@:Sz]: displ=('(',
+  ShowArray(@,(NL,HEX(&@-&@:@,4),': ',@)),NL,')')
+
+/*
+TTTFInstrTbl(Sz) array of (TTTFInstr):[@:Size=@:Sz]: displ=('(',
+  ShowArray(@,(NL,HEX(&@-&@:@,4),': ',@)),NL,')')
+
+TTTFInstructions(Sz) struc
+  TTTFInstrTbl(@:Sz) Tbl
+  raw[] rest
+ends:[@:Size=@:Sz]
+*/
+

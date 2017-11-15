@@ -1,0 +1,386 @@
+% Windows 16-bit Executable(NE.rfi):Class: Executable and Object, Status: Almost Complete, Last change: 08.03.2008 14:47:30
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+DWORD ulong
+
+TNEExeType enum byte (
+  NE_UNKNOWN=0x0,         /* Unknown (any "new-format" OS) */
+  NE_OS2=0x1,     /* Microsoft/IBM OS/2 (default)  */
+  NE_WINDOWS=0x2,         /* Microsoft Windows */
+  NE_DOS4=0x3,    /* Microsoft MS-DOS 4.x */
+  NE_WIN386=0x4   /* Windows 386  ????????? */
+)
+
+TSegTable(Cnt) forward
+PSegTable(Cnt) ^TSegTable(@:Cnt) - NewHdrOfs near=word
+
+TEntryTbl(Sz) forward
+PEntryTbl(Sz) ^TEntryTbl(@:Sz) - NewHdrOfs near=word;
+
+TResTable(Sz) forward
+PResTable(Sz) ^TResTable(@:Sz) - NewHdrOfs nil:(@:Sz<=4) near=word
+
+TResidentNames forward
+PResidentNames ^TResidentNames - NewHdrOfs near=word
+PNonResidentNames ^TResidentNames near=ulong
+
+TModuleRefTbl(Cnt) forward
+PModuleRefTbl(Cnt) ^TModuleRefTbl(@:Cnt) - NewHdrOfs near=word
+
+
+TNEFlags set 16 of (
+  NENOTP = 15,    //0x8000        /* Not a process */
+  NEIERR = 13,    //0x2000        /* Errors in image */
+  NEBOUND = 11,   //0x0800        /* Bound as family app */
+// NEAPPTYP       0x0700          /* Application type mask */
+// NENOTWINCOMPAT  0x0100         /* Not compatible with P.M. Windowing */
+// NEWINCOMPAT    0x0200          /* Compatible with P.M. Windowing */
+// NEWINAPI       0x0300          /* Uses P.M. Windowing API */
+  NEFLTP = 7,     //0x0080        /* Floating-point instructions */
+  NEI386 = 6,     //0x0040        /* 386 instructions */
+  NEI286 = 5,     //0x0020        /* 286 instructions */
+  NEI086 = 4,     //0x0010        /* 8086 instructions */
+  NEPROT = 3,     //0x0008        /* Runs in protected mode only */
+  NEPPLI = 2,     //0x0004        /* Per-Process Library Initialization */
+  NEINST = 1,     //0x0002        /* Instance data */
+  NESOLO = 0      //0x0001        /* Solo data */
+)
+
+TNEHdr struc
+  byte  ne_ver           /* 02 Linker Version number */
+  byte  ne_rev           /* 03 Linker Revision number */
+  PEntryTbl ne_enttab    /* 04 Offset of Entry Table */
+  word  ne_cbenttab      /* 06 Number of bytes in Entry Table */
+  ulong ne_crc           /* 08 Checksum of whole file */
+  TNEFlags  ne_flags     /* 0C Flag word */
+  word  ne_autodata      /* 0E Automatic data segment number */
+  word  ne_heap          /* 10 Initial heap allocation */
+  word  ne_stack         /* 12 Initial stack allocation */
+  ulong ne_csip          /* 14 Initial CS:IP setting */
+  ulong ne_sssp          /* 18 Initial SS:SP setting */
+  int   ne_cseg          /* 1C Count of file segments */
+  int   ne_cmod          /* 1E Entries in Module Reference Table */
+  word  ne_cbnrestab     /* 20 Size of non-resident name table */
+  PSegTable(@.ne_cseg) ne_segtab /* 22 Offset of Segment Table */
+  PResTable ne_rsrctab   /* 24 Offset of Resource Table */
+  PResidentNames ne_restab /* 26 Offset of resident name table */
+  PModuleRefTbl(@.ne_cmod) ne_modtab /* 28 Offset of Module Reference Table */
+  word  ne_imptab        /* 2A Offset of Imported Names Table */
+  PNonResidentNames ne_nrestab /* 2C Offset of Non-resident Names Table */
+  int   ne_cmovent       /* 30 Count of movable entries */
+  word  ne_align         /* 32 Segment alignment shift count */
+  int   ne_cres          /* 34 Count of resource entries */
+  TNEExeType ne_exetyp   /* 36 Target operating system */
+  byte  ne_addflags      /* 37 Additional flags */
+  array[3] of word ne_res/* 38 3 reserved words */
+  byte  ne_sdkrev        /* 3E Windows SDK revison number */
+  byte  ne_sdkver        /* 3F Windows SDK version number */
+ends:[@.ne_enttab:Sz=@.ne_cbenttab,
+  @.ne_rsrctab:Sz=@.ne_restab-@.ne_rsrctab]
+
+data
+
+NewHdrOfs+2 TNEHdr NEHdr
+
+const
+  SectorSize = (1 shl NEHdr.ne_align)/*512*/;
+
+  NSTYPE     =     0x0007;  /* Segment type mask */
+  NSCODE     =     0x0000;  /* Code segment */
+  NSDATA     =     0x0001;  /* Data segment */
+  NSITER     =     0x0008;  /* Iterated segment flag */
+  NSMOVE     =     0x0010;  /* Movable segment flag */
+  NSSHARED   =     0x0020;  /* Shared segment flag */
+  NSPRELOAD  =     0x0040;  /* Preload segment flag */
+  NSEXRD     =     0x0080;  /* Execute-only (code segment), or
+                           *  read-only (data segment)
+                           */
+  NSRELOC    =     0x0100;  /* Segment has relocations */
+  NSCONFORM  =     0x0200;  /* Conforming segment */
+  NSDPL      =     0x0C00;  /* I/O privilege level (286 DPL bits) */
+  SHIFTDPL   =     10;      /* Left shift count for SEGDPL field */
+  NSDISCARD  =     0x1000;  /* Segment is discardable */
+  NS32BIT    =     0x2000;  /* 32-bit code segment */
+  NSHUGE     =     0x4000;  /* Huge memory segment, length of
+                           * segment and minimum allocation
+                           * size are in segment sector units
+                           */
+  NSPURE     =     NSSHARED;  /* For compatibility */
+
+  NSLOADED  =  0x0004;     /* ns_sector field contains memory addr */
+
+type
+//Segment flags
+TSegFlags set 16 of (
+  DATA     =     0,  /* Data segment */
+  Allocated=     1,  /* loader has allocated memory for segment */
+  LOADED   =     2,  /* ns_sector field contains memory addr */
+  ITER     =     3,  /* Iterated segment flag */
+  MOVE     =     4,  /* Movable segment flag */
+  SHARED   =     5,  /* Shared segment flag */
+  PRELOAD  =     6,  /* Preload segment flag */
+  EXRD     =     7,  /* Execute-only (code segment), or
+                           *  read-only (data segment)
+                           */
+  RELOC    =     8,  /* Segment has relocations */
+  CONFORM  =     9,  /* Conforming segment */
+//  DPL      =     0x0C00,  /* I/O privilege level (286 DPL bits) */
+  DISCARD  =     12,  /* Segment is discardable */
+  IS32BIT  =     13,  /* 32-bit code segment */
+  HUGE     =     14  /* Huge memory segment, length of
+                           * segment and minimum allocation
+                           * size are in segment sector units
+                           */
+)
+
+type
+
+TSegNDX enum Byte (
+  bSegMovable=0xFF,
+  bModuleConstant=0xFE
+)
+
+
+TIterSegData struc
+  word NIter
+  word Sz
+  raw[@.Sz] IterDat
+ends
+
+/** relocation-address types: **/
+TReloAddrType enum byte (
+  raLowB=0,  //Low byte at the specified offset
+  ra16sel=2, //16-bit selector
+  ra32ptr=3, //32-bit pointer
+  ra16ofs=5, //16-bit offset
+  ra48ptr=11,//48-bit pointer
+  ra32ofs=13 //32-bit offset
+)
+
+/** relocation types: **/
+
+TReloType enum byte (
+  rtIntrRef=0, //Internal reference
+  rtImpOrd=1,  //Imported ordinal
+  rtImpName=2, //Imported name
+  rtOSFIXUP=3,  //OSFIXUP
+  rtIntrRefA=4, //Internal reference
+  rtImpOrdA=5,  //Imported ordinal
+  rtImpNameA=6, //Imported name
+  rtOSFIXUPA=7  //OSFIXUP
+)
+
+TIntrRef struc
+  TSegNDX hSeg
+  Byte B0
+  case @.hSeg of
+    bSegMovable: int //ordinal in the segment's entry table
+  else word //TgtOfs
+  endc Tgt
+ends
+
+TImpOrd struc
+  int hMod
+  int hOrd
+ends
+
+TImpName struc
+  int hMod
+  word NameOfs
+ends
+
+TOSFIXUP struc
+  word W0
+  word W1
+ends
+
+TReloRec struc
+  TReloAddrType AT
+  TReloType RT
+  word Ofs
+  case @.RT of
+    rtIntrRef,rtIntrRefA: TIntrRef
+    rtImpOrd,rtImpOrdA: TImpOrd
+    rtImpName,rtImpNameA: TImpName
+    rtOSFIXUP,rtOSFIXUPA: TOSFIXUP
+  endc Inf
+ends
+
+TReloInfo struc
+  int Cnt
+  array[@.Cnt] of TReloRec Tbl
+ends
+
+TSegData(Sz,Flags) struc
+  case @:Flags and NSITER of
+   0: raw[@@:Sz]
+  else TIterSegData
+  endc dat
+  case @:Flags and NSRELOC of
+    NSRELOC: TReloInfo
+  endc ReloTbl
+ends
+
+PSegData(Sz,Flags) ^TSegData(@:Sz,@:Flags) * SectorSize near=word
+
+TNewSegRec struc /* New .EXE segment table entry */
+  PSegData  ns_sector    /* File sector of start of segment */
+  word      ns_cbseg     /* Number of bytes in file */
+  TSegFlags ns_flags     /* Attribute flags */
+  word      ns_minalloc  /* Minimum allocation in bytes */
+ends :[@.ns_sector:Sz=(0x10000 when (@.ns_cbseg=0)) exc @.ns_cbseg,
+  @.ns_sector:Flags = @.ns_flags]
+
+TSegTable(Cnt) array[@:Cnt] of TNewSegRec
+
+
+/*** Entry Table ***/
+
+TMovableSegData struc
+  Byte Flags //Specifies a byte value. This value can be a
+             //combination of the following bits:
+             //Bit(s)    Meaning
+             //0     If this bit is set, the entry is exported.
+             //1     If this bit is set, the segment uses a global
+             //    (shared) data segment.
+             //3-7   If the executable file contains code that
+             //    performs ring transitions, these bits specify
+             //    the number of words that compose the stack. At
+             //    the time of the ring transition, these words
+             //    must be copied from one ring to the other.
+  Word Int3F //Specifies an int 3fh instruction.
+  Byte hSeg  //Specifies the segment number.
+  Word Ofs   //Specifies the segment offset.
+ends
+
+TFixedSegData struc
+  Byte Flags //Specifies a byte value. This value can be a
+             //combination of the following bits:
+             //Bit(s)    Meaning
+             //0     If this bit is set, the entry is exported.
+             //1     If this bit is set, the entry uses a global
+             //  (shared) data segment. (This may be set only
+             //  for SINGLEDATA library modules.)
+             //3-7   If the executable file contains code that
+             //  performs ring transitions, these bits specify
+             //  the number of words that compose the stack. At
+             //  the time of the ring transition, these words
+             //  must be copied from one ring to the other.
+  Word Ofs   //Specifies an offset.
+ends
+
+TEntryRec(hSeg) case TSegNDX @:hSeg of
+  bSegMovable: TMovableSegData
+else TFixedSegData
+endc
+
+TEntryBundleTbl0(Cnt,hSeg) array[@:Cnt] of TEntryRec(@:hSeg)
+
+TEntryBundleTbl(Cnt,hSeg,hSeg1) case @:hSeg of
+  0: void //Experimental fact
+else TEntryBundleTbl0(@:Cnt,@:hSeg1)
+endc
+
+TEntryBundle struc
+  Byte Cnt
+  TSegNDX hSeg
+  TEntryBundleTbl(@.Cnt,@.hSeg,@.hSeg) Tbl
+ends
+
+//TEntryTbl(Sz) raw[@:Sz]
+TEntryTbl(Sz) array of TEntryBundle ? @.Cnt=0!Byte; :[@:Size=@:Sz]
+
+/*** Resident Names Table ***/
+
+TResidentNameInf struc
+  str N
+  int Id
+ends
+
+TResidentNames array of TResidentNameInf ?@.N[0]=0!byte;
+
+/*** Module Reference Table ***/
+
+TModuleRefTbl(Cnt) array[@:Cnt] of Word
+
+/*** Imported Names Table ***/
+
+//TImpNamesTbl
+
+/*** Resources ***/
+
+const
+
+RsrcOfs = NEHdr.ne_rsrctab+NewHdrOfs;
+
+type
+
+PRsrcName ^str - RsrcOfs hideref nil:(@ and 0x8000<>0) near=word:
+  displ=(@^,'{',@,'}')
+
+TRsrcTypeID enum PRsrcName (
+  rt_Cursor      = 0x8001,
+  rt_Bitmap      = 0x8002,
+  rt_Icon        = 0x8003,
+  rt_Menu        = 0x8004,
+  rt_Dialog      = 0x8005,
+  rt_String      = 0x8006,
+  rt_FontDir     = 0x8007,
+  rt_Font        = 0x8008,
+  rt_Accelerator = 0x8009,
+  rt_RCData      = 0x800A,
+  rt_Group_Cursor= 0x800C,
+  rt_Group_Icon  = 0x800E,
+  rt_Version = 0x8010
+)
+
+TNAMEINFO(Tp) forward
+
+TTYPEINFO struc
+  TRsrcTypeID rtTypeID
+  int         rtResourceCount
+  DWORD       rtReserved
+  array[@.rtResourceCount] of TNAMEINFO(@@.rtTypeID) rtNameInfo
+ends
+
+TResTbl array of TTYPEINFO ?@.rtTypeID=0!WORD;
+
+TResNames array of str ?@[0]=0;
+
+TResTable(Sz) struc
+  WORD rscAlignShift
+  TResTbl rscTypes
+  TResNames rscNames
+ends:[@:Size=@:Sz]
+
+const
+  resAlign=(1 shl NEHdr.ne_rsrctab^.rscAlignShift)exc 0;
+
+include verres16.rfi
+
+type
+
+TResData(Sz,Tp) struc
+  case TRsrcTypeID @:Tp of
+    rt_Version: TResVersion
+  endc Inf
+  raw[] rest
+ends:[@:Size=@:Sz]
+
+PResData(Sz,Tp) ^TResData(@:Sz,@:Tp) * resAlign near=word
+
+TNAMEINFO(Tp) struc
+  PResData(Tp=@:Tp) rnOffset
+  WORD rnLength
+  WORD rnFlags
+  PRsrcName rnID
+  WORD rnHandle
+  WORD rnUsage
+ends:[@.rnOffset:Sz=@.rnLength * resAlign]
+
+autoname
+
+TTYPEINFO .rtTypeID _El
+

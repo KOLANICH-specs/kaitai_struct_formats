@@ -1,0 +1,57 @@
+% Clarion key/index file.(KXX.rfi):Class: Database, Status: Complete, Last change: 20.05.1999 10:27:34
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+descr ('Clarion key/index file.',NL,
+  'Info Source: TB118.TXT in (CLARION.ZIP, www.wotsit.org).')
+
+type bit
+
+TBit4 num+(4)
+
+TKeyFTyp enum TBit4 (key,index)
+
+TKeyType struc
+  TKeyFTyp ftyp
+  set 4 of (dupsw, uprsw, optsw, loksw) Flags
+ends
+
+type
+
+THdr struc
+  ulong root        /* number of root node */
+  ulong numkent     /* number of key entries */
+  ulong numnode     /* number of node for this index */
+  ulong lastnod     /* node number of last node */
+  ulong keyeof      /* record number of end of file */
+  ulong keybof      /* record number of beg. of file */
+  ulong unused      /* first unused node of file */
+  TKeyType keytyp      /* type of key */
+  byte keynode     /* number of keys per node */
+  byte numcmps     /* number of components in the key*/
+  word keylen      /* total length of key entry */
+  word numlvls     /* number of levels */
+  raw[] at &@; rest
+ends:[@:Size=0x200]
+
+data
+0 THdr Hdr
+
+type
+
+TKeyRec struc
+  ulong relrec     /* record number/node number */
+  raw[] key        /* key value (key size - size of long)*/
+ends:[@:Size=Hdr.keylen]
+
+TNodeRec struc
+  byte keycnt     /* number of keys in this nodes */
+  ulong flink      /* forward node pointer */
+  ulong blink      /* backwards node printer */
+  ulong ulink      /* upwards node pointer */
+  array[@.keycnt] of TKeyRec Keys
+  raw[] at &@; rest
+ends:[@:Size=0x200]
+
+data
+Hdr:Size array[Hdr.numnode] of TNodeRec Nodes
+

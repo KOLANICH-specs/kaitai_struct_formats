@@ -1,0 +1,14 @@
+% Windows GUID(GUID.rfi):Class: General Data Types, Status: Auxiliary, Last change: 13.11.2003 20:36:18
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+TGUID struc
+  ulong D1
+  word D2
+  word D3
+  array[8] of byte D4
+ends:displ=('{',HEX(@.D1,8),'-',HEX(@.D2,4),'-',HEX(@.D3,4),'-',
+  HEX(@.D4[0],2),HEX(@.D4[1],2),'-', HEX(@.D4[2],2),HEX(@.D4[3],2),
+  HEX(@.D4[4],2),HEX(@.D4[5],2),HEX(@.D4[6],2),HEX(@.D4[7],2),'}')
+

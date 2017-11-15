@@ -1,0 +1,39 @@
+% Windows Clipboard Format Tags(WIN_CF.rfi):Class: Graphics and Sounds, Status: Auxiliary, Last change: 25.12.1998 8:07:16
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+
+THClipboardFmt enum ulong (
+  CF_TEXT = 1,
+  CF_BITMAP = 2,
+  CF_METAFILEPICT = 3,
+  CF_SYLK = 4,
+  CF_DIF = 5,
+  CF_TIFF = 6,
+  CF_OEMTEXT = 7,
+  CF_DIB = 8,
+  CF_PALETTE = 9,
+  CF_PENDATA = 10,
+  CF_RIFF = 11,
+  CF_WAVE = 12,
+  CF_UNICODETEXT = 13,
+  CF_ENHMETAFILE = 14,
+  CF_HDROP = 15,
+  CF_LOCALE = 0x10,
+  CF_MAX = 17,
+
+  CF_OWNERDISPLAY = 128,
+  CF_DSPTEXT = 129,
+  CF_DSPBITMAP = 130,
+  CF_DSPMETAFILEPICT = 131,
+  CF_DSPENHMETAFILE = 142,
+
+// "Private" formats don't get GlobalFree()'d
+  CF_PRIVATEFIRST = 0x200,
+  CF_PRIVATELAST = 767,
+
+// "GDIOBJ" formats do get DeleteObject()'d
+  CF_GDIOBJFIRST = 768,
+  CF_GDIOBJLAST = 1023
+)
+

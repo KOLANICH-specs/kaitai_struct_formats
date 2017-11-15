@@ -1,0 +1,203 @@
+% CompuServe GIF (GRAPHICS INTERCHANGE FORMAT)(GIF89a.rfi):Class: Graphics and Sounds, Status: Headers only, Last change: 27.09.1999 9:45:28
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+TGIFHdr array[6] of Char
+
+data
+0 TGIFHdr Hdr
+
+%$IF Hdr='GIF89a';
+const
+  Ver = 89;
+descr ('GIF - GRAPHICS INTERCHANGE FORMAT(sm) Version 89a.',NL)
+%$ELSIF Hdr='GIF87a';
+const
+  Ver=87;
+descr ('GIF - GRAPHICS INTERCHANGE FORMAT(sm) Version 87a.',NL)
+%$ELSE
+assert 0; //fail
+%$END
+
+descr ('Info Source: GIF89a.zip at www.wotsit.org',NL)
+
+type
+U2 num+(2)
+
+TRGB struc
+  Byte R
+  Byte G
+  Byte B
+ends
+
+TSubBlock struc
+  Byte L
+  raw[@.L] D
+ends
+
+TSubBlocks array of TSubBlock ?@.L=0!Byte;
+
+TColorTable(LSz) array[1 shl(@:LSz+1)] of TRGB
+TColorTableF(On,LSz) case @:On of
+  1: TColorTable(@:LSz)
+endc
+
+type bit
+TBit num+(1)
+TBit2 num+(2)
+TBit3 num+(3)
+
+set byteorder rev
+
+TLSDFlags struc
+  TBit GlobalC //Global Color Table Flag
+  TBit3 ColorRes //Color Resolution
+  TBit Sort//Sort Flag
+  TBit3 GlobalSize //Size of Global Color Table
+ends
+
+TImgFlags struc
+  TBit LocalC //Local Color Table Flag
+  TBit Interlace //Interlace Flag
+  TBit Sort //Sort Flag
+  TBit2 Rsrv //Reserved
+  TBit3 LocSize //Size of Local Color Table
+ends
+
+set byteorder norm
+
+%$IF Ver>=89;
+
+type bit
+
+TGrCtlDisposal enum TBit3 (
+  None=0, //No disposal specified. The decoder is not required to 
+          //take any action.
+  No=1, //Do not dispose. The graphic is to be left in place.
+  RestoreBk=2, //Restore to background color. The area used by the
+              //graphic must be restored to the background color.
+  RestorePrev=3 //Restore to previous. The decoder is required to
+                //restore the area overwritten by the graphic with
+                //what was there prior to rendering the graphic.
+)
+
+set byteorder rev
+
+TGrCtlF struc
+  TBit3 Rsrv //Reserved
+  TGrCtlDisposal Disposal //Disposal Method
+  TBit UserInput //User Input Flag
+  TBit Transparent //Transparent Color Flag
+ends
+
+set byteorder norm
+
+type
+
+TCtlExtTag enum byte (
+  GrCtl=0xF9, //Graphic Control Extension
+  Comment=0xFE, //Comment Extension
+  PlainText=0x01, //Plain Text Extension
+  App=0xFF //Application Extension
+);
+
+TGrCtlData struc
+  byte Sz
+  TGrCtlF F //<Packed Fields>
+  U2 Delay //Delay Time (1/100 sec)
+  byte TransparentColor //Transparent Color Index
+  byte TermB //Block Terminator
+ends:assert[@.Sz=4,@.TermB=0]
+
+TStrTbl array of Str ?@[0]=0!Byte;
+
+TPlainTextData struc
+  byte Sz
+  U2 Left //Text Grid Left Position
+  U2 Top //Text Grid Top Position
+  U2 W //Text Grid Width
+  U2 H //Text Grid Height
+  Byte ChW //Character Cell Width
+  Byte ChH //Character Cell Height
+  Byte TextColor //Text Foreground Color Index
+  Byte BkColor //Text Background Color Index
+  TStrTbl Text //Plain Text Data
+ends:assert[@.Sz=12]
+
+TNetscapeAppData struc
+  byte Sz
+  byte B1 //Should be 1
+  U2 NIter //The number of iterations (0-infinite)
+  byte TermB //Block Terminator
+ends:assert[@.Sz=3,@.TermB=0,@.B1=1]
+
+TAppData struc
+  byte Sz
+  array[@.Sz] of Char AppID //Application Identifier (8 Bytes)+
+                            //Appl. Authentication Code (3 Bytes)
+  case @.AppID of
+  'NETSCAPE2.0': TNetscapeAppData
+  else TSubBlocks
+  endc D
+ends:assert[@.Sz=11]
+
+TCtlExtRec struc
+  byte ExtMark //Extension Introducer
+  TCtlExtTag Tag
+  case @.Tag of
+    GrCtl: TGrCtlData
+    Comment: TStrTbl
+    PlainText: TPlainTextData
+    App: TAppData
+  else TSubBlocks 
+  endc D
+ends/*:[@.D:Size=@.Sz]*/:assert[@.ExtMark=0x21]
+
+TCtlExtList array of TCtlExtRec ? not @:assert!void;
+
+%$ELSE
+
+type
+TCtlExtList void  
+
+%$END
+
+type
+//Logical Screen Descriptor.
+TLogScrDescr struc
+  U2 W //Logical Screen Width
+  U2 H //Logical Screen Height
+  TLSDFlags F //Packed Fields
+  byte BkC //Background Color Index
+  byte AspectRatio //Pixel Aspect Ratio
+ends
+
+//Image Descriptor
+TImgDescr struc
+  Byte Sep //Image Separator
+  U2 Left //Image Left Position
+  U2 Top //Image Top Position
+  U2 W //Image Width
+  U2 H //Image Height
+  TImgFlags F //<Packed Fields>
+ends:assert[@.Sep=0x2C]
+
+TImgData struc
+  TCtlExtList Ext
+  TImgDescr Dsc
+  TColorTableF(@.Dsc.F.LocalC,@.Dsc.F.LocSize) CTbl
+  Byte LZWMinCode //LZW Minimum Code Size
+  TSubBlocks ImgData //Image Data
+ends:assert[@.Dsc:assert]
+
+TImgDataTbl array of TImgData ?not @:assert!Byte/*=0x3B*/;
+
+TGifStream struc
+  TLogScrDescr LSD
+  TColorTableF(@.LSD.F.GlobalC,@.LSD.F.GlobalSize) GColorTbl
+  TImgDataTbl Img
+ends
+
+data
+Hdr:Size TGifStream Stm
+

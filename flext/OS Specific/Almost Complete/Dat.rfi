@@ -1,0 +1,113 @@
+% Windows 95 Register(Dat.rfi):Class: OS Specific, Status: Almost Complete, Last change: 11.11.2002 8:51:00
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+type
+  TSign array[4] of Char
+
+data
+0 TSign CRegSign
+
+assert CRegSign='CREG';
+descr ('Win 95 registry file.',NL,
+  'Info Src: WinReg.txt by B.D. from www.wotsit.org',NL)
+
+
+const
+  RGKNOfs = 0x0020;
+
+type
+  TRGDBValKind enum ulong (
+    RegSZ=1, //0-terminated string (sometimes without the 0!)
+    RegBin=3, //binary value (a simple data-block)
+    RegDWord=4 //D-Word (always 4 bytes in size)
+  )
+
+  TRGDBValDat(DT,Sz) struc
+    case TRGDBValKind @:DT of
+      RegSZ: array[@@:Sz]of Char
+      RegDWord: ulong
+      RegBin: raw[@@:Sz]
+    endc D
+    raw[] Rest
+  ends:[@:Size=@:Sz]
+
+  TRGDBValRec struc
+    TRGDBValKind DT
+    ulong Z0
+    word NameLen
+    word DatLen
+    array[@.NameLen] of Char Name
+    TRGDBValDat(@.DT, @.DatLen) dat
+  ends
+
+  TRGDBDat struc
+    ulong SzUsed
+    word KeyLen
+    word valCnt
+    ulong Z0
+    array[@.KeyLen] of Char Key
+    array[@.ValCnt] of TRGDBValRec VTbl
+  ends
+
+  TRGDBRec struc
+    ulong Sz
+    ulong ID
+    case @.ID of
+      -1: void //Not used
+    else TRGDBDat
+    endc Dat
+    raw[] rest
+  ends:[@:Size=@.Sz]
+
+  TRGDBBlock struc
+    TSign Sign
+    ulong Sz
+    raw[0x18] rest
+    //raw[] rest1
+    array of TRGDBRec Tbl
+    //raw[] rest
+  ends:[@:Size=@.Sz]
+
+  TRGDBTbl(Sz) array of (TRGDBBlock):[@:Size=@:Sz]
+  PRGDBTbl(Sz) ^TRGDBTbl(@:Sz) near=ulong
+
+  PRGKNRec ^TRGKNRec -RGKNOfs Nil=0xFFFFFFFF near=ulong
+
+  TRGKNDat struc
+    Ulong Size
+    PRGKNRec Root
+  ends
+
+  TRGKNBlock struc
+    TSign Sign
+    case @.Sign of
+      'RGKN': TRGKNDat
+    endc dat
+  ends
+
+  TCREGDat struc
+    Ulong UL1
+    PRGDBTbl RGDBTbl
+    Ulong UL2
+    ulong RGDBSize
+    raw[12] rest
+    TRGKNBlock RGKN
+  ends:[@.RGDBTbl:Sz=@.RGDBSize]
+
+data
+  0x0004 TCREGDat CReg
+
+type
+  TRGKNRec struc
+    long Zero
+    ulong HashVal
+    long M1
+    PRGKNRec Par
+    PRGKNRec Sub
+    PRGKNRec Next
+    word hItem
+    word hBlock
+  ends:autoname=(@.Par^,'\',CReg.RGDBTbl^[@.hBlock].Tbl[@.hItem].Dat.0.Key)
+
+
+

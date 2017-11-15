@@ -1,0 +1,61 @@
+% Oracle messages file(MSB.rfh):Class: Resource, Status: Almost Complete, Last change: 15.11.2001 19:50:04
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+assert FileSize mod 0x200=0;
+descr ('Oracle messages file.')
+descr (NL,
+  'Info Src: Partially reconstructed by me (Alexei Hmelnov (mailto:alex@monster.icc.ru)).',NL)
+
+/* Valid only for US encoding
+type
+TSign struc
+  ulong S0
+  ulong S1
+ends:assert[@.S0=0x01221315, @.S1=0x09090313]
+
+data
+0 TSign Sign
+
+assert Sign:assert;
+*/
+
+type
+
+TMsg(Sz) array[@:Sz]of Char
+
+PMsg(Base,Sz) ^TMsg(@:Sz) hideref near=word, REF=@+@:Base; : displ=(@^,'{',@,'}')
+
+TMsgRec(Base) forward
+
+TMsgTbl(Cnt,Base) array[@:Cnt] of TMsgRec(@:Base)
+
+TMsgRec(Base) struc
+  long ID
+  PMsg(@:Base) S
+ends:[@.S:Sz=((@:@ as TMsgTbl)[@:#+1].S-@.S)exc 0]
+
+TNamesBlock struc
+  word Cnt
+  TMsgTbl(@.Cnt,&@) Tbl
+ends:[@:Size=0x200]
+
+type
+
+uint num(2):displ=(INT(@))
+dword num(4):displ=(INT(@))
+
+TBlkCounts struc
+  dword MaxIDBCnt
+  dword NBCnt //Name block count
+  dword X
+  dword MaxID
+ends
+
+data
+
+0x40 TBlkCounts Hdr
+
+0x400 array[Hdr.NBCnt]of uint BlMaxID
+
+0x200*(Hdr.MaxIDBCnt+2); array[Hdr.NBCnt/*(FileSize-0x600) div 0x200*/] of TNamesBlock Names
+

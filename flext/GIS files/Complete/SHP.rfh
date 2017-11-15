@@ -1,0 +1,133 @@
+% ArcInfo Shape file(SHP.rfh):Class: GIS files, Status: Complete, Last change: 01.03.2021 20:08:16
+% {"Author": "A.E.Hmelnov", "GENERATOR": "BinView (Win95; I) [AX]"}
+
+/* Information source:
+==================================================
+ArcView(R) Version 2 Shapefile Technical Description
+
+An ESRI White Paper
+==================================================
+*/
+
+include shp.rfi
+
+type
+
+TXPointM struc
+  TDouble X
+  TDouble Y
+  TDouble M
+ends
+
+TXPointZ struc
+  TDouble X
+  TDouble Y
+  TDouble Z
+  TDouble M
+ends
+
+TXPointTbl(N) array[@:N] of TXPoint
+
+TMTbl(N) struc
+  TDouble Vmin
+  TDouble Vmax
+  array[@:N] of TDouble Tbl
+ends
+
+TMultyPointData struc
+  TBBox BBox
+  long NumPoints
+  TXPointTbl(@.NumPoints) Points
+ends
+
+TMultyPointDataM struc
+  TMultyPointData A
+  TMTbl(@.A.NumPoints) M
+ends
+
+TMultyPointDataZ struc
+  TMultyPointData A
+  TMTbl(@.A.NumPoints) Z
+  TMTbl(@.A.NumPoints) M
+ends
+
+function calcArea(TXPoint& El, .V)=V + (El.X-(El:@ as TXPointTbl)[!El:#-1].X)*(El.Y+(El:@ as TXPointTbl)[!El:#-1].Y);
+
+type
+TArcData(Closed) struc
+  TBBox BBox
+  long NumParts
+  long NumPoints
+  array[@.NumParts] of long Parts
+  array[@.NumParts] of struc
+     TXPointTbl((@@@.Parts[@:#+1] exc @@@.NumPoints)-@@@.Parts[@:#]) T
+   ends:displ=(@.T,case @@@:Closed of
+      1: (' area=',FoldL(0,calcArea,@.T))
+     endc) Points
+ends
+
+TArcDataM(Closed) struc
+  TArcData(@:Closed) A
+  TMTbl(@.A.NumPoints) M
+ends
+
+TArcDataZ(Closed) struc
+  TArcData(@:Closed) A
+  TMTbl(@.A.NumPoints) Z
+  TMTbl(@.A.NumPoints) M
+ends            
+
+TPartType enum long (
+  TriStrip = 0,
+  TriFan = 1,
+  OuterRing = 2,
+  InnerRing = 3,
+  FirstRing = 4,
+  Ring = 5
+)
+
+TMultiPatch struc
+  TBBox BBox
+  long NumParts
+  long NumPoints
+  array[@.NumParts] of long Parts
+  array[@.NumParts] of TPartType PartTypes
+  array[@.NumParts] of struc
+     TXPointTbl((@@@.Parts[@:#+1] exc @@@.NumPoints)-@@@.Parts[@:#]) T
+   ends Points
+  TMTbl(@.NumPoints) Z
+  TMTbl(@.NumPoints) M
+ends            
+
+TShapeRecData(Len) struc
+  TShapeType ST
+  case @.ST of
+    Point: TXPoint
+    PointZ: TXPointZ
+    PointM: TXPointM
+    PolyLine,Polygon: TArcData(@@.ST=TShapeType.Polygon)
+    PolyLineM,PolygonM: TArcDataM(@@.ST=TShapeType.Polygon)
+    PolyLineZ,PolygonZ: TArcDataZ(@@.ST=TShapeType.Polygon)
+    MultiPoint: TMultyPointData
+    MultiPointZ: TMultyPointDataZ
+    MultiPointM: TMultyPointDataM
+    MultiPatch: TMultiPatch
+  endc SD
+  (raw[]at &@;) rest
+ends:[@:Size=@:Len*2]:assert[@.ST=Hdr.ShapeType]
+
+TShapeRec struc
+  longrev RecNo
+  ulongrev Len
+  TShapeRecData(@.Len) Data
+ends
+
+data
+Hdr:Size (array of TShapeRec:[@:Size=FileSize-&@]) Tbl
+
+descr ('ESRI Shapefile',NL)
+descr ('Info Source: ESRI Shapefile Technical Description, July 1998, An ESRI White Paper',NL)
+descr ('             ',URL('https://www.esri.com/Library/Whitepapers/Pdfs/Shapefile.pdf'),NL)
+
+
+
