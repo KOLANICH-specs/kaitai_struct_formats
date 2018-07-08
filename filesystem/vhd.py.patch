@@ -1,0 +1,12 @@
+diff --git a/./vhd.py b/./vhd.py
+--- a/./vhd.py
++++ b/./vhd.py
+@@ -346,7 +346,7 @@ class Vhd(KaitaiStruct):
+             self._read()
+ 
+         def _read(self):
+-            self.signature_ = self._io.ensure_fixed_contents(b"\x73\x69\x67\x6E\x61\x74\x75\x72\x65")
++            self.signature_ = self._io.ensure_fixed_contents(self.signature.encode("ascii"))
+             self.header = self._root.HeaderSelector(self.signature, self._io, self, self._root)
+ 
+ 
